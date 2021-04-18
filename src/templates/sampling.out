@@ -1,0 +1,489 @@
+count = salu1(0, 0, count, 0, 0);
+p_br_tmp0 = salu2(0, 0, count, 0, 0);
+p_sample = salu3(p_br_tmp0, 0, 0, 0, 1);
+
+// stateful output = state
+SKETCH version 1.7.6
+Benchmark = stateless_tofino.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+struct tempVar {
+    int id;
+    int temp;
+}
+/*statele..tofino.sk:138*/
+
+void salu1 (int metadata_lo, int metadata_hi, int register_lo_0, int register_hi_1, bit stateless_flag, ref int _out)/*statele..tofino.sk:138*/
+{
+  int register_hi = register_hi_1;
+  int update_hi_1_value = 0;
+  int update_hi_2_value = 0;
+  if(stateless_flag)/*statele..tofino.sk:147*/
+  {
+    int update_hi_1_value_s14 = 0;
+    stateful_compute_alu(0, metadata_lo, 0, update_hi_1_value_s14)//{};
+    update_hi_1_value = update_hi_1_value_s14;
+    int update_hi_2_value_s22 = 0;
+    stateful_compute_alu(0, metadata_lo, 0, update_hi_2_value_s22)//{};
+    update_hi_2_value = update_hi_2_value_s22;
+    int update_lo_1_value_s30 = 0;
+    stateful_compute_alu(0, metadata_lo, 0, update_lo_1_value_s30)//{};
+    int update_lo_2_value_s38 = 0;
+    stateful_compute_alu(0, metadata_lo, 0, update_lo_2_value_s38)//{};
+  }
+  else
+  {
+    int update_hi_1_value_s48 = 0;
+    stateful_compute_alu(0, 1, register_lo_0, update_hi_1_value_s48)//{};
+    update_hi_1_value = update_hi_1_value_s48;
+    int update_hi_2_value_s58 = 0;
+    stateful_compute_alu(0, 1, register_lo_0, update_hi_2_value_s58)//{};
+    update_hi_2_value = update_hi_2_value_s58;
+    int update_lo_1_value_s68 = 0;
+    stateful_compute_alu(7, 22, 30, update_lo_1_value_s68)//{};
+    int update_lo_2_value_s78 = 0;
+    stateful_compute_alu(2, metadata_lo, 3, update_lo_2_value_s78)//{};
+  }
+  bit condition_hi = 0;
+  bit condition_lo = 0;
+  if(stateless_flag)/*statele..tofino.sk:168*/
+  {
+    condition_hi = metadata_lo == 0;
+    condition_lo = metadata_lo != 0;
+  }
+  else
+  {
+    condition_hi = (metadata_lo - 0) <= 0;
+    condition_lo = ((metadata_lo - register_lo_0) + 29) != 0;
+  }
+  bit update_hi_1_predicate_s124 = condition_hi & condition_lo;
+  assert (!(update_hi_1_predicate_s124 && (!(condition_hi)))); //ASSERTION CAN NOT BE SATISFIED: statele..tofino.sk:200 Assert at statele..tofino.sk:200 (1)
+  if(update_hi_1_predicate_s124 && (!(!(condition_hi))))/*statele..tofino.sk:201*/
+  {
+    register_hi = update_hi_1_value;
+  }
+  else
+  {
+    if((!(update_hi_1_predicate_s124)) && (!(condition_hi)))/*statele..tofino.sk:203*/
+    {
+      register_hi = update_hi_2_value;
+    }
+    else
+    {
+      register_hi = register_hi_1;
+    }
+  }
+  assert (!((!(condition_hi)) && (condition_hi | condition_lo))); //ASSERTION CAN NOT BE SATISFIED: statele..tofino.sk:211 Assert at statele..tofino.sk:211 (1)
+  _out = register_hi;
+  return;
+}
+/*statele..tofino.sk:292*/
+
+void sampling1_stateful (int count_0, ref int _out)/*statele..tofino.sk:292*/
+{
+  int p_count2 = (count_0 == 29 ? 0 : count_0);
+  int p_count4 = (!(count_0 == 29) ? p_count2 + 1 : p_count2);
+  _out = p_count4;
+  return;
+}
+/*statele..tofino.sk:308*/
+
+void sketch (bit p_br_tmp0, int count)/*statele..tofino.sk:308*/
+{
+  int _out_s4 = 0;
+  salu(0, 0, count, 0, 0, _out_s4);
+  int _out_s6 = 0;
+  sampling1_stateful(count, _out_s6);
+  assert (_out_s4 == _out_s6); //Assert at statele..tofino.sk:323 (0)
+}
+/*statele..tofino.sk:308*/
+
+void sketch__Wrapper (bit p_br_tmp0, int count)  implements sketch__WrapperNospec/*statele..tofino.sk:308*/
+{
+  sketch(p_br_tmp0, count);
+}
+/*statele..tofino.sk:308*/
+
+void sketch__WrapperNospec (bit p_br_tmp0, int count)/*statele..tofino.sk:308*/
+{ }
+/*statele..tofino.sk:106*/
+
+void stateful_compute_alu (int op, int o1, int o2, ref int _out)/*statele..tofino.sk:106*/
+{
+  if(op == 0)/*statele..tofino.sk:107*/
+  {
+    _out = o1 + o2;
+    return;
+  }
+  else
+  {
+    if(op == 1)/*statele..tofino.sk:110*/
+    {
+      _out = o1 - o2;
+      return;
+    }
+    else
+    {
+      if(op == 2)/*statele..tofino.sk:113*/
+      {
+        _out = o2 - o1;
+        return;
+      }
+      else
+      {
+        if(op == 3)/*statele..tofino.sk:116*/
+        {
+          _out = o2;
+          return;
+        }
+        else
+        {
+          if(op == 4)/*statele..tofino.sk:119*/
+          {
+            _out = o1;
+            return;
+          }
+          else
+          {
+            if(op == 5)/*statele..tofino.sk:122*/
+            {
+              _out = 0;
+              return;
+            }
+            else
+            {
+              _out = 1;
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 573
+
+// stateful: output = p_br_tmp0
+
+SKETCH version 1.7.6
+Benchmark = stateless_tofino.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+struct tempVar {
+    int id;
+    int temp;
+}
+/*statele..tofino.sk:138*/
+
+void salu (int metadata_lo, int metadata_hi, int register_lo_0, int register_hi_1, bit stateless_flag, ref int _out)/*statele..tofino.sk:138*/
+{
+  int register_hi = register_hi_1;
+  int update_hi_1_value = 0;
+  int update_hi_2_value = 0;
+  if(stateless_flag)/*statele..tofino.sk:147*/
+  {
+    int update_hi_1_value_s14 = 0;
+    stateful_compute_alu(0, metadata_lo, 0, update_hi_1_value_s14)//{};
+    update_hi_1_value = update_hi_1_value_s14;
+    int update_hi_2_value_s22 = 0;
+    stateful_compute_alu(0, metadata_lo, 0, update_hi_2_value_s22)//{};
+    update_hi_2_value = update_hi_2_value_s22;
+    int update_lo_1_value_s30 = 0;
+    stateful_compute_alu(0, metadata_lo, 0, update_lo_1_value_s30)//{};
+    int update_lo_2_value_s38 = 0;
+    stateful_compute_alu(0, metadata_lo, 0, update_lo_2_value_s38)//{};
+  }
+  else
+  {
+    int update_hi_1_value_s48 = 0;
+    stateful_compute_alu(1, 30, register_lo_0, update_hi_1_value_s48)//{};
+    update_hi_1_value = update_hi_1_value_s48;
+    int update_hi_2_value_s58 = 0;
+    stateful_compute_alu(2, 25, register_lo_0, update_hi_2_value_s58)//{};
+    update_hi_2_value = update_hi_2_value_s58;
+    int update_lo_1_value_s68 = 0;
+    stateful_compute_alu(3, 28, 21, update_lo_1_value_s68)//{};
+    int update_lo_2_value_s78 = 0;
+    stateful_compute_alu(6, 0, register_lo_0, update_lo_2_value_s78)//{};
+  }
+  bit condition_hi = 0;
+  bit condition_lo = 0;
+  if(stateless_flag)/*statele..tofino.sk:168*/
+  {
+    condition_hi = metadata_lo > 0;
+    condition_lo = metadata_lo < 0;
+  }
+  else
+  {
+    condition_hi = ((0 - register_lo_0) + 25) != 0;
+    condition_lo = ((metadata_lo - register_lo_0) + 29) == 0;
+  }
+  bit update_hi_1_predicate_s124 = condition_hi & condition_lo;
+  assert (!(update_hi_1_predicate_s124 && (!(condition_hi)))); //ASSERTION CAN NOT BE SATISFIED: statele..tofino.sk:200 Assert at statele..tofino.sk:200 (1)
+  if(update_hi_1_predicate_s124 && (!(!(condition_hi))))/*statele..tofino.sk:201*/
+  {
+    register_hi = update_hi_1_value;
+  }
+  else
+  {
+    if((!(update_hi_1_predicate_s124)) && (!(condition_hi)))/*statele..tofino.sk:203*/
+    {
+      register_hi = update_hi_2_value;
+    }
+    else
+    {
+      register_hi = register_hi_1;
+    }
+  }
+  assert (!((!(condition_hi)) && (condition_hi & condition_lo))); //ASSERTION CAN NOT BE SATISFIED: statele..tofino.sk:211 Assert at statele..tofino.sk:211 (1)
+  _out = register_hi;
+  return;
+}
+/*statele..tofino.sk:303*/
+
+void sampling1_stateful2 (int count_0, ref int _out)/*statele..tofino.sk:303*/
+{
+  _out = count_0 == 29;
+  return;
+}
+/*statele..tofino.sk:319*/
+
+void sketch (bit p_br_tmp0, int count)/*statele..tofino.sk:319*/
+{
+  int _out_s4 = 0;
+  salu(0, 0, count, 0, 0, _out_s4);
+  int _out_s6 = 0;
+  sampling1_stateful2(count, _out_s6);
+  assert (_out_s4 == _out_s6); //Assert at statele..tofino.sk:335 (0)
+}
+/*statele..tofino.sk:319*/
+
+void sketch__Wrapper (bit p_br_tmp0, int count)  implements sketch__WrapperNospec/*statele..tofino.sk:319*/
+{
+  sketch(p_br_tmp0, count);
+}
+/*statele..tofino.sk:319*/
+
+void sketch__WrapperNospec (bit p_br_tmp0, int count)/*statele..tofino.sk:319*/
+{ }
+/*statele..tofino.sk:106*/
+
+void stateful_compute_alu (int op, int o1, int o2, ref int _out)/*statele..tofino.sk:106*/
+{
+  if(op == 0)/*statele..tofino.sk:107*/
+  {
+    _out = o1 + o2;
+    return;
+  }
+  else
+  {
+    if(op == 1)/*statele..tofino.sk:110*/
+    {
+      _out = o1 - o2;
+      return;
+    }
+    else
+    {
+      if(op == 2)/*statele..tofino.sk:113*/
+      {
+        _out = o2 - o1;
+        return;
+      }
+      else
+      {
+        if(op == 3)/*statele..tofino.sk:116*/
+        {
+          _out = o2;
+          return;
+        }
+        else
+        {
+          if(op == 4)/*statele..tofino.sk:119*/
+          {
+            _out = o1;
+            return;
+          }
+          else
+          {
+            if(op == 5)/*statele..tofino.sk:122*/
+            {
+              _out = 0;
+              return;
+            }
+            else
+            {
+              _out = 1;
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 575
+
+// stateless (sample)
+SKETCH version 1.7.6
+Benchmark = stateless_tofino.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+struct tempVar {
+    int id;
+    int temp;
+}
+/*statele..tofino.sk:138*/
+
+void salu (int metadata_lo, int metadata_hi, int register_lo_0, int register_hi_1, bit stateless_flag, ref int _out)/*statele..tofino.sk:138*/
+{
+  int register_lo = register_lo_0;
+  int update_lo_1_value = 0;
+  int update_lo_2_value = 0;
+  if(stateless_flag)/*statele..tofino.sk:147*/
+  {
+    int update_hi_1_value_s14 = 0;
+    stateful_compute_alu(7, metadata_hi, 16, update_hi_1_value_s14)//{};
+    int update_hi_2_value_s22 = 0;
+    stateful_compute_alu(1, metadata_hi, 1, update_hi_2_value_s22)//{};
+    int update_lo_1_value_s30 = 0;
+    stateful_compute_alu(4, 21, 0, update_lo_1_value_s30)//{};
+    update_lo_1_value = update_lo_1_value_s30;
+    int update_lo_2_value_s38 = 0;
+    stateful_compute_alu(7, metadata_lo, 4, update_lo_2_value_s38)//{};
+    update_lo_2_value = update_lo_2_value_s38;
+  }
+  else
+  {
+    int update_hi_1_value_s48 = 0;
+    stateful_compute_alu(0, metadata_lo, register_lo_0, update_hi_1_value_s48)//{};
+    int update_hi_2_value_s58 = 0;
+    stateful_compute_alu(0, metadata_lo, register_lo_0, update_hi_2_value_s58)//{};
+    int update_lo_1_value_s68 = 0;
+    stateful_compute_alu(0, metadata_lo, register_lo_0, update_lo_1_value_s68)//{};
+    update_lo_1_value = update_lo_1_value_s68;
+    int update_lo_2_value_s78 = 0;
+    stateful_compute_alu(0, metadata_lo, register_lo_0, update_lo_2_value_s78)//{};
+    update_lo_2_value = update_lo_2_value_s78;
+  }
+  bit condition_hi = 0;
+  bit condition_lo = 0;
+  if(stateless_flag)/*statele..tofino.sk:168*/
+  {
+    condition_hi = ((0 - metadata_lo) + 1) == 0;
+    condition_lo = ((0 - metadata_lo) - 5) == 0;
+  }
+  else
+  {
+    condition_hi = (metadata_lo + register_lo_0) == 0;
+    condition_lo = (metadata_lo + register_lo_0) > 0;
+  }
+  bit update_lo_1_predicate_s128 = condition_hi & condition_lo;
+  bit update_lo_2_predicate_s130 = condition_hi | condition_lo;
+  assert (!((condition_hi & condition_lo) && (!(condition_hi)))); //ASSERTION CAN NOT BE SATISFIED: statele..tofino.sk:200 Assert at statele..tofino.sk:200 (1)
+  assert (!(update_lo_1_predicate_s128 && update_lo_2_predicate_s130)); //ASSERTION CAN NOT BE SATISFIED: statele..tofino.sk:211 Assert at statele..tofino.sk:211 (1)
+  if(update_lo_1_predicate_s128 && (!(update_lo_2_predicate_s130)))/*statele..tofino.sk:212*/
+  {
+    register_lo = update_lo_1_value;
+  }
+  else
+  {
+    if((!(update_lo_1_predicate_s128)) && update_lo_2_predicate_s130)/*statele..tofino.sk:214*/
+    {
+      register_lo = update_lo_2_value;
+    }
+    else
+    {
+      register_lo = register_lo_0;
+    }
+  }
+  _out = register_lo;
+  return;
+}
+/*statele..tofino.sk:303*/
+
+void sampling2 (bit p_br_tmp0, ref int _out)/*statele..tofino.sk:303*/
+{
+  _out = (p_br_tmp0 ? 1 : 0);
+  return;
+}
+/*statele..tofino.sk:308*/
+
+void sketch (bit p_br_tmp0, int count)/*statele..tofino.sk:308*/
+{
+  int _out_s4 = 0;
+  salu(p_br_tmp0, 0, 0, 0, 1, _out_s4);
+  int _out_s6 = 0;
+  sampling2(p_br_tmp0, _out_s6);
+  assert (_out_s4 == _out_s6); //Assert at statele..tofino.sk:324 (0)
+}
+/*statele..tofino.sk:308*/
+
+void sketch__Wrapper (bit p_br_tmp0, int count)  implements sketch__WrapperNospec/*statele..tofino.sk:308*/
+{
+  sketch(p_br_tmp0, count);
+}
+/*statele..tofino.sk:308*/
+
+void sketch__WrapperNospec (bit p_br_tmp0, int count)/*statele..tofino.sk:308*/
+{ }
+/*statele..tofino.sk:106*/
+
+void stateful_compute_alu (int op, int o1, int o2, ref int _out)/*statele..tofino.sk:106*/
+{
+  if(op == 0)/*statele..tofino.sk:107*/
+  {
+    _out = o1 + o2;
+    return;
+  }
+  else
+  {
+    if(op == 1)/*statele..tofino.sk:110*/
+    {
+      _out = o1 - o2;
+      return;
+    }
+    else
+    {
+      if(op == 2)/*statele..tofino.sk:113*/
+      {
+        _out = o2 - o1;
+        return;
+      }
+      else
+      {
+        if(op == 3)/*statele..tofino.sk:116*/
+        {
+          _out = o2;
+          return;
+        }
+        else
+        {
+          if(op == 4)/*statele..tofino.sk:119*/
+          {
+            _out = o1;
+            return;
+          }
+          else
+          {
+            if(op == 5)/*statele..tofino.sk:122*/
+            {
+              _out = 0;
+              return;
+            }
+            else
+            {
+              _out = 1;
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 488
+
+

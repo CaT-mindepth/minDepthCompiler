@@ -1,0 +1,24 @@
+int p_loss;
+int p_qlen;
+int p_now;
+int p_link_idle;
+int p_cond1;
+int p_now_plus_free0;
+int last_update;
+int p_mark;
+int p_p_mark00;
+int p_p_mark01;
+int p_last_update00;
+int p_last_update01;
+bit p_tmp00;
+int p_tmp2;
+# declarations end
+p_p_mark00 = p_mark;
+p_last_update00 = last_update;
+p_now_plus_free0 = p_now - 1;
+p_tmp00 = p_now_plus_free0 > p_last_update00;
+p_tmp2 = p_p_mark00 - 2;
+p_p_mark01 = (p_tmp00) ? p_tmp2 : p_p_mark00;
+p_last_update01 = (p_tmp00) ? (p_now) : p_last_update00;
+p_mark = (p_tmp00) ? p_tmp2 : p_p_mark00;
+last_update = (p_tmp00) ? (p_now) : p_last_update00;

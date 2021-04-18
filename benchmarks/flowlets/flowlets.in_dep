@@ -1,0 +1,19 @@
+// Dependency graph
+digraph {
+	"pkt_last_time_pkt_id0_0 = last_time[pkt_id0];"
+	"pkt_br_tmp0 = (pkt_arrival0 - pkt_last_time_pkt_id0_0 > 2);"
+	"last_time[pkt_id0] = pkt_arrival0;"
+	"pkt_saved_hop_pkt_id0_2 = pkt_br_tmp0 ? pkt_new_hop0 | pkt_saved_hop_pkt_id0_0;"
+	"pkt_saved_hop_pkt_id0_0 = saved_hop[pkt_id0];"
+	"saved_hop[pkt_id0] = pkt_saved_hop_pkt_id0_2;"
+	"pkt_next_hop1 = pkt_saved_hop_pkt_id0_2;"
+	"pkt_last_time_pkt_id0_0 = last_time[pkt_id0];" -> "pkt_br_tmp0 = (pkt_arrival0 - pkt_last_time_pkt_id0_0 > 2);"
+	"pkt_last_time_pkt_id0_0 = last_time[pkt_id0];" -> "last_time[pkt_id0] = pkt_arrival0;"
+	"pkt_br_tmp0 = (pkt_arrival0 - pkt_last_time_pkt_id0_0 > 2);" -> "pkt_saved_hop_pkt_id0_2 = pkt_br_tmp0 ? pkt_new_hop0 | pkt_saved_hop_pkt_id0_0;"
+	"last_time[pkt_id0] = pkt_arrival0;" -> "pkt_last_time_pkt_id0_0 = last_time[pkt_id0];"
+	"pkt_saved_hop_pkt_id0_2 = pkt_br_tmp0 ? pkt_new_hop0 | pkt_saved_hop_pkt_id0_0;" -> "pkt_next_hop1 = pkt_saved_hop_pkt_id0_2;"
+	"pkt_saved_hop_pkt_id0_2 = pkt_br_tmp0 ? pkt_new_hop0 | pkt_saved_hop_pkt_id0_0;" -> "saved_hop[pkt_id0] = pkt_saved_hop_pkt_id0_2;"
+	"pkt_saved_hop_pkt_id0_0 = saved_hop[pkt_id0];" -> "pkt_saved_hop_pkt_id0_2 = pkt_br_tmp0 ? pkt_new_hop0 | pkt_saved_hop_pkt_id0_0;"
+	"pkt_saved_hop_pkt_id0_0 = saved_hop[pkt_id0];" -> "saved_hop[pkt_id0] = pkt_saved_hop_pkt_id0_2;"
+	"saved_hop[pkt_id0] = pkt_saved_hop_pkt_id0_2;" -> "pkt_saved_hop_pkt_id0_0 = saved_hop[pkt_id0];"
+}

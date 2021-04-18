@@ -1,0 +1,16 @@
+condition_hi = (count == 29)
+condition_lo = 0 // false
+
+update_hi_1_predicate = condition_hi || condition_lo // = condition_hi
+update_hi_2_predicate = !update_hi_1_predicate
+
+update_hi_1_value = 0
+update_hi_2_value = count + 1
+
+// state var count is set to 0 if count == 29 and incremented otherwise
+
+// update lo predicates same as update hi predicates
+update_hi_1_predicate = (count == 29)
+update_hi_2_predicate = !update_hi_1_predicate
+update_lo_1_value = 1
+update_lo_2_value = 0

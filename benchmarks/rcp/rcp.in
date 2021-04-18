@@ -1,0 +1,27 @@
+int pkt_rtt;
+int pkt_size_bytes;
+int input_traffic_Bytes;
+int pkt_input_traffic_Bytes00;
+int pkt_input_traffic_Bytes01;
+int sum_rtt_Tr;
+int pkt_sum_rtt_Tr00;
+int pkt_sum_rtt_Tr01;
+int num_pkts_with_rtt;
+int pkt_num_pkts_with_rtt00;
+int pkt_num_pkts_with_rtt01;
+bit pkt_tmp00;
+int pkt_tmp3;
+int pkt_tmp4;
+# declarations end
+pkt_input_traffic_Bytes00 = input_traffic_Bytes;
+input_traffic_Bytes = pkt_input_traffic_Bytes00 + pkt_size_bytes;
+pkt_tmp00 = pkt_rtt < 30;
+pkt_sum_rtt_Tr00 = sum_rtt_Tr;
+pkt_tmp3 = pkt_sum_rtt_Tr00 + pkt_rtt;
+sum_rtt_Tr = (pkt_tmp00) ? pkt_tmp3 : pkt_sum_rtt_Tr00;
+pkt_num_pkts_with_rtt00 = num_pkts_with_rtt;
+pkt_tmp4 = pkt_num_pkts_with_rtt00 + 1;
+num_pkts_with_rtt = (pkt_tmp00) ? pkt_tmp4 : pkt_num_pkts_with_rtt00;
+pkt_input_traffic_Bytes01 = pkt_input_traffic_Bytes00 + pkt_size_bytes;
+pkt_sum_rtt_Tr01 = (pkt_tmp00) ? pkt_tmp3 : pkt_sum_rtt_Tr00;
+pkt_num_pkts_with_rtt01 = (pkt_tmp00) ? pkt_tmp4 : pkt_num_pkts_with_rtt00;

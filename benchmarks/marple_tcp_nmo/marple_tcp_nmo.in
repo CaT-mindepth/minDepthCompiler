@@ -1,0 +1,20 @@
+int p_tcpseq;
+int count;
+int maxseq;
+int p_count00;
+int p_count01;
+int p_maxseq00;
+int p_maxseq01;
+bit p_tmp00;
+bit p_tmp4;
+int p_tmp3;
+# declarations end
+p_maxseq00 = maxseq;
+p_tmp00 = p_tcpseq < p_maxseq00;
+p_tmp4 = !p_tmp00;
+maxseq = p_tmp4 ? (p_tcpseq) : p_maxseq00;
+p_count00 = count;
+p_tmp3 = p_count00 + 1;
+count = (p_tmp00) ? p_tmp3 : p_count00;
+p_maxseq01 = p_tmp4 ? (p_tcpseq) : p_maxseq00;
+p_count01 = (p_tmp00) ? p_tmp3 : p_count00;

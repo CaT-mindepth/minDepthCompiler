@@ -1,0 +1,12 @@
+int p_new0;
+int count;
+int p_new;
+int p_count00;
+int p_count01;
+bit p_tmp00;
+# declarations end
+p_count00 = count;
+p_tmp00 = p_count00 == 0;
+count = (p_tmp00) ? (1) : p_count00;
+p_count01 = (p_tmp00) ? (1) : p_count00;
+p_new0 = (p_tmp00) ? (1) : p_new;

@@ -1,0 +1,26 @@
+int p_pkt_3;
+int p_pkt_1;
+int p_pkt_2;
+int p_pkt_0;
+int state_group_0_state_0;
+int p_state_group_0_state_001;
+bit p_tmp00;
+bit p_tmp6;
+bit p_tmp3;
+bit p_tmp10;
+bit p_tmp4;
+bit p_tmp5;
+int p_pkt_30;
+int p_state_group_0_state_000;
+# declarations end
+p_state_group_0_state_000 = state_group_0_state_0;
+p_pkt_0=p_pkt_1*1+p_pkt_2;
+p_tmp00 = p_pkt_1 == 102;
+p_state_group_0_state_001 = (p_tmp00) ? (1) : p_state_group_0_state_000;
+p_tmp6 = !p_tmp00;
+p_tmp3 = p_pkt_2 == 102;
+p_tmp10 = p_tmp6 ? p_tmp3 : 0;
+p_tmp4 = p_tmp6 && p_tmp10;
+p_tmp5 = p_state_group_0_state_001 == 0;
+p_pkt_30 = p_tmp4 ? p_tmp5 : p_pkt_3;
+state_group_0_state_0 = (p_tmp00) ? (1) : p_state_group_0_state_000;

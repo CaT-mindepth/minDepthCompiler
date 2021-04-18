@@ -1,0 +1,25 @@
+int pkt_sport0;
+int pkt_dport0;
+int pkt_new_hop0;
+int pkt_arrival0;
+int pkt_next_hop0;
+int pkt_next_hop1;
+int pkt_id0;
+int pkt_last_time_pkt_id0_0;
+int pkt_last_time_pkt_id0_1;
+int pkt_saved_hop_pkt_id0_0;
+int pkt_saved_hop_pkt_id0_1;
+int pkt_saved_hop_pkt_id0_2;
+# state variables start
+int last_time;
+int saved_hop;
+# state variables end
+bit pkt_br_tmp0;
+# declarations end
+pkt_last_time_pkt_id0_0 = last_time[pkt_id0];
+pkt_br_tmp0 = (pkt_arrival0 - pkt_last_time_pkt_id0_0 > 2);
+pkt_saved_hop_pkt_id0_0 = saved_hop[pkt_id0];
+pkt_saved_hop_pkt_id0_2 = pkt_br_tmp0 ? pkt_new_hop0 : pkt_saved_hop_pkt_id0_0;
+pkt_next_hop1 = pkt_saved_hop_pkt_id0_2;
+last_time[pkt_id0] = pkt_arrival0;
+saved_hop[pkt_id0] = pkt_saved_hop_pkt_id0_2;

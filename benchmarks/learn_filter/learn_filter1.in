@@ -1,0 +1,23 @@
+int p_sport;
+int p_dport;
+int p_pkt_0;
+int p_filter1_idx;
+int p_filter2_idx;
+int p_filter3_idx;
+int p_state_group_0_state_000;
+int p_state_group_1_state_000;
+int p_state_group_2_state_000;
+int state_group_0_state_0;
+int state_group_1_state_0;
+int state_group_2_state_0;
+bit p_tmp00;
+int p_pkt_00;
+# declarations end
+p_state_group_0_state_000 = state_group_0_state_0;
+p_state_group_1_state_000 = state_group_1_state_0;
+p_state_group_2_state_000 = state_group_2_state_0;
+p_tmp00 = (1==1) && state_group_0_state_0!=0 && state_group_1_state_0!=0 && state_group_2_state_0!=0 && (1==1) && (1==1);
+p_pkt_00 = (p_tmp00) ? (1) : p_pkt_0;
+state_group_0_state_0 = 1;
+state_group_1_state_0 = 1;
+state_group_2_state_0 = 1;
