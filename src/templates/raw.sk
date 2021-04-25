@@ -1,0 +1,6 @@
+int raw(int state_0, int pkt_0) implements {}
+{
+  int old_state_0 = state_0;
+  state_0 = Opt(state_0) + Mux2(pkt_0, C());
+  return Mux2(old_state_0, state_0);
+}

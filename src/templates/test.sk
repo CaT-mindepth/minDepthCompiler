@@ -1,0 +1,35 @@
+int[2] spec(int a) {
+    int[2] out;
+    bit cond = (a == 2);
+    a = a + 1;
+    out[0] = a;
+    out[1] = cond;
+    return out;
+}
+
+int[2] impl(int a) {
+    int[2] out;
+    bit cond = (a == ??);
+    int a1 = {| a (+ | -) ?? |};
+
+    out[0] = a1;
+    out[1] = cond;
+    return out;
+}
+
+int[2] impl
+
+int[2] spec1(int a, int b, int c) {
+    int[2] out;
+    out[0] = a + b + c;
+    out[1] = a + d + b;
+    return out;
+}
+
+harness void main(int count) {
+    int[2] out_impl, out_spec;
+    out_impl = impl(count);
+    out_spec = spec(count);
+    assert(out_impl == out_spec);
+}
+
