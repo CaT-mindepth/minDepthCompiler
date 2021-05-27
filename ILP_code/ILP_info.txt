@@ -1,0 +1,12 @@
+Table Info:
+T1
+T2
+T3
+T4
+Dep Info:
+T2 has Action dependency relationship with T3
+Action Info:
+T1:10;(1,4);(7,9);(9,10)
+T2:2;
+T3:10;(4,7)
+T4:10;(1,9);(7,9)

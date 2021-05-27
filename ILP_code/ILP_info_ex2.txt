@@ -1,0 +1,6 @@
+Table Info:
+sample
+Dep Info:
+Action Info:
+TODO: filled by min-depth-tree
+Format: T1:5;(1,2);(3,4);(4,5)
