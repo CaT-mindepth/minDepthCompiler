@@ -2,6 +2,7 @@ import sys
 import ply.lex as lex
 import lexerRules
 import networkx as nx
+import copy
 from graphviz import Digraph
 import subprocess
 from sketch_output_processor import SketchOutputProcessor
@@ -9,24 +10,47 @@ from sketch_output_processor import SketchOutputProcessor
 class Component: # group of codelets
 	def __init__(self, codelet_list):
 		self.codelets = codelet_list # topologically sorted
+		self.isStateful = False
 		self.get_inputs_outputs()
 		self.get_component_stmts()
 
 	def get_inputs_outputs(self):
-		self.inputs = []
+		inputs = set()
 		outputs = set()
 		for codelet in self.codelets:
 			ins = codelet.get_inputs()
 			outs = codelet.get_outputs()
-			self.inputs.extend([i for i in ins if i not in outputs])
+			inputs.update([i for i in ins if i not in outputs])
 			outputs.update(outs)
 
+		self.inputs = list(inputs)
 		self.outputs = list(outputs)
 
 	def get_component_stmts(self):
 		self.comp_stmts = []
 		for codelet in self.codelets:
 			self.comp_stmts.extend(codelet.get_stmt_list())
+
+	def print(self):
+		for s in self.comp_stmts:
+			s.print()
+	
+	def __str__(self):
+		return " ".join([s.get_stmt() for s in self.comp_stmts])
+
+class StatefulComponent():
+	def __init__(self, stateful_codelet):
+		self.codelet = stateful_codelet
+		self.salu_inputs = {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 0, 'register_hi': 0}
+		self.isStateful = True
+	
+	def print(self):
+		stmts = self.codelet.get_stmt_list()
+		for s in stmts:
+			s.print()
+
+	def __str__(self):
+		return str(self.codelet)
 
 class Synthesizer:
 	def __init__(self, state_vars, var_types, dep_graph, stateful_nodes, filename):
@@ -35,7 +59,7 @@ class Synthesizer:
 		self.filename = filename
 		self.templates_path = "templates"
 		
-		self.dep_graph = dep_graph
+		self.dep_graph = dep_graph # scc_graph in DependencyGraph
 		self.stateful_nodes = stateful_nodes
 		self.components = []
 
@@ -44,7 +68,6 @@ class Synthesizer:
 
 		self.synth_output_processor = SketchOutputProcessor()
 		print("Synthesizer")
-		print("stateful nodes", self.stateful_nodes)
 		self.process_graph()
 		self.synth_output_processor.schedule()
 
@@ -60,21 +83,44 @@ class Synthesizer:
 			return self.var_types[array_name]
 
 	def process_graph(self):
-		
+		original_dep_edges = copy.deepcopy(self.dep_graph.edges())
+		print("original_dep_edges")
+		for u, v in original_dep_edges:
+			print("edge")
+			print("u")
+			u.print()
+			print("v")
+			v.print()
+
+		print("\n Dep graph nodes")
+		for codelet in self.dep_graph.nodes:
+			print()
+			codelet.print()
+
+		print("\n Dep graph stateful nodes")
+		for codelet in self.stateful_nodes:
+			print()
+			codelet.print()
+
 		self.dep_graph.remove_nodes_from(self.stateful_nodes)
 		# remove incoming and outgoing edges
 		# self.dep_graph.remove_edges_from([(w, u) for w in self.dep_graph.predecessors(u)])
 		# self.dep_graph.remove_edges_from([(u, v) for v in self.dep_graph.successors(u)])
 
 		i = 0
+		codelet_component = {} # codelet repr -> component it belongs to
+	
 		for u in self.stateful_nodes:
 			print("stateful codelet ", i)
-			output_file = "{}_stateful_{}".format(self.filename, i)
-			codelet_name = "stateful_{}".format(i)
-			self.synthesize_stateful_codelet(u, codelet_name, output_file) # TODO: synthesize stateful components
+			stateful_comp = StatefulComponent(u)
+			self.components.append(stateful_comp)
+			codelet_component[str(u)] = stateful_comp
+			# output_file = "{}_stateful_{}".format(self.filename, i)
+			# codelet_name = "stateful_{}".format(i)
+			# self.synthesize_stateful_codelet(u, codelet_name, output_file) # TODO: synthesize stateful components
+			# self.synthesize_stateful_codelet_tofino(u, codelet_name, output_file) # TODO: synthesize stateful components
 			i += 1
 	
-
 		i = 0
 		for comp in nx.weakly_connected_components(self.dep_graph):
 			print("component ", i)
@@ -85,12 +131,98 @@ class Synthesizer:
 					comp_sorted.append(codelet)
 
 			component = Component(comp_sorted)
+
+			for codelet in comp_sorted:
+				codelet_component[str(codelet)] = component
+
 			self.components.append(component)
 
-			output_file = "{}_comp_{}".format(self.filename, i)
-			self.synthesize_comp(component, output_file, i) # synthesize component
+			# output_file = "{}_comp_{}".format(self.filename, i)
+			# self.synthesize_comp(component, output_file, i) # synthesize component
 			i += 1
 
+		####
+		print("\n Original_dep_edges")
+		for u, v in original_dep_edges:
+			print("edge")
+			print("u")
+			u.print()
+			print("v")
+			v.print()
+		print()
+		######
+
+		print("codelet_component", codelet_component)
+
+		# create component graph
+		print("Add component graph edges")
+		self.comp_graph = nx.DiGraph()
+		self.comp_graph.add_nodes_from(self.components)	
+		for u, v in original_dep_edges: # add edges between components
+			# key error because original_dep_edges is a deep copy
+			if codelet_component[str(u)] != codelet_component[str(v)]:
+				self.comp_graph.add_edge(codelet_component[str(u)], codelet_component[str(v)])
+				print(str(codelet_component[str(u)]))
+				print("->")
+				print(str(codelet_component[str(v)]))
+				print()
+
+		comp_index = {} # component -> index
+		sorted_comps = []
+		i = 0
+		for comp in nx.topological_sort(self.comp_graph):
+			sorted_comps.append(comp)
+			comp_index[comp] = i
+			print("index", i)
+			comp.print()
+			i += 1
+		print(comp_index)
+		# nx.draw(self.comp_graph)
+
+	def synthesize_stateful_codelet_tofino(self, codelet, codelet_name, output_file):
+		inputs = codelet.get_inputs()
+		outputs = codelet.get_outputs()
+		o = codelet.get_state_pkt_field()
+		print("inputs", inputs)
+		print("outputs", outputs)
+		print("o", o)
+		# other_inputs = [i for comp in self.components for i in comp.inputs] + [i for s in self.stateful_nodes for i in s.get_inputs()]
+		# used_outputs = [o for o in component.outputs if o in other_inputs] # outputs of component that are inputs of other components
+		# if len(used_outputs) == 0: # TODO: packet variable is always an output
+		# 	used_outputs = component.outputs
+		# print("used_outputs", used_outputs)
+
+		stmts = codelet.get_stmt_list()
+
+		for stmt in stmts:
+			stmt.print()
+
+		if len(inputs) > 4:
+			print("Error: stateful update does not fit in the stateful ALU.")
+			exit(1)
+		
+		salu_inputs = {'metadata_lo': 0, 'metadata_hi':0, 'register_lo':0, 'register_hi': 0}
+		for i in inputs:
+			if i in self.state_vars:
+				if salu_inputs['register_lo'] == 0:
+					salu_inputs['register_lo'] = i
+				elif salu_inputs['register_hi'] == 0:
+					salu_inputs['register_hi'] = i
+				else:
+					print("Error: Cannot have > 2 state variables in a stateful ALU.")
+					assert(False)
+			else:
+				if salu_inputs['metadata_lo'] == 0:
+					salu_inputs['metadata_lo'] = i
+				elif salu_inputs['metadata_hi'] == 0:
+					salu_inputs['metadata_hi'] = i
+				else:
+					print("Error: Cannot have > 2 metadata fields in a stateful ALU.")
+					assert(False)
+
+		
+		
+		
 
 	def synthesize_stateful_codelet(self, codelet, codelet_name, output_file):
 		inputs = codelet.get_inputs()

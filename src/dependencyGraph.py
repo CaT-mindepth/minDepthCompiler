@@ -154,6 +154,12 @@ class Codelet:
 		# all defines are outputs (may or may not be used by subsequent codelets)
 		return [stmt.lhs for stmt in self.stmt_list]
 
+	def print(self):
+		for stmt in self.stmt_list:
+			stmt.print()
+	
+	def __str__(self):
+		return " ".join(s.get_stmt() for s in self.stmt_list)
 
 class DependencyGraph:
 	def __init__(self, filename, state_vars, var_types):
@@ -351,10 +357,6 @@ class DependencyGraph:
 
 		# self.contract_cycles()
 
-		self.build_SCC_graph()
-
-		# self.draw_graph(self.dep_graph, self.inputfilename + "_dag")
-
 
 	def build_SCC_graph(self): # strongly connected components
 		i = 0
@@ -404,11 +406,16 @@ class DependencyGraph:
 				self.scc_graph.add_edges_from([(codelet_node[w], node) for w in self.dep_graph.predecessors(u) \
 							if codelet_node[w] != node])
 
+		print("SCC graph nodes")
+		print(self.scc_graph.nodes)
 		for node in self.scc_graph.nodes:
+			node.print()
 			if node.is_stateful(self.state_variables):
 				self.stateful_nodes.add(node)
+				print("stateful")
 
 
+		print("SCC graph stateful nodes", self.stateful_nodes)
 		self.draw_graph(self.scc_graph, self.inputfilename + "_dag")
 		print("state vars", self.state_variables)
 
