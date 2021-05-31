@@ -1,0 +1,8 @@
+Table Info:
+smac_vlan
+dmac_vlan
+sample
+Dep Info:
+smac_vlan has Action dependency relationship with dmac_vlan
+Action Info:
+TODO: filled by min-depth-tree Format: table_name:num_of alu;(alu1, alu2);(alu3, alu4)  e.g. T1:5;(1,2);(3,4);(4,5)
