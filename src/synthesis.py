@@ -1,4 +1,6 @@
+from re import A
 import sys
+import os
 import ply.lex as lex
 import lexerRules
 import networkx as nx
@@ -6,6 +8,46 @@ import copy
 from graphviz import Digraph
 import subprocess
 from sketch_output_processor import SketchOutputProcessor
+
+# Returns true if SSA variables v1 and v2 represent the same variable
+# TODO: update preprocessing code to store SSA info in a struct/class 
+# instead of relying on string matching
+def is_same_var(v1, v2): 
+	if v1 == v2:
+		return True
+
+	i = 0
+	prefix = ""
+	while i < len(v1) and i < len(v2):
+		if v1[i] == v2[i]:
+			prefix += v1[i]
+			i += 1
+		else:
+			break
+	
+	v1_suffix = ""
+	v2_suffix = ""
+	if i < len(v1):
+		v1_suffix = v1[i:]
+	if i < len(v2):
+		v2_suffix = v2[i:]
+	
+	# v1 and v2 represent the same variable if the suffixes are numbers
+	return v1_suffix.isnumeric() and v2_suffix.isnumeric()
+
+def get_variable_name(v1, v2): # longest common prefix
+	assert(v1 != v2)
+	assert(is_same_var(v1, v2))
+
+	i = 0
+	prefix = ""
+	while i < len(v1) and i < len(v2):
+		if v1[i] == v2[i]:
+			prefix += v1[i]
+			i += 1
+		else:
+			break
+	return prefix
 
 class Component: # group of codelets
 	def __init__(self, codelet_list):
@@ -26,6 +68,35 @@ class Component: # group of codelets
 		self.inputs = list(inputs)
 		self.outputs = list(outputs)
 
+	def last_ssa_var(self, var):
+		ssa_vars = [o for o in self.outputs if o != var and is_same_var(o, var)]
+		if len(ssa_vars) == 0:
+			return True # var is the only SSA variable
+		var_name = get_variable_name(var, ssa_vars[0])
+		ssa_indices = [int(v.replace(var_name, '')) for v in ssa_vars]
+		max_index = max(ssa_indices)
+		var_index = int(var.replace(var_name, ''))
+
+		return var_index > max_index
+			
+	def update_outputs(self, adj_comps):
+		'''
+		Keep output o if
+		1. It is used by an adjacent codelet (whether it is a temporary var or not), OR
+		2. It is a packet field (SSA var with largest index in this component)
+		'''
+		redundant_outputs = []
+		for o in self.outputs:
+			if o not in [i for c in adj_comps for i in c.inputs]: # not used in adjacent component
+				if not self.last_ssa_var(o):
+					redundant_outputs.append(o)
+					# print("Redundant output: {}".format(o))
+
+		print("redundant outputs", redundant_outputs)
+		
+		for red_o in redundant_outputs:
+			self.outputs.remove(red_o)
+
 	def get_component_stmts(self):
 		self.comp_stmts = []
 		for codelet in self.codelets:
@@ -43,7 +114,41 @@ class StatefulComponent():
 		self.codelet = stateful_codelet
 		self.salu_inputs = {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 0, 'register_hi': 0}
 		self.isStateful = True
+		self.state_var = stateful_codelet.state_var
+		self.get_inputs_outputs()
+
+	def get_inputs_outputs(self):
+		self.inputs = self.codelet.get_inputs()
+		self.outputs = self.codelet.get_outputs()
 	
+	def update_outputs(self, adj_comps):
+		'''
+		Keep output o if
+		1. It is the state variable, OR
+		2. It is used in an adjacent component
+		For now, we assume a stateful component contains only the update for state_var
+		(we don't merge components)
+		TODO: change this to allow an additional packet field / state var to be an output
+		With merging, there can be at most 2 outputs (state_var and additional packet field / state var)
+		'''
+		redundant_outputs = []
+		adj_inputs = [i for c in adj_comps for i in c.inputs]
+		print("adj_inputs", adj_inputs)
+
+		for o in self.outputs:
+			if o != self.state_var:
+				if o not in adj_inputs: # not used in adjacent component
+					redundant_outputs.append(o)
+					# print("Redundant output: {}".format(o))
+
+		print("redundant outputs", redundant_outputs)
+		print("state_var", self.state_var)
+
+		for red_o in redundant_outputs:
+			self.outputs.remove(red_o)
+
+		return
+
 	def print(self):
 		stmts = self.codelet.get_stmt_list()
 		for s in stmts:
@@ -58,6 +163,14 @@ class Synthesizer:
 		self.var_types = var_types
 		self.filename = filename
 		self.templates_path = "templates"
+		self.output_dir = filename
+
+		try:
+			os.mkdir(self.output_dir)
+		except OSError:
+			print("Output directory {} could not be created".format(self.output_dir))
+		else:
+			print("Created output directory {}".format(self.output_dir))
 		
 		self.dep_graph = dep_graph # scc_graph in DependencyGraph
 		self.stateful_nodes = stateful_nodes
@@ -68,9 +181,9 @@ class Synthesizer:
 
 		self.synth_output_processor = SketchOutputProcessor()
 		print("Synthesizer")
+		print("output dir", self.output_dir)
 		self.process_graph()
-		self.synth_output_processor.schedule()
-
+		# self.synth_output_processor.schedule()
 
 	def get_var_type(self, v):
 		if v in self.var_types:
@@ -167,19 +280,36 @@ class Synthesizer:
 				print(str(codelet_component[str(v)]))
 				print()
 
-		comp_index = {} # component -> index
+		self.comp_index = {} # component -> index
 		sorted_comps = []
 		i = 0
 		for comp in nx.topological_sort(self.comp_graph):
 			sorted_comps.append(comp)
-			comp_index[comp] = i
+			self.comp_index[comp] = i
 			print("index", i)
 			comp.print()
+			print("inputs", comp.inputs)
+			comp.update_outputs(self.comp_graph.neighbors(comp))
+			print("outputs", comp.outputs)
+			comp_name = "comp_{}".format(i)
+			# if comp.isStateful:
+			# 	self.synthesize_stateful_tofino(comp, comp_name)
+			# else:
+			# 	self.synthesize_stateless_tofino(comp, comp_name)
+
 			i += 1
-		print(comp_index)
+		print(self.comp_index)
+		self.write_comp_graph()
 		# nx.draw(self.comp_graph)
 
-	def synthesize_stateful_codelet_tofino(self, codelet, codelet_name, output_file):
+	def write_comp_graph(self):
+		f_deps = open(os.path.join(self.output_dir, "deps.txt"), 'w+')
+		num_nodes = len(self.comp_graph.nodes)
+		f_deps.write("{}\n".format(num_nodes))
+		for u, v in self.comp_graph.edges:
+			f_deps.write("{} {}\n".format(self.comp_index[u], self.comp_index[v]))
+
+	def synthesize_stateful_tofino(self, codelet, codelet_name, output_file):
 		inputs = codelet.get_inputs()
 		outputs = codelet.get_outputs()
 		o = codelet.get_state_pkt_field()
@@ -220,9 +350,7 @@ class Synthesizer:
 					print("Error: Cannot have > 2 metadata fields in a stateful ALU.")
 					assert(False)
 
-		
-		
-		
+	
 
 	def synthesize_stateful_codelet(self, codelet, codelet_name, output_file):
 		inputs = codelet.get_inputs()
