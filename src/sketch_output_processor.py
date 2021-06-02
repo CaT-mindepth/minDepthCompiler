@@ -5,6 +5,13 @@ import networkx as nx
 
 
 class ALU:
+  # ruijief: 
+  # an ALU object represents a physical ALU. We will use this class
+  # to represent a node in the dependency graph we feed to ILP,
+  # and different ALUs will have different edges (which model ILP dependencies).
+  # ALU(id, stmt, lineno, wire)
+  #  id: the ID of the ALU, usually numbered [1...N] where N is the number of ALUs.
+  #  stmt: The statement of the 
   def __init__(self, id, stmt, lineno, wire=False):
     self.id = id
     self.stmt = stmt
@@ -132,6 +139,9 @@ class SketchOutputProcessor:
 
   # def process_stateful_output(self, input_file, output):
 
+  # ruijief: 
+  # find_dependencies finds dependencies (i.e. directed edges) between ALUs, which are nodes
+  # in the ILP dependency graph.
   def find_dependencies(self):
     for alu1 in self.alus:
       for alu2 in self.alus:
@@ -145,6 +155,8 @@ class SketchOutputProcessor:
     for alu in self.alus:
       self.alu_dep_graph.add_edges_from([(alu, alu1) for alu1 in self.dependencies[alu]])
 
+  # ruijief:
+  # TODO: call the ILP_Gurobi.py solver to do scheduling
   def schedule(self):
     self.level = {}  # key: node, value: level
     self.schedule = {}  # key: stage number, value: list of alus in that stage
