@@ -1,3 +1,7 @@
+//
+// ruijief:
+// every stateless sketch file includes the below alu function 
+// as a "alu black box," and it does not include any holes.
 int alu(int opcode, int operand0, int operand1, int immediate_operand) {
 	if (opcode == 0) {
 		return operand0;

@@ -1,7 +1,7 @@
 from overrides import overrides
 
-from chipc.aluParser import aluParser
-from chipc.aluVisitor import aluVisitor
+#from chipc.aluParser import aluParser
+#from chipc.aluVisitor import aluVisitor
 
 
 class TofinoStatefulAluVisitor(aluVisitor):
