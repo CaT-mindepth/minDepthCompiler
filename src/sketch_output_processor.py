@@ -20,6 +20,7 @@ class ALU:
     self.process_stmt()
 
   def process_stmt(self):
+    # parses a statement into a wire. 
     if not self.wire:
       lexer = lex.lex(module=lexerRules)
       lexer.input(self.stmt)
@@ -92,10 +93,13 @@ class SketchOutputProcessor:
 
     lineno = 0
     lhs_assert = ""
+    # as long as we don't encounter the end of `void sketch` function,
+    # continue lexing each line using lexerRules.
     while not l.startswith("}"):
       lexer = lex.lex(module=lexerRules)
       lexer.input(l)
       l_toks = []
+      # lex everything into a list of tokens.
       for tok in lexer:
         l_toks.append(tok)
 

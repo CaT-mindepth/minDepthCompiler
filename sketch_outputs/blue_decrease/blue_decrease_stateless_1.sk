@@ -43,6 +43,11 @@ int alu(int opcode, int operand0, int operand1, int immediate_operand) {
     }*/
 }
 
+//
+// ruijief:
+// Here are some more comments :-). Note the expression generator
+// here isn't recursive, so we guarantee that there exists only 
+// one ALU statement per Sketch file generated.
 generator int expr(fun vars, int bnd) {
 	assert bnd >= 1;
     int t = ??(1);
@@ -57,7 +62,7 @@ generator int expr(fun vars, int bnd) {
 
 int blue_decrease_1(int p_now_plus_free, int p_now) {
     p_now_plus_free = p_now - 1;
-    return p_now_plus_free;
+    return p_now_plus_free + p_now_plus_free;
 }
 
 harness void sketch(int p_now_plus_free, int p_now) {
