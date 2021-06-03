@@ -103,7 +103,6 @@ class Codelet:
 	def __init__(self, stmts=[]):
 		self.stmt_list = stmts
 
-
 	def get_stmt_list(self):
 		return self.stmt_list
 
@@ -125,11 +124,11 @@ class Codelet:
 		return False
 
 	def get_state_pkt_field(self):
-		print("get_state_pkt_field")
+		# print("get_state_pkt_field")
 		for stmt in self.stmt_list:
 			# stmt.print()
 			if stmt.write_flank:
-				print("write flank")
+				# print("write flank")
 				return stmt.state_pkt_field_final # read or write flank should have been called for stmt before this
 
 		assert(False)
@@ -147,7 +146,7 @@ class Codelet:
 		return inputs
 
 	def get_state_var(self):
-		assert(self.stateful);
+		assert(self.stateful)
 		return [self.get_state_pkt_field()]
 
 	def get_outputs(self):

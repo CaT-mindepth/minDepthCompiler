@@ -1,5 +1,3 @@
-// From https://github.com/chipmunk-project/chipmunk-tofino/blob/master/chipc/tofino_stateful_alu_visitor.py
-
 generator int C() { return ??; }
 
 generator int Opt(int op1) {

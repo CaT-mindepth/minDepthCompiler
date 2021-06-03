@@ -8,6 +8,7 @@ import copy
 from graphviz import Digraph
 import subprocess
 from sketch_output_processor import SketchOutputProcessor
+from dependencyGraph import Codelet
 
 # Returns true if SSA variables v1 and v2 represent the same variable
 # TODO: update preprocessing code to store SSA info in a struct/class 
@@ -49,12 +50,16 @@ def get_variable_name(v1, v2): # longest common prefix
 			break
 	return prefix
 
+def is_branch_var(var):
+	return var.startswith("p_br_tmp") or var.startswith("pkt_br_tmp")
+
 class Component: # group of codelets
 	def __init__(self, codelet_list):
 		self.codelets = codelet_list # topologically sorted
 		self.isStateful = False
+		self.grammar_path = "grammars/stateless_tofino.sk"
 		self.get_inputs_outputs()
-		self.get_component_stmts()
+		self.set_component_stmts()
 
 	def get_inputs_outputs(self):
 		inputs = set()
@@ -97,10 +102,109 @@ class Component: # group of codelets
 		for red_o in redundant_outputs:
 			self.outputs.remove(red_o)
 
-	def get_component_stmts(self):
+	def set_component_stmts(self):
 		self.comp_stmts = []
 		for codelet in self.codelets:
 			self.comp_stmts.extend(codelet.get_stmt_list())
+
+	def write_grammar(self, f):
+		try:
+			f_grammar = open(self.grammar_path)
+			# copy gramar
+			lines = f_grammar.readlines()
+			for l in lines:
+				f.write(l)
+
+		except IOError:
+			print("Failed to open stateless grammar file {}.".format(self.grammar_path))
+			exit(1)
+
+	def write_sketch_spec(self, f, var_types, comp_name, o):
+		input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
+		spec_name = comp_name
+
+		# write function signature
+		f.write("int {}({})".format(spec_name, ", ".join(input_types)) + "{\n")
+		# declare defined variables
+		defines_set = set()
+		for codelet in self.codelets:
+			defines_set.update(codelet.get_outputs())
+
+		defines = list(defines_set)
+		
+		for v in defines:
+			if v not in self.inputs:
+				f.write("\t{} {};\n".format(var_types[v], v))
+		# function body
+		for stmt in self.comp_stmts:
+			f.write("\t{}\n".format(stmt.get_stmt()))
+		# return
+		f.write("\treturn {};\n".format(o))
+		f.write("}\n")
+
+	def write_sketch_harness(self, f, var_types, comp_name, o, bnd):
+		f.write("harness void sketch(")
+		if len(self.inputs) >= 1:
+			var_type = var_types[self.inputs[0]]
+			f.write("{} {}".format(var_type, self.inputs[0]))
+
+		for v in self.inputs[1:]:
+			var_type = var_types[v]
+			f.write(", ")
+			f.write("{} {}".format(var_type, v))
+
+		f.write(") {\n")
+		
+		f.write("\tgenerator int vars(){\n")
+		f.write("\t\treturn {| 1 |")
+		if "int" in [var_types[v] for v in self.inputs]:
+			# f.write("|");
+			for v in self.inputs:
+				if var_types[v] == "int":
+					f.write(" {} |".format(v))
+		f.write("};\n")
+		f.write("\t}\n")
+
+		assert("bit" not in [var_types[v] for v in self.inputs]) # no inputs of type bit
+
+		# f.write("\tgenerator bit bool_vars(){\n")
+		# f.write("\t\treturn {| 1 |")
+		# # if "bit" in [var_types[v) for v in inputs]:
+		# for v in self.inputs:
+		# 	if var_types[v] == "bit":
+		# 		f.write(" %s |" % v)
+		# f.write("};\n")
+		# f.write("\t}\n")
+
+		comp_fxn = comp_name + "(" + ", ".join(self.inputs) + ")"
+
+		output_type = var_types[o]
+		# TODO: more robust type checking; relational expression can be assigned to an integer variable (should be bool)
+		# if output_type == "int":
+		assert(output_type == "int")
+		f.write("\tassert expr(vars, {}) == {};\n".format(bnd, comp_fxn))
+		# else:
+		# 	assert(output_type == "bit")
+		# 	# f.write("\tassert bool_expr(bool_vars, {}) == {};\n".format(bnd, comp_fxn)
+		# 	f.write("\tassert bool_expr(vars, bool_vars, {}) == {};\n".format(bnd, comp_fxn)) # TODO: What if there are int and bool vars?
+
+		f.write("}\n")
+
+	def write_sketch_file(self, output_path, comp_name, var_types):
+		i = 0
+		for o in self.outputs:
+			bnd = 1
+			max_bnd = 3 # TODO: run till success
+			while bnd <= max_bnd:
+				f = open(os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk"), 'w+')
+				self.write_grammar(f)
+				self.write_sketch_spec(f, var_types, comp_name, o)
+				f.write("\n")
+				self.write_sketch_harness(f, var_types, comp_name, o, bnd)
+				f.close()
+				bnd += 1
+
+			i += 1
 
 	def print(self):
 		for s in self.comp_stmts:
@@ -114,40 +218,187 @@ class StatefulComponent():
 		self.codelet = stateful_codelet
 		self.salu_inputs = {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 0, 'register_hi': 0}
 		self.isStateful = True
-		self.state_var = stateful_codelet.state_var
+		self.state_vars = [stateful_codelet.state_var]
+		self.state_pkt_fields = [stateful_codelet.get_state_pkt_field()]
+		self.comp_stmts = stateful_codelet.get_stmt_list()
+
+		self.grammar_path = "grammars/stateful_tofino.sk"
+
 		self.get_inputs_outputs()
 
 	def get_inputs_outputs(self):
 		self.inputs = self.codelet.get_inputs()
 		self.outputs = self.codelet.get_outputs()
-	
+
+	def temp_var(self, var):
+		if var in self.state_pkt_fields:
+			return True
+		elif is_branch_var(var):
+			return True
+		else:
+			return False
+			
+	def last_ssa_var(self, var):
+		ssa_vars = [o for o in self.outputs if o != var and is_same_var(o, var)]
+		if len(ssa_vars) == 0:
+			return True # var is the only SSA variable
+		var_name = get_variable_name(var, ssa_vars[0])
+		ssa_indices = [int(v.replace(var_name, '')) for v in ssa_vars]
+		max_index = max(ssa_indices)
+		var_index = int(var.replace(var_name, ''))
+
+		return var_index > max_index
+
 	def update_outputs(self, adj_comps):
 		'''
 		Keep output o if
 		1. It is the state variable, OR
-		2. It is used in an adjacent component
-		For now, we assume a stateful component contains only the update for state_var
-		(we don't merge components)
-		TODO: change this to allow an additional packet field / state var to be an output
+		2. It is used in an adjacent component, OR
+		3. It is a packet field
+		Allow an additional packet field / state var to be an output
 		With merging, there can be at most 2 outputs (state_var and additional packet field / state var)
+		TODO: duplicate if there are > 2 outputs
 		'''
 		redundant_outputs = []
 		adj_inputs = [i for c in adj_comps for i in c.inputs]
 		print("adj_inputs", adj_inputs)
 
 		for o in self.outputs:
-			if o != self.state_var:
+			if o not in self.state_vars:
 				if o not in adj_inputs: # not used in adjacent component
-					redundant_outputs.append(o)
-					# print("Redundant output: {}".format(o))
+					if self.temp_var(o) or (not self.last_ssa_var(o)):
+						redundant_outputs.append(o)
+						# print("Redundant output: {}".format(o))
+				
 
 		print("redundant outputs", redundant_outputs)
-		print("state_var", self.state_var)
+		print("state_var", self.state_vars)
 
 		for red_o in redundant_outputs:
 			self.outputs.remove(red_o)
 
 		return
+
+	def merge_component(self, comp):
+		print("merge component")
+		self.codelet.add_stmts(comp.comp_stmts)
+
+		if comp.isStateful:
+			if len(self.state_vars) == 2:
+				print("Cannot merge stateful component (current component already has 2 state variables)")
+				assert(False)
+			assert(len(comp.state_vars) == 1)
+			self.state_vars.append(comp.state_vars[0])
+			self.state_pkt_fields.append(comp.codelet.get_state_pkt_field())
+		
+		self.get_inputs_outputs() # update inputs, outputs
+		# state vars are always inputs
+		# NOTE: There would be no need to add state vars as inputs explicitly if a codelet could have 2 state vars
+		for s_var in self.state_vars:
+			if s_var not in self.inputs:
+				self.inputs.append(s_var)
+		
+	def set_alu_inputs(self):
+		if len(self.inputs) > 4:
+			print("Error: stateful update does not fit in the stateful ALU.")
+			exit(1)
+		
+		for i in self.inputs:
+			if i in self.state_vars:
+				if self.salu_inputs['register_lo'] == 0:
+					self.salu_inputs['register_lo'] = i
+				elif self.salu_inputs['register_hi'] == 0:
+					self.salu_inputs['register_hi'] = i
+				else:
+					print("Error: Cannot have > 2 state variables in a stateful ALU.")
+					assert(False)
+			else:
+				if self.salu_inputs['metadata_lo'] == 0:
+					self.salu_inputs['metadata_lo'] = i
+				elif self.salu_inputs['metadata_hi'] == 0:
+					self.salu_inputs['metadata_hi'] = i
+				else:
+					print("Error: Cannot have > 2 metadata fields in a stateful ALU.")
+					assert(False)
+
+		print("salu_inputs", self.salu_inputs)
+
+	def write_grammar(self, f):
+		try:
+			f_grammar = open(self.grammar_path)
+			# copy gramar
+			lines = f_grammar.readlines()
+			for l in lines:
+				f.write(l)
+
+		except IOError:
+			print("Failed to open stateful grammar file {}.".format(self.grammar_path))
+			exit(1)
+		
+	def write_sketch_spec(self, f, var_types, comp_name):
+		input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
+		spec_name = comp_name
+		# write function signature
+		f.write("int[2] {}({})".format(spec_name, ", ".join(input_types)) + "{\n")
+		# declare output array
+		output_array = "_out"
+		f.write("\tint[2] {};\n".format(output_array))
+		# declare defined variables
+		defines = self.codelet.get_outputs()
+		for v in defines:
+			if v not in self.inputs:
+				f.write("\t{} {};\n".format(var_types[v], v))
+		# function body
+		for stmt in self.comp_stmts:
+			f.write("\t{}\n".format(stmt.get_stmt()))
+		# update output array
+		f.write("\t{}[0] = {};\n".format(output_array, self.state_vars[0]))
+
+		assert(len(self.outputs) <= 2) # at most 2 outputs TODO: duplicate component if > 2 outputs
+		
+		found_output2 = False
+		for o in self.outputs:
+			if o != self.state_vars[0]:
+				found_output2 = True
+				f.write("\t{}[1] = {};\n".format(output_array, o))
+		
+		if not found_output2: # return state var
+			f.write("\t{}[1] = {};\n".format(output_array, self.state_vars[0]))
+
+		# return
+		f.write("\treturn {};\n".format(output_array))
+		f.write("}\n")
+
+	def write_sketch_harness(self, f, var_types, comp_name):
+		f.write("harness void sketch(")
+		if len(self.inputs) >= 1:
+			var_type = var_types[self.inputs[0]]
+			f.write("{} {}".format(var_type, self.inputs[0]))
+
+		for v in self.inputs[1:]:
+			var_type = var_types[v]
+			f.write(", ")
+			f.write("{} {}".format(var_type, v))
+
+		f.write(") {\n")
+
+		f.write("\tint[2] impl = salu({}, {}, {}, {});\n".format(
+			self.salu_inputs['metadata_lo'], self.salu_inputs['metadata_hi'], self.salu_inputs['register_lo'], self.salu_inputs['register_hi']
+		))
+		f.write("\tint [2] spec = {}({});\n".format(comp_name, ', '.join(self.inputs)))
+
+		f.write("\tassert(impl[0] == spec[0]);\n")
+		f.write("\tassert(impl[1] == spec[1]);\n") 
+		f.write("}\n")
+
+	def write_sketch_file(self, output_path, comp_name, var_types):
+		f = open(os.path.join(output_path, f"{comp_name}.sk"), 'w+')
+		self.set_alu_inputs()
+		self.write_grammar(f)
+		self.write_sketch_spec(f, var_types, comp_name)
+		f.write("\n")
+		self.write_sketch_harness(f, var_types, comp_name)
+		f.close()
 
 	def print(self):
 		stmts = self.codelet.get_stmt_list()
@@ -272,7 +523,6 @@ class Synthesizer:
 		self.comp_graph = nx.DiGraph()
 		self.comp_graph.add_nodes_from(self.components)	
 		for u, v in original_dep_edges: # add edges between components
-			# key error because original_dep_edges is a deep copy
 			if codelet_component[str(u)] != codelet_component[str(v)]:
 				self.comp_graph.add_edge(codelet_component[str(u)], codelet_component[str(v)])
 				print(str(codelet_component[str(u)]))
@@ -280,25 +530,83 @@ class Synthesizer:
 				print(str(codelet_component[str(v)]))
 				print()
 
-		self.comp_index = {} # component -> index
-		sorted_comps = []
-		i = 0
+		# Duplicate components to eliminate inputs of type bit (branch variables)
+		outputs_comp = {} # output -> component
+
 		for comp in nx.topological_sort(self.comp_graph):
-			sorted_comps.append(comp)
-			self.comp_index[comp] = i
-			print("index", i)
+			for input in comp.inputs:
+				if self.var_types[input] == 'bit':
+					print("Found input of type bit")
+					print("Copy preceding component")
+					prec_comp = outputs_comp[input]
+					if prec_comp.isStateful:
+						# new_codelet = Codelet(prec_comp.codelet.get_stmt_list())
+						# # TODO: restructure Codelet class so that this initialization is not needed
+						# new_codelet.stateful = True # it is a stateful codelet
+						# new_codelet.state_var = prec_comp.codelet.state_var
+						# #########
+						
+						new_comp = copy.deepcopy(prec_comp)
+						new_comp.merge_component(comp)
+						self.comp_graph.add_node(new_comp)
+						self.comp_graph.add_edges_from([(x, new_comp) for x in 
+							self.comp_graph.predecessors(prec_comp)])
+						self.comp_graph.add_edges_from([(new_comp, y) for 
+							y in self.comp_graph.successors(comp)])
+						
+						if comp.isStateful:
+							comp.codelet.state_var
+
+						# Delete prec_comp (new_comp subsumes it)
+						self.comp_graph.remove_node(prec_comp)
+						# NOTE: If merged component doesn't fit, throw an error
+						# TODO: Handle this case, maybe by splitting the merged component
+					else:
+						print("TODO: Not implemented yet")
+						assert(False)
+					
+					self.comp_graph.remove_node(comp)
+					comp = new_comp
+
+			comp.update_outputs(self.comp_graph.neighbors(comp))
 			comp.print()
 			print("inputs", comp.inputs)
-			comp.update_outputs(self.comp_graph.neighbors(comp))
 			print("outputs", comp.outputs)
-			comp_name = "comp_{}".format(i)
+
+			# update outputs_comp map
+			for o in comp.outputs:
+				outputs_comp[o] = comp
+
 			# if comp.isStateful:
 			# 	self.synthesize_stateful_tofino(comp, comp_name)
 			# else:
 			# 	self.synthesize_stateless_tofino(comp, comp_name)
 
+		self.comp_index = {} # component -> index
+		print("comp index", self.comp_index)
+		# check for redundant outputs
+		print("Eliminate redundant outputs after merging")
+		i = 0
+		for comp in nx.topological_sort(self.comp_graph):
+			self.comp_index[comp] = i
+			print(i)
+			comp.print()
+			comp.update_outputs(self.comp_graph.neighbors(comp))
+			print("inputs", comp.inputs)
+			print("outputs", comp.outputs)
 			i += 1
-		print(self.comp_index)
+
+		# Synthesize each codelet
+		print("Synthesize each codelet")
+		for comp in nx.topological_sort(self.comp_graph):
+			print(self.comp_index[comp])
+			comp.print()
+			print("inputs", comp.inputs)
+			print("outputs", comp.outputs)
+			comp_name = "comp_{}".format(self.comp_index[comp])
+			comp.write_sketch_file(self.output_dir, comp_name, self.var_types)
+
+
 		self.write_comp_graph()
 		# nx.draw(self.comp_graph)
 
@@ -308,49 +616,6 @@ class Synthesizer:
 		f_deps.write("{}\n".format(num_nodes))
 		for u, v in self.comp_graph.edges:
 			f_deps.write("{} {}\n".format(self.comp_index[u], self.comp_index[v]))
-
-	def synthesize_stateful_tofino(self, codelet, codelet_name, output_file):
-		inputs = codelet.get_inputs()
-		outputs = codelet.get_outputs()
-		o = codelet.get_state_pkt_field()
-		print("inputs", inputs)
-		print("outputs", outputs)
-		print("o", o)
-		# other_inputs = [i for comp in self.components for i in comp.inputs] + [i for s in self.stateful_nodes for i in s.get_inputs()]
-		# used_outputs = [o for o in component.outputs if o in other_inputs] # outputs of component that are inputs of other components
-		# if len(used_outputs) == 0: # TODO: packet variable is always an output
-		# 	used_outputs = component.outputs
-		# print("used_outputs", used_outputs)
-
-		stmts = codelet.get_stmt_list()
-
-		for stmt in stmts:
-			stmt.print()
-
-		if len(inputs) > 4:
-			print("Error: stateful update does not fit in the stateful ALU.")
-			exit(1)
-		
-		salu_inputs = {'metadata_lo': 0, 'metadata_hi':0, 'register_lo':0, 'register_hi': 0}
-		for i in inputs:
-			if i in self.state_vars:
-				if salu_inputs['register_lo'] == 0:
-					salu_inputs['register_lo'] = i
-				elif salu_inputs['register_hi'] == 0:
-					salu_inputs['register_hi'] = i
-				else:
-					print("Error: Cannot have > 2 state variables in a stateful ALU.")
-					assert(False)
-			else:
-				if salu_inputs['metadata_lo'] == 0:
-					salu_inputs['metadata_lo'] = i
-				elif salu_inputs['metadata_hi'] == 0:
-					salu_inputs['metadata_hi'] = i
-				else:
-					print("Error: Cannot have > 2 metadata fields in a stateful ALU.")
-					assert(False)
-
-	
 
 	def synthesize_stateful_codelet(self, codelet, codelet_name, output_file):
 		inputs = codelet.get_inputs()
