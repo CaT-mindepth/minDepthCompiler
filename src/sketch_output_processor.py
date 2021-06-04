@@ -21,13 +21,11 @@ class ALU:
 
   def process_stmt(self):
     # parses a statement into a wire. 
+    lexer = lex.lex(module=lexerRules)
+    lexer.input(self.stmt)
     if not self.wire:
-      lexer = lex.lex(module=lexerRules)
-      lexer.input(self.stmt)
-
       args_st = False
       arg_tokens = []
-
       for tok in lexer:
         if tok.type == 'RPAREN':
           args_st = False
@@ -40,25 +38,13 @@ class ALU:
 
       self.opcode = arg_tokens[0].value  # first argument is ALU opcode
       input_tokens = arg_tokens[1:-1]
-      # change opcode if an input is an immediate operand
-      if self.opcode == 1 and 'NUMBER' in [t.type for t in input_tokens]:
-        self.opcode = 2
-      elif self.opcode == 3 and input_tokens[1].type == 'NUMBER':
-        self.opcode = 4
-      elif self.opcode == 3 and input_tokens[0].type == 'NUMBER':
-        self.opcode = 5
-
       self.inputs = [t.value for t in input_tokens]
       self.output = arg_tokens[-1].value  # last argument is the output variable
 
     else:
-      lexer = lex.lex(module=lexerRules)
-      lexer.input(self.stmt)
       toks = []
       for tok in lexer:
         toks.append(tok)
-
-      print(toks)
       assert (toks[0].type == 'ID')
       output = toks[0].value
       assert (toks[2].type == 'ID')
