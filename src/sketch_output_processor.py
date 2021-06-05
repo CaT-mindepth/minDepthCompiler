@@ -120,6 +120,7 @@ def process_salu_function_ifelse_stmt_body(self, lexer, fd, curr_ter, curr_ter_l
         curr_ter.yes = toks[2:]
       else: # is else
         curr_ter.no = toks[2:]
+
     elif toks[0].type == 'IF':
       # do recursion
       # IF LBRACE ... RBRACE
@@ -129,6 +130,7 @@ def process_salu_function_ifelse_stmt_body(self, lexer, fd, curr_ter, curr_ter_l
       # recursively process if_stmt body
       # note: curr_ter_lhs remains invariant in nested scopes
       self.process_salu_function_ifelse_stmt_body(lexer, fd, nested_term, curr_ter_lhs, 'IF')
+      
     elif toks[0].type == 'ELSE':
       # recursively process else.
       self.process_salu_function_ifelse_stmt_body(lexer, fd, nested_term, curr_ter_lhs, 'ELSE')
@@ -161,6 +163,7 @@ def process_salu_function(self):
         if is_lhs_good: # found a var whose expression we need to keep track of.
           assert(toks[1].type == 'ASSIGN') # lhs '=' rhs
           self.var_expressions[demangled] = toks[2:]
+
       elif (toks[0].type == 'IF'):
         # IF LBRACE ... RBRACE 
         assert toks[1].type == 'LBRACE'
@@ -168,6 +171,7 @@ def process_salu_function(self):
         curr_ter = TernaryExpression(toks[2:-1], None, None) 
         # <stmt body>
         curr_ter = self.process_salu_function_ifelse_stmt_body(lexer, f, curr_ter, curr_ter_lhs, "IF")
+
       elif toks[0].type == 'ELSE':
         curr_ter = self.process_salu_function_ifelse_stmt_body(lexer, f, curr_ter, curr_ter_lhs, "ELSE")
         curr_ter.fix() 
@@ -175,6 +179,7 @@ def process_salu_function(self):
         self.var_expressions[curr_ter_lhs] = curr_ter # assign curr_ter_lhs to curr_ter
         if curr_ter_lhs == 'register_hi':
           curr_ter_lhs = 'register_lo' # register_lo always processed after register_hi
+
       elif toks[0].type == 'RBRACKET':
         break 
       # read the next line.
@@ -184,7 +189,7 @@ def process_salu_function(self):
 """ self.alu_visitor = TofinoStatefulAluVisitor(self.alu_filename, None, None,
                  operand0, operand1)
                 
-                             'condition_hi',
+            'condition_hi',
             'condition_lo',
             'update_lo_1_predicate',
             'update_lo_1_value',
@@ -240,7 +245,10 @@ class StatefulSketchOutputProcessor(object):
         lhs_assert = l_toks[2].value
 
       elif l_toks[0].type == 'ID' and l_toks[0].value.startswith("salu"):  # alu stmt
-        alu = ALU(self.alu_id, l, lineno)
+        #(self, id, alu_filename, metadata_lo_name, metadata_hi_name, 
+        #        register_lo_0_name, register_hi_1_name, out_name):
+        alu = SALU(self.alu_id, input_file, l_toks[2].value, 
+                    l_toks[3].value, l_toks[4].value, l_toks[5].value, lhs_assert)
         self.alu_id += 1
         self.alus.append(alu)
         self.alu_outputs[alu.output] = alu
@@ -248,7 +256,6 @@ class StatefulSketchOutputProcessor(object):
         self.rev_dependencies[alu] = []
 
       l = f.readline()
-      lineno += 1
 
     if len(self.alus) > 0:  # not just an assignment
       # rename last ALU's output
@@ -366,11 +373,6 @@ class SketchOutputProcessor:
       for tok in lexer:
         l_toks.append(tok)
 
-      # if len(l_toks) == 4 and 'ASSIGN' in [tok.type for tok in l_toks]: # assignment stmt
-      # 	lhs_tok = l_toks[1]
-      # 	assert(lhs_tok.type == 'ID')
-      # 	alu_output = lhs_tok.value
-      print(l_toks)
       if l_toks[0].type == 'RBRACE':
         break
 
