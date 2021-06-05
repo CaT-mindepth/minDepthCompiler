@@ -120,8 +120,7 @@ def process_salu_function_ifelse_stmt_body(self, lexer, fd, curr_ter, curr_ter_l
         curr_ter.yes = toks[2:]
       else: # is else
         curr_ter.no = toks[2:]
-      return 
-    elif (toks[0].type == 'IF'):
+    elif toks[0].type == 'IF':
       # do recursion
       # IF LBRACE ... RBRACE
       assert toks[1].type == 'LBRACE'
@@ -129,15 +128,17 @@ def process_salu_function_ifelse_stmt_body(self, lexer, fd, curr_ter, curr_ter_l
       nested_term = TernaryExpression(toks[2:-1], None, None) 
       # recursively process if_stmt body
       # note: curr_ter_lhs remains invariant in nested scopes
-      self.process_salu_function_if_stmt_body(lexer, fd, nested_term, curr_ter_lhs, toks[0].type)
-      nested_term.fix() # fix up TernaryExpression object to be a valid LexToken object 
+      self.process_salu_function_ifelse_stmt_body(lexer, fd, nested_term, curr_ter_lhs, 'IF')
+    elif toks[0].type == 'ELSE':
+      # recursively process else.
+      self.process_salu_function_ifelse_stmt_body(lexer, fd, nested_term, curr_ter_lhs, 'ELSE')
+      nested_term.fix() 
       if ifelse_type == 'IF':
         curr_ter.yes = nested_term 
-      else: # ifelse_type == 'ELSE'
-        curr_ter.no = nested_term     
-      # always call curr_ter.fix() in parent scope
-      # do not early return, since there might be an else {...} after an if (...) {...}
+      else:
+        curr_ter.no = nested_term 
     l = fd.readline()
+  return curr_ter
 
 def process_salu_function(self):
   with open(self.alu_filename) as f: 
@@ -160,22 +161,16 @@ def process_salu_function(self):
         if is_lhs_good: # found a var whose expression we need to keep track of.
           assert(toks[1].type == 'ASSIGN') # lhs '=' rhs
           self.var_expressions[demangled] = toks[2:]
-      elif (toks[0].type == 'IF') or (toks[0].type == 'ELSE'):
+      elif (toks[0].type == 'IF'):
         # IF LBRACE ... RBRACE 
-        if toks[0].type == 'IF':
-          assert toks[1].type == 'LBRACE'
-          assert toks[-1].type == 'RBRACE' 
-          curr_ter = TernaryExpression(toks[2:-1], None, None) 
-        else: 
-          assert toks[1]
+        assert toks[1].type == 'LBRACE'
+        assert toks[-1].type == 'RBRACE' 
+        curr_ter = TernaryExpression(toks[2:-1], None, None) 
         # <stmt body>
-
-        curr_ter = process_salu_function_if_stmt_body(lexer, f, curr_ter, curr_ter_lhs)
+        curr_ter = self.process_salu_function_ifelse_stmt_body(lexer, f, curr_ter, curr_ter_lhs, "IF")
       elif toks[0].type == 'ELSE':
-        # TODO 
-        # TODO
-        # TODO END
-        curr_ter = process_salu_function_else_stmt_body(lexer, f, curr_ter, curr_ter_lhs)
+        curr_ter = self.process_salu_function_ifelse_stmt_body(lexer, f, curr_ter, curr_ter_lhs, "ELSE")
+        curr_ter.fix() 
         # update corresponding lhs in the state dict.
         self.var_expressions[curr_ter_lhs] = curr_ter # assign curr_ter_lhs to curr_ter
         if curr_ter_lhs == 'register_hi':
