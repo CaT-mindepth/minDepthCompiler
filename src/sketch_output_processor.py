@@ -5,7 +5,45 @@ import ply.lex as lex
 import networkx as nx
 
 
-class SALU:
+class TernaryExpression(lex.LexToken):
+  def __init__(self):
+    self.condition = None 
+    self.yes = None 
+    self.no = None 
+    self._placeholder()
+  
+  def __init__(self, cond, y, n):
+    self.condition = cond 
+    self.yes = y 
+    self.no = n 
+    self._placeholder()
+
+  def fix(self):
+    self.type = "TERNARY"
+    self.value = str(self)
+
+  def _placeholder(self):
+    self.lineno = 0  # placeholder
+    self.lexpos = 0  # placeholder
+  
+  # TODO: make more efficient
+  def __str__(self):
+    assert self.condition != None 
+    assert self.yes != None 
+    assert self.no != None 
+    s = "( "
+    for tok in self.condition:
+      s += tok.value + " "
+    s += ") ? ( "
+    for tok in self.yes:
+      s += tok.value + " "
+    s += ") : ( "
+    for tok in self.no:
+      s += tok.value + " "
+    s += ")"
+    return s 
+
+class SALU(object):
   # ruijief:
   # this represents a Stateful ALU object.
   
@@ -64,20 +102,41 @@ class SALU:
   the methods below implemenet a ballpark visitor pattern on the source code lines
   to find synthesized expressions for SALU variables in the salu(...) function in Sketch.
 """
-def process_salu_function_if_stmt(self, lexer, fd):
+def process_salu_function_ifelse_stmt_body(self, lexer, fd, curr_ter, curr_ter_lhs, ifelse_type):
   l = fd.readline() # eat the '{'
   l = fd.readline() 
+  nested_term = None 
   while not l.startswith('}'):
     lexer.input(l)
-    # TODO do something here
-    l = fd.readline()
-
-def process_salu_function_else_stmt(self, lexer, fd):
-  l = fd.readline() # eat the '{'
-  l = fd.readline() 
-  while not l.startswith('}'):
+    # fill in the "yes" field in curr_ter 
     lexer.input(l)
-    # TODO do something here
+    toks = [tok for tok in lexer] 
+    if toks[0].type == 'ID':
+      # if type is ID, then first position must be curr_ter_lhs
+      # this must be an assignment statement.
+      assert toks[0].value == curr_ter_lhs 
+      assert toks[1].type == 'ASSIGN'
+      if ifelse_type == 'IF':
+        curr_ter.yes = toks[2:]
+      else: # is else
+        curr_ter.no = toks[2:]
+      return 
+    elif (toks[0].type == 'IF'):
+      # do recursion
+      # IF LBRACE ... RBRACE
+      assert toks[1].type == 'LBRACE'
+      assert toks[-1].type == 'RBRACE'
+      nested_term = TernaryExpression(toks[2:-1], None, None) 
+      # recursively process if_stmt body
+      # note: curr_ter_lhs remains invariant in nested scopes
+      self.process_salu_function_if_stmt_body(lexer, fd, nested_term, curr_ter_lhs, toks[0].type)
+      nested_term.fix() # fix up TernaryExpression object to be a valid LexToken object 
+      if ifelse_type == 'IF':
+        curr_ter.yes = nested_term 
+      else: # ifelse_type == 'ELSE'
+        curr_ter.no = nested_term     
+      # always call curr_ter.fix() in parent scope
+      # do not early return, since there might be an else {...} after an if (...) {...}
     l = fd.readline()
 
 def process_salu_function(self):
@@ -89,23 +148,38 @@ def process_salu_function(self):
     l = f.readline() # eat the '{' symbol
     l = f.readline() # first line in function block 
     lexer = lex.lex(module=lexerRules)
+    curr_ter = None 
+    curr_ter_lhs = 'register_hi'
     while not l.startswith('}'): # this right bracket denotes the termination of the salu function. We recursively visit each stmt block inside this.
       lexer.input(l)
       toks = []
       for tok in lexer:
         toks.append(tok)
       if toks[0].type == 'ID':
-        # TODO
         is_lhs_good, demangled = self.demangle(toks[0].value) 
         if is_lhs_good: # found a var whose expression we need to keep track of.
           assert(toks[1].type == 'ASSIGN') # lhs '=' rhs
           self.var_expressions[demangled] = toks[2:]
-      elif toks[0].type == 'IF':
-        # TODO
-        pass
+      elif (toks[0].type == 'IF') or (toks[0].type == 'ELSE'):
+        # IF LBRACE ... RBRACE 
+        if toks[0].type == 'IF':
+          assert toks[1].type == 'LBRACE'
+          assert toks[-1].type == 'RBRACE' 
+          curr_ter = TernaryExpression(toks[2:-1], None, None) 
+        else: 
+          assert toks[1]
+        # <stmt body>
+
+        curr_ter = process_salu_function_if_stmt_body(lexer, f, curr_ter, curr_ter_lhs)
       elif toks[0].type == 'ELSE':
         # TODO 
-        pass 
+        # TODO
+        # TODO END
+        curr_ter = process_salu_function_else_stmt_body(lexer, f, curr_ter, curr_ter_lhs)
+        # update corresponding lhs in the state dict.
+        self.var_expressions[curr_ter_lhs] = curr_ter # assign curr_ter_lhs to curr_ter
+        if curr_ter_lhs == 'register_hi':
+          curr_ter_lhs = 'register_lo' # register_lo always processed after register_hi
       elif toks[0].type == 'RBRACKET':
         break 
       # read the next line.
@@ -129,7 +203,7 @@ def process_salu_function(self):
             'output_dst'"""
 
 
-class StatefulSketchOutputProcessor:
+class StatefulSketchOutputProcessor(object):
   def __init__(self):
     self.dependencies = {}  # key: alu, value: list of alus depending on key
     self.rev_dependencies = {}  # key: alu, value: list of alus that key depends on
