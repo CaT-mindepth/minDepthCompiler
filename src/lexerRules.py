@@ -61,7 +61,10 @@ def t_NUMBER(t):
 
 
 def t_ID(t):
-  r'[a-zA-Z_][a-zA-Z_.0-9]*(\[(([a-zA-Z_][a-zA-Z_.0-9]*) | ([0-9]+))\])?'
+  # ruijief: the below line is for lexing IDs + brackets together.
+  # r'[a-zA-Z_][a-zA-Z_.0-9]*(\[(([a-zA-Z_][a-zA-Z_.0-9]*) | ([0-9]+))\])?'
+  # ruijief: the below regexp handles (i.e. excludes) brackets.
+  r'[a-zA-Z_][a-zA-Z_.0-9]*'
   t.type = reserved.get(t.value, 'ID')
   return t
 
