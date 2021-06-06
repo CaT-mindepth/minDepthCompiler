@@ -1,0 +1,74 @@
+SKETCH version 1.7.6
+Benchmark = blue_decrease_stateless_1.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*blue_de..less_1.sk:1*/
+
+void alu (int opcode, int operand0, int operand1, int immediate_operand, ref int _out)/*blue_de..less_1.sk:1*/
+{
+  _out = 0;
+  if(opcode == 0)/*blue_de..less_1.sk:2*/
+  {
+    _out = operand0;
+    return;
+  }
+  if(opcode == 1)/*blue_de..less_1.sk:5*/
+  {
+    _out = immediate_operand;
+    return;
+  }
+  if(opcode == 2)/*blue_de..less_1.sk:8*/
+  {
+    _out = operand0 + operand1;
+    return;
+  }
+  if(opcode == 3)/*blue_de..less_1.sk:11*/
+  {
+    _out = operand0 + immediate_operand;
+    return;
+  }
+  if(opcode == 4)/*blue_de..less_1.sk:14*/
+  {
+    _out = operand1 - operand0;
+    return;
+  }
+  if(opcode == 5)/*blue_de..less_1.sk:17*/
+  {
+    _out = operand0 - immediate_operand;
+    return;
+  }
+  if(opcode == 6)/*blue_de..less_1.sk:20*/
+  {
+    _out = immediate_operand - operand0;
+    return;
+  }
+}
+/*blue_de..less_1.sk:54*/
+
+void blue_decrease_1 (int p_now_plus_free_0, int p_now, ref int _out)/*blue_de..less_1.sk:54*/
+{
+  _out = p_now - 1;
+  return;
+}
+/*blue_de..less_1.sk:59*/
+
+void sketch (int p_now_plus_free, int p_now)/*blue_de..less_1.sk:59*/
+{
+  int _out_s10 = 0;
+  alu(5, p_now, p_now_plus_free, 1, _out_s10)//{};
+  int _out_s4 = 0;
+  blue_decrease_1(p_now_plus_free, p_now, _out_s4);
+  assert (_out_s10 == _out_s4); //Assert at blue_de..less_1.sk:64 (0)
+}
+/*blue_de..less_1.sk:59*/
+
+void sketch__Wrapper (int p_now_plus_free, int p_now)  implements sketch__WrapperNospec/*blue_de..less_1.sk:59*/
+{
+  sketch(p_now_plus_free, p_now);
+}
+/*blue_de..less_1.sk:59*/
+
+void sketch__WrapperNospec (int p_now_plus_free, int p_now)/*blue_de..less_1.sk:59*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 206

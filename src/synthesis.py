@@ -868,4 +868,3 @@ class Synthesizer:
 		# f_template = open(self.templates_path + "/stateless_tofino.sk", "r")
 		self.copy(f_template, f)
 		f_template.close()
-

@@ -1,7 +1,6 @@
 from overrides import overrides
-
-from aluParser import aluParser
-from aluVisitor import aluVisitor
+import aluParser
+import aluVisitor
 
 
 class TofinoStatefulAluVisitor(aluVisitor):
