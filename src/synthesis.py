@@ -60,6 +60,11 @@ class Component: # group of codelets
 		self.grammar_path = "grammars/stateless_tofino.sk"
 		self.get_inputs_outputs()
 		self.set_component_stmts()
+    # Here we name each component using comp_{} 
+		self.set_name()
+
+	def set_name(self, name):
+		self.name = name
 
 	def get_inputs_outputs(self):
 		inputs = set()
@@ -604,6 +609,7 @@ class Synthesizer:
 			print("inputs", comp.inputs)
 			print("outputs", comp.outputs)
 			comp_name = "comp_{}".format(self.comp_index[comp])
+			comp.set_name(comp_name)
 			comp.write_sketch_file(self.output_dir, comp_name, self.var_types)
 
 

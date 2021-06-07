@@ -2,6 +2,25 @@ import sys
 import gurobipy as gp
 from gurobipy import GRB
 
+class ILP_TableInfo(object):
+    # represents ALU dependencies in a single action (resp. table)
+    def __init__(self, table_name, num_alus, alu_adjacency_list):
+        self.table_name = table_name 
+        self.num_alus = num_alus 
+        self.alu_adjacency_list = alu_adjacency_list
+
+    def get_num_alus(self):
+        return self.num_alus 
+
+    # returns a list of edges in the ALU dependency graph.
+    def get_dependency_list(self):
+        deps = []
+        for src_alu_id in range(len(self.alu_adjacency_list)):
+            for tgt_alu in self.alu_adjacency_list[src_alu_id]:
+                tgt_alu_id = tgt_alu.id 
+                deps.append((src_alu_id, tgt_alu_id))
+        return deps
+
 def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
     # Create a new model
     m = gp.Model("ILP")

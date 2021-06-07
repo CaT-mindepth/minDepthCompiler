@@ -43,12 +43,47 @@ class TernaryExpression(lex.LexToken):
     s += ")"
     return s 
 
-class SALU(object):
+
+class GenericALU(Object):
+  def __init__(self):
+    assert False # This needs to be overridden
+  
+  def get_type(self):
+    return self.alu_type
+
+  def get_id(self):
+    return self.id
+
+  # can be "STATEFUL" or "STATELESS"
+  def set_type(self, alu_type):
+    if alu_type != "STATEFUL" and alu_type != "STATELESS":
+      raise Exception("err: invalid alu type: " + alu_type)
+    self.alu_type = alu_type
+
+  # id is an integral type
+  def set_id(self, id):
+    self.id = id
+  
+
+class SALU(GenericALU):
   # ruijief:
   # this represents a Stateful ALU object.
-  
+  """ Payloads:
+            'condition_hi',
+            'condition_lo',
+            'update_lo_1_predicate',
+            'update_lo_1_value',
+            'update_lo_2_predicate',
+            'update_lo_2_value',
+            'update_hi_1_predicate',
+            'update_hi_1_value',
+            'update_hi_2_predicate',
+            'update_hi_2_value',
+            'output_value',
+            'output_dst'"""
   def __init__(self, id, alu_filename, metadata_lo_name, metadata_hi_name, 
                 register_lo_0_name, register_hi_1_name, out_name):
+    self.alu_type = "STATEFUL"
     self.id = id 
     self.alu_filename = alu_filename
     self.salu_arguments = ['metadata_lo', 'metadata_hi', 'register_lo_0', 'register_hi_1', '_out']
@@ -130,7 +165,7 @@ def process_salu_function_ifelse_stmt_body(self, lexer, fd, curr_ter, curr_ter_l
       # recursively process if_stmt body
       # note: curr_ter_lhs remains invariant in nested scopes
       self.process_salu_function_ifelse_stmt_body(lexer, fd, nested_term, curr_ter_lhs, 'IF')
-      
+
     elif toks[0].type == 'ELSE':
       # recursively process else.
       self.process_salu_function_ifelse_stmt_body(lexer, fd, nested_term, curr_ter_lhs, 'ELSE')
@@ -185,110 +220,7 @@ def process_salu_function(self):
       # read the next line.
       l = f.readline()
 
-
-""" self.alu_visitor = TofinoStatefulAluVisitor(self.alu_filename, None, None,
-                 operand0, operand1)
-                
-            'condition_hi',
-            'condition_lo',
-            'update_lo_1_predicate',
-            'update_lo_1_value',
-            'update_lo_2_predicate',
-            'update_lo_2_value',
-            'update_hi_1_predicate',
-            'update_hi_1_value',
-            'update_hi_2_predicate',
-            'update_hi_2_value',
-            'output_value',
-            'output_dst'"""
-
-
-class StatefulSketchOutputProcessor(object):
-  def __init__(self):
-    self.dependencies = {}  # key: alu, value: list of alus depending on key
-    self.rev_dependencies = {}  # key: alu, value: list of alus that key depends on
-    self.alu_outputs = {}  # key: output variable, value: alu stmt (string)
-    self.alus = []
-    self.alu_dep_graph = nx.DiGraph()
-    self.alu_id = 0
-
-  def process_outputs(self, input_files, output):
-    for input_file in input_files:
-      self.process_single_output(input_file, output)
-
-  def process_single_output(self, input_file, output):
-    f = open(input_file, "r")
-
-    l = f.readline()
-    while not l.startswith("void sketch"):
-      l = f.readline()
-    l = f.readline() 
-    # l is "void sketch..."
-    l = f.readline()
-
-    lhs_assert = ""
-    # as long as we don't encounter the end of `void sketch` function,
-    # continue lexing each line using lexerRules.
-    while not l.startswith("}"):
-      lexer = lex.lex(module=lexerRules)
-      lexer.input(l)
-      l_toks = []
-      # lex everything on this line l into a list of tokens.
-      for tok in lexer:
-        l_toks.append(tok)
-
-      if l_toks[0].type == 'RBRACE':
-        break
-
-      elif l_toks[0].type == 'ASSERT':
-        assert (l_toks[2].type == 'ID')
-        lhs_assert = l_toks[2].value
-
-      elif l_toks[0].type == 'ID' and l_toks[0].value.startswith("salu"):  # alu stmt
-        #(self, id, alu_filename, metadata_lo_name, metadata_hi_name, 
-        #        register_lo_0_name, register_hi_1_name, out_name):
-        alu = SALU(self.alu_id, input_file, l_toks[2].value, 
-                    l_toks[3].value, l_toks[4].value, l_toks[5].value, lhs_assert)
-        self.alu_id += 1
-        self.alus.append(alu)
-        self.alu_outputs[alu.output] = alu
-        self.dependencies[alu] = []
-        self.rev_dependencies[alu] = []
-
-      l = f.readline()
-
-    if len(self.alus) > 0:  # not just an assignment
-      # rename last ALU's output
-      self.alus[-1].output = output
-      self.alu_outputs[alu.output] = alu
-    else:
-      stmt = "{} = {}".format(output, lhs_assert)
-      alu = ALU(self.alu_id, stmt, lineno, True)
-      self.alu_id += 1
-      self.alus.append(alu)
-      self.alu_outputs[alu.output] = alu
-      self.dependencies[alu] = []
-      self.rev_dependencies[alu] = []
-
-    self.find_dependencies()
-
-  # ruijief: 
-  # find_dependencies finds dependencies (i.e. directed edges) between ALUs, which are nodes
-  # in the ILP dependency graph.
-  def find_dependencies(self):
-    for alu1 in self.alus:
-      for alu2 in self.alus:
-        if alu2 != alu1 and alu1.output in alu2.inputs: #and alu1.lineno < alu2.lineno:  # RAW
-          self.dependencies[alu1].append(alu2)
-          self.rev_dependencies[alu2].append(alu1)
-
-    for alu in self.alus:
-      self.alu_dep_graph.add_node(alu)
-
-    for alu in self.alus:
-      self.alu_dep_graph.add_edges_from([(alu, alu1) for alu1 in self.dependencies[alu]])
-
-class ALU:
+class ALU(GenericALU):
   # ruijief: 
   # an ALU object represents a physical ALU. We will use this class
   # to represent a node in the dependency graph we feed to ILP,
@@ -297,6 +229,7 @@ class ALU:
   #  id: the ID of the ALU, usually numbered [1...N] where N is the number of ALUs.
   #  stmt: The statement of the 
   def __init__(self, id, stmt, lineno, wire=False):
+    self.alu_type = "STATELESS"
     self.id = id
     self.stmt = stmt
     self.lineno = lineno
@@ -342,16 +275,39 @@ class ALU:
       print("{} = {}".format(self.output, self.inputs[0]))
 
 
-class SketchOutputProcessor:
-  def __init__(self):
+class SketchOutputProcessor(object):
+  # comp_graph is the component graph from synthesis.py
+  def __init__(self, comp_graph):
     self.dependencies = {}  # key: alu, value: list of alus depending on key
     self.rev_dependencies = {}  # key: alu, value: list of alus that key depends on
-    self.alu_outputs = {}  # key: output variable, value: alu stmt (string)
     self.alus = []
-    self.alu_dep_graph = nx.DiGraph()
     self.alu_id = 0
+    self.comp_graph = comp_graph
+    self.salus = []
+    self.alu_compnames = {}
 
-  def process_output(self, input_file, output):
+
+  # map a file name to its corresponding component name in the components graph.
+  def filename_to_compname(self, filename):
+    import re
+    a = re.findall(filename, 'comp_[0-9]*')[0]
+    if len(a) > 0:
+      return a[0]
+    else:
+      return None
+
+  # add a new ALU (stateful or stateless) to the ALU graph
+  def add_new_alu(self, alu):
+    self.alu_compnames[self.alu_id] = self.filename_to_compname(input_file)
+    if self.alu_compnames[self.alu_id] == None:
+      raise Exception("invalid filename: " + input_file)
+    self.alu_id += 1
+    self.alus.append(alu)
+    self.dependencies[alu] = []
+    self.rev_dependencies[alu] = []
+    self.alu_id += 1
+  
+  def process_stateless_output(self, input_file, output):
     f = open(input_file, "r")
 
     l = f.readline()
@@ -382,52 +338,155 @@ class SketchOutputProcessor:
 
       elif l_toks[0].type == 'ID' and l_toks[0].value.startswith("alu"):  # alu stmt
         alu = ALU(self.alu_id, l, lineno)
-        self.alu_id += 1
-        self.alus.append(alu)
-        self.alu_outputs[alu.output] = alu
-        self.dependencies[alu] = []
-        self.rev_dependencies[alu] = []
+        self.add_new_alu(alu)
 
       l = f.readline()
       lineno += 1
-
+    
     if len(self.alus) > 0:  # not just an assignment
       # rename last ALU's output
       self.alus[-1].output = output
-      self.alu_outputs[alu.output] = alu
-    else:
-      stmt = "{} = {}".format(output, lhs_assert)
-      alu = ALU(self.alu_id, stmt, lineno, True)
-      self.alu_id += 1
-      self.alus.append(alu)
-      self.alu_outputs[alu.output] = alu
-      self.dependencies[alu] = []
-      self.rev_dependencies[alu] = []
 
-    self.find_dependencies()
 
-  # def process_stateful_output(self, input_file, output):
+  # process outputs from a list of sketch files, each containing
+  # one stateful ALU.
+  def process_stateful_outputs(self, input_files, output):
+    for input_file in input_files:
+      self.process_single_output(input_file, output)
+
+  # process a stateful ALU from a single stateful sketch file.
+  def process_single_stateful_output(self, input_file, output):
+    f = open(input_file, "r")
+
+    l = f.readline()
+    while not l.startswith("void sketch"):
+      l = f.readline()
+    l = f.readline() 
+    # l is "void sketch..."
+    l = f.readline()
+
+    lhs_assert = ""
+    # as long as we don't encounter the end of `void sketch` function,
+    # continue lexing each line using lexerRules.
+    while not l.startswith("}"):
+      lexer = lex.lex(module=lexerRules)
+      lexer.input(l)
+      l_toks = []
+      # lex everything on this line l into a list of tokens.
+      for tok in lexer:
+        l_toks.append(tok)
+
+      if l_toks[0].type == 'RBRACE':
+        break
+
+      elif l_toks[0].type == 'ASSERT':
+        assert (l_toks[2].type == 'ID')
+        lhs_assert = l_toks[2].value
+
+      elif l_toks[0].type == 'ID' and l_toks[0].value.startswith("salu"):  # alu stmt
+        #(self, id, alu_filename, metadata_lo_name, metadata_hi_name, 
+        #        register_lo_0_name, register_hi_1_name, out_name):
+        alu = SALU(self.alu_id, input_file, l_toks[2].value, 
+                    l_toks[3].value, l_toks[4].value, l_toks[5].value, lhs_assert)
+        self.add_new_alu(alu)
+
+      l = f.readline()
 
   # ruijief: 
   # find_dependencies finds dependencies (i.e. directed edges) between ALUs, which are nodes
   # in the ILP dependency graph.
-  def find_dependencies(self):
+ 
+  def find_stateless_dependencies_comp(self):
     for alu1 in self.alus:
-      for alu2 in self.alus:
-        if alu2 != alu1 and alu1.output in alu2.inputs and alu1.lineno < alu2.lineno:  # RAW
-          self.dependencies[alu1].append(alu2)
-          self.rev_dependencies[alu2].append(alu1)
+      if alu1.get_type() == "STATELESS":
+        for alu2 in self.alus:
+          if alu2.get_type() == "STATELESS":
+            if alu2 != alu1 and alu1.output in alu2.inputs and alu1.lineno < alu2.lineno:  # RAW
+              self.dependencies[alu1].append(alu2)
+              self.rev_dependencies[alu2].append(alu1)
+  
+  def all_stateful_alus(self):
+    return filter(lambda x: x.get_type() == "STATEFUL", self.alus)
+  
+  def all_stateless_alus(self):
+    return filter(lambda x: x.get_type() == "STATELESS", self.alus)
+  
+  def alus_in_a_component(self, comp_name):
+    return filter(lambda x: self.alu_compnames[x] == comp_name, self.alus)
 
+
+  # Lower dependencies between stateful components in the component graph
+  # into the ALU dependency graph. Here we find only dependencies between 
+  # stateful ALUs (resp. components).
+  def find_stateful_dependencies(self):
+    for alu in self.all_stateful_alus():
+      alu_compname = self.alu_compnames[alu]
+      for comp in self.comp_graph:
+        if comp.name == alu_compname:
+          for comp1 in self.comp_graph.predecessor(comp):
+            if comp1.isStateful:
+              # No need to check if alu1 is stateful, since by
+              # definition a stateful component (comp1) only includes a single stateful ALU.
+              for alu1 in self.alus_in_a_component(comp1):
+                self.dependencies[alu].append(alu1)
+                self.rev_dependencies[alu1].append(alu)
+
+  # Lower dependencies from/to a stateless weakly connected component.
+  # This includes exactly the edges from/to a stateful component.
+  # edges added will be of the form (u,v) where exactly one of {u,v} is
+  # stateful and exactly one of {u,v} is stateless.
+  def find_stateless_dependencies_intercomp(self):
+    for alu in self.all_stateless_alus():
+      comp_name = self.alu_compnames[alu]
+      # XXX: Here we have to iterate through the component graph,
+      # since each node is a component type but not a string.
+      # We might want to find a faster way to directly query for the
+      # component with name == comp_name in O(1) time.
+      for comp in self.comp_graph:
+        if comp.name == comp_name:
+          # Find all stateful components going into the current
+          # stateless weakly connected component.
+          for comp1 in self.comp_graph.predecessor(comp):
+            # By definition comp1 is stateful.
+            assert comp1.isStateful
+            # For each ALU in the stateful component, add dependency
+            # from that ALU into us.
+            for alu1 in self.alus_in_a_component(comp1):
+              self.dependencies[alu].append(alu1)
+              self.rev_dependencies[alu1].append(alu)
+          # Find all stateful components that follows from the
+          # current weakly connected component.
+          for comp1 in self.comp_graph.successor(comp):
+            # Again, by definition comp1 is stateful.
+            assert comp1.isStateful
+            # For each ALU in the stateful component, add dependency
+            # from that ALU into us.
+            for alu1 in self.alus_in_a_component(comp1):
+              self.dependencies[alu1].append(alu)
+              self.rev_dependencies[alu].append(alu1)
+
+  # returns a table name object
+  def to_ILP_TableInfo(self, table_name):
+    import ILP_Gurobi
+    num_alus = len(self.alus)
+    alu_adjacency_list = [[] for i in range(num_alus)]
     for alu in self.alus:
-      self.alu_dep_graph.add_node(alu)
+      for nbor in self.dependencies[alu]:
+        alu_adjacency_list[alu.id].append(nbor)
+    return ILP_Gurobi.ILP_TableInfo(table_name, num_alus, alu_adjacency_list)
 
+
+  # return part of ILP solver configuration,
+  # more specifically the part that specifies the
+  # ALU dependencies inside a table in Action Info.
+  def to_ILP_str(self, table_name):
+    act_info = table_name + ":" + str(len(self.alus))
     for alu in self.alus:
-      self.alu_dep_graph.add_edges_from([(alu, alu1) for alu1 in self.dependencies[alu]])
+      for nbor in self.dependencies[alu]:
+        act_info += ";" + "(" + str(alu.id) + "," + str(nbor.id) + ")"
+    return act_info
 
-  # ruijief:
-  # TODO: call the ILP_Gurobi.py solver to do scheduling
-  def schedule(self):
-    pass
+
 
 """
 if __name__ == "__main__":
