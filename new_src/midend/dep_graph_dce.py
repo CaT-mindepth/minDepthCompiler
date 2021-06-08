@@ -10,7 +10,6 @@ class DepGraphDCE(pass_manager.Pass):
         pm.register(self)
     
     def remove_dead_code(self):
-        # print("Dead code elimination")
         i = len(self.stmt_list)-1
         it = 0
         while True:
