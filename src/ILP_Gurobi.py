@@ -21,6 +21,15 @@ class ILP_TableInfo(object):
                 deps.append((src_alu_id, tgt_alu_id))
         return deps
 
+class ILP_Output(object):
+    """
+        ILP_Output: represents the output of an ILP program.
+        Will be filled during gen_and_solve ILP and returned.
+    """
+    def __init__(self):
+        pass # TODO fill this in
+
+# ruijief: we modify gen_and_solve_ILP to return an ILP_Output object.
 def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
     # Create a new model
     m = gp.Model("ILP")
