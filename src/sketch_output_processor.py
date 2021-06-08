@@ -1,5 +1,4 @@
 from os import confstr
-import sys
 import lexerRules
 import ply.lex as lex
 import networkx as nx

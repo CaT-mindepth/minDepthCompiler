@@ -1,5 +1,3 @@
-import sys
-import parser
 import subprocess
 
 

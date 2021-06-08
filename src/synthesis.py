@@ -1,8 +1,6 @@
 from re import A
-import sys
 import os
 import ply.lex as lex
-import lexerRules
 import networkx as nx
 import copy
 from graphviz import Digraph
