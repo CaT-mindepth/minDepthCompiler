@@ -1,16 +1,10 @@
-import sys
 import argparse
 import ply.lex as lex
-import ply.yacc as yacc
 import lexerRules
-import parser
 import time
-import subprocess
 import sympy
 import dependencyGraph as depG
 import synthesis
-import scheduler
-import re
 
 
 def has_rel_op(s):
