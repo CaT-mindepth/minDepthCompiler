@@ -44,10 +44,37 @@ class TernaryExpression(lex.LexToken):
     return s 
 
 
-class GenericALU(Object):
+class GenericALU(object):
+  #
+  # ruijief: we maintain a dict of additional attributes
+  # that can be set for each ALU object. This comes in handy
+  # when we're doing the final P4 program code generation.
+  #
   def __init__(self):
-    assert False # This needs to be overridden
+    self.attributes = {} # This needs to be overridden
   
+  def set_attribute(self, key, value):
+    self.attributes[key] = value
+
+  def get_attribute(self, key):
+    return self.attributes[key]
+
+  @staticmethod
+  def get_default_SALU():
+    salu = GenericALU()
+    salu.set_type("STATEFUL")
+    salu.set_id(-1)
+    return salu 
+
+  
+  @staticmethod
+  def get_default_ALU():
+    alu = GenericALU()
+    alu.set_type("STATELESS")
+    alu.set_id(-1)
+    return alu 
+
+
   def get_type(self):
     return self.alu_type
 
@@ -63,7 +90,7 @@ class GenericALU(Object):
   # id is an integral type
   def set_id(self, id):
     self.id = id
-  
+
 
 class SALU(GenericALU):
   # ruijief:
@@ -83,6 +110,7 @@ class SALU(GenericALU):
             'output_dst'"""
   def __init__(self, id, alu_filename, metadata_lo_name, metadata_hi_name, 
                 register_lo_0_name, register_hi_1_name, out_name):
+    super().__init__()
     self.alu_type = "STATEFUL"
     self.id = id 
     self.alu_filename = alu_filename
@@ -229,6 +257,7 @@ class ALU(GenericALU):
   #  id: the ID of the ALU, usually numbered [1...N] where N is the number of ALUs.
   #  stmt: The statement of the 
   def __init__(self, id, stmt, lineno, wire=False):
+    super().__init__()
     self.alu_type = "STATELESS"
     self.id = id
     self.stmt = stmt
@@ -473,7 +502,7 @@ class SketchOutputProcessor(object):
     for alu in self.alus:
       for nbor in self.dependencies[alu]:
         alu_adjacency_list[alu.id].append(nbor)
-    return ILP_Gurobi.ILP_TableInfo(table_name, num_alus, alu_adjacency_list)
+    return ILP_Gurobi.ILP_TableInfo(table_name, num_alus, self.alus, alu_adjacency_list)
 
 
   # return part of ILP solver configuration,
