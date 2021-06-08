@@ -69,11 +69,12 @@ class SALU(GenericALU):
               'output_dst'"""
 
     def __init__(self, id, alu_filename, metadata_lo_name, metadata_hi_name,
-                 register_lo_0_name, register_hi_1_name, out_name):
+                 register_lo_0_name, register_hi_1_name, out_name, out_dst):
         super().__init__()
         self.alu_type = "STATEFUL"
         self.id = id
         self.alu_filename = alu_filename
+        self.out_dst = out_dst
         self.salu_arguments = ['metadata_lo', 'metadata_hi',
                                'register_lo_0', 'register_hi_1', '_out']
         self.demangle_list = ['condition_hi',
@@ -89,7 +90,7 @@ class SALU(GenericALU):
                               'output_value',
                               'output_dst']
         # dict for storing expressions of synthesized variables.
-        self.var_expressions = {}
+        self.var_expressions = {'output_dst': self.out_dst}
         self.salu_arguments_mapping = {
             'metadata_lo': metadata_lo_name,
             'metadata_hi': metadata_hi_name,
@@ -291,44 +292,69 @@ class SketchOutputProcessor(object):
         for input_file in input_files:
             self.process_single_output(input_file, output)
 
+    def filename_to_specname(self, filename):
+      import re
+      return '_'.join(list(filter(lambda x: len(x) > 0, re.split('stateful|_', filename))))
+
+    def find_out_dst(self, input_file):
+        with open(input_file, "r") as f:
+            specname = self.filename_to_specname(input_file)
+            l = f.readline()
+            outs = []
+            while not l.startswith("void " + specname):
+                l = f.readline()
+            while not l.startswith("}"):
+                l = f.readline()
+                if l.startwith("_out[1] = "):
+                    lexer = lex.lex(module=lexerRules)
+                    lexer.input(l)
+                    l_toks = []
+                    for tok in lexer:
+                        l_toks.append(tok)
+                    assert (l_toks[-1].type == 'ID')
+                    outs.append(l_toks[-1])
+        return outs[-1]
+
     # process a stateful ALU from a single stateful sketch file.
     def process_single_stateful_output(self, input_file, output):
-        f = open(input_file, "r")
-
-        l = f.readline()
-        while not l.startswith("void sketch"):
+        with open(input_file, "r") as f:
+            specname = self.filename_to_specname(input_file)
             l = f.readline()
-        l = f.readline()
-        # l is "void sketch..."
-        l = f.readline()
-
-        lhs_assert = ""
-        # as long as we don't encounter the end of `void sketch` function,
-        # continue lexing each line using lexerRules.
-        while not l.startswith("}"):
-            lexer = lex.lex(module=lexerRules)
-            lexer.input(l)
-            l_toks = []
-            # lex everything on this line l into a list of tokens.
-            for tok in lexer:
-                l_toks.append(tok)
-
-            if l_toks[0].type == 'RBRACE':
-                break
-
-            elif l_toks[0].type == 'ASSERT':
-                assert (l_toks[2].type == 'ID')
-                lhs_assert = l_toks[2].value
-
-            # alu stmt
-            elif l_toks[0].type == 'ID' and l_toks[0].value.startswith("salu"):
-                # (self, id, alu_filename, metadata_lo_name, metadata_hi_name,
-                #        register_lo_0_name, register_hi_1_name, out_name):
-                alu = SALU(self.alu_id, input_file, l_toks[2].value,
-                           l_toks[3].value, l_toks[4].value, l_toks[5].value, lhs_assert)
-                self.add_new_alu(alu)
-
+            while not l.startswith("void sketch"):
+                l = f.readline()
+            
             l = f.readline()
+            # l is "void sketch..."
+            l = f.readline()
+
+            lhs_assert = ""
+            # as long as we don't encounter the end of `void sketch` function,
+            # continue lexing each line using lexerRules.
+            while not l.startswith("}"):
+                lexer = lex.lex(module=lexerRules)
+                lexer.input(l)
+                l_toks = []
+                # lex everything on this line l into a list of tokens.
+                for tok in lexer:
+                    l_toks.append(tok)
+
+                if l_toks[0].type == 'RBRACE':
+                    break
+
+                elif l_toks[0].type == 'ASSERT':
+                    assert (l_toks[2].type == 'ID')
+                    lhs_assert = l_toks[2].value
+
+                # alu stmt
+                elif l_toks[0].type == 'ID' and l_toks[0].value.startswith("salu"):
+                    # (self, id, alu_filename, metadata_lo_name, metadata_hi_name,
+                    #        register_lo_0_name, register_hi_1_name, out_name):
+                    out_dst = self.find_out_dst(input_file)
+                    alu = SALU(self.alu_id, input_file, l_toks[2()].value, \
+                      l_toks[3].value, l_toks[4].value, l_toks[5].value, lhs_assert, out_dst)
+                    self.add_new_alu(alu)
+
+                l = f.readline()
 
     # ruijief:
     # find_dependencies finds dependencies (i.e. directed edges) between ALUs, which are nodes
@@ -425,15 +451,18 @@ class SketchOutputProcessor(object):
         return act_info
 
 
-"""
-if __name__ == "__main__":
-  if len(sys.argv) < 3:
-    print("Usage: <input file> <output name>")
-    exit(1)
 
-  input_file = sys.argv[1]
-  output = sys.argv[2]
-  processor = SketchOutputProcessor()
-  processor.process_output(input_file, output)
-  processor.schedule()
-"""
+
+
+
+#
+#if __name__ == "__main__":
+#  if len(sys.argv) < 3:
+#    print("Usage: <input file> <output name>")
+#    exit(1)
+#  input_file = sys.argv[1]
+#  output = sys.argv[2]
+#  processor = SketchOutputProcessor()
+#  processor.process_output(input_file, output)
+#  processor.schedule()
+#
