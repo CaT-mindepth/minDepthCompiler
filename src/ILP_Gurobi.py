@@ -4,10 +4,11 @@ from gurobipy import GRB
 
 class ILP_TableInfo(object):
     # represents ALU dependencies in a single action (resp. table)
-    def __init__(self, table_name, num_alus, alu_adjacency_list):
+    def __init__(self, table_name, num_alus, alus, alu_adjacency_list):
         self.table_name = table_name 
         self.num_alus = num_alus 
         self.alu_adjacency_list = alu_adjacency_list
+        self.alus = alus
 
     def get_num_alus(self):
         return self.num_alus 
@@ -44,6 +45,29 @@ class ILP_Output(object):
     def optimal_status(self, op):
         self.optimal = op 
 
+
+    def find_number_of_stages(self):
+        max_stages = 0
+        for table, actions in self.tables:
+            for action, stage in actions: 
+                max_stages = max(max_stages, stage)
+        self.num_stages = max_stages 
+        return max_stages 
+    
+
+    def compute_alus_per_stage(self):
+        self.find_number_of_stages()
+        self.alus_per_stage = [[] for i in range(self.num_stages)]
+        max_alus_per_stage = 0
+        for table, actions in self.tables:
+            for action, stage in actions:
+                self.alus_per_stage[stage].append(action)
+        
+        for alus_list in self.alus_per_stage: 
+            max_alus_per_stage = max(max_alus_per_stage, len(alus_list))
+        
+        self.max_alus_per_stage = max_alus_per_stage 
+    
 
 # ruijief: we modify gen_and_solve_ILP to return an ILP_Output object.
 def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
