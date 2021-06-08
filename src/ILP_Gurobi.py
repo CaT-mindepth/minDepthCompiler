@@ -21,13 +21,29 @@ class ILP_TableInfo(object):
                 deps.append((src_alu_id, tgt_alu_id))
         return deps
 
+
 class ILP_Output(object):
     """
         ILP_Output: represents the output of an ILP program.
         Will be filled during gen_and_solve ILP and returned.
     """
-    def __init__(self):
-        pass # TODO fill this in
+
+    def __init__(self, num_tables):
+        # tables: contains a dict mapping each ALU id to a stage
+        self.tables = [{} for i in range(num_tables)]
+        self.optimal = False 
+    
+    def add_stage_info(self, var_name, stage):
+        # var name format: T3_A_3 -> 1
+        exploded = var_name.split("_")
+        assert len(exploded) == 3
+        self.tables[int(exploded[0][1])][int(exploded[2])] = stage 
+
+    # is Gurobi output optimal. If it isn't, then this instance
+    # will contain a blank table assignment.
+    def optimal_status(self, op):
+        self.optimal = op 
+
 
 # ruijief: we modify gen_and_solve_ILP to return an ILP_Output object.
 def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
@@ -175,6 +191,18 @@ def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic
             match_dep_c + action_dep_c + successor_dep_c + reverse_dep_c)
     '''
     # TODO: output the layout of ALU grid
+    # ruijief:
+    # here we return an ILP_Output object.
+    output = ILP_Output(len(table_list))
+    if m.status == GRB.OPTIMAL:
+        output.optimal_status(True)
+        for v in m.getVars():
+            if v.varName.find('stage') == -1 and v.varName[-1] != 'M' and v.varName != 'cost':
+                output.add_stage_info(v.varName, v.x)
+    else:
+        output.optimal_status(False)
+    return output
+
 
 def main(argv):
     """main program."""
