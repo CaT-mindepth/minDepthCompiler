@@ -6,7 +6,7 @@ import lexerRules
 import parser
 import time
 import subprocess
-import sympy
+# import sympy
 import dependencyGraph as depG
 import synthesis
 import scheduler
@@ -58,90 +58,87 @@ def useful_extra_stmt(stmt, rhs_toks):  # necessary?
     return True
 
 
-def simplify_rel(expr):
-  # remove enclosing parentheses
-  if expr[0] == "(":
-    expr = expr[1:]
-  if expr[-1] == ")":
-    expr = expr[:-1]
+# def simplify_rel(expr):
+# 	# remove enclosing parentheses
+# 	if expr[0] == "(":
+# 		expr = expr[1:]
+# 	if expr[-1] == ")":
+# 		expr = expr[:-1]
+		
+# 	print("simplifying relational expression: " + expr)
+# 	rel_ops = [">", "<", "==", "!=", "<=", ">="]
+# 	new_expr = expr
+# 	if ("==" not in expr) and ("!=" not in expr):
+# 		new_expr = sympy.sstr(sympy.sympify(expr))
+# 	elif "==" in expr:
+# 		operands = expr.split("==")
+# 		assert(len(operands) == 2)
+# 		operands = [x.strip() for x in operands]
+# 		print("operands", operands)
+# 		if operands[0].isdigit() and operands[1].isdigit():
+# 			print("numerical expression")
+# 			new_expr = sympy.sstr(sympy.sympify(expr))
+# 		else:
+# 			lhs = sympy.sstr(sympy.sympify(operands[0]))
+# 			rhs = sympy.sstr(sympy.sympify(operands[1]))
+# 			if lhs == rhs: # handle this case separately
+# 				new_expr = "True"
+# 			else:
+# 				new_expr = "{} == {}".format(lhs, rhs)
 
-  print("simplifying relational expression: " + expr)
-  rel_ops = [">", "<", "==", "!=", "<=", ">="]
-  new_expr = expr
-  if ("==" not in expr) and ("!=" not in expr):
-    new_expr = sympy.sstr(sympy.sympify(expr))
-  elif "==" in expr:
-    operands = expr.split("==")
-    assert (len(operands) == 2)
-    operands = [x.strip() for x in operands]
-    print("operands", operands)
-    if operands[0].isdigit() and operands[1].isdigit():
-      print("numerical expression")
-      new_expr = sympy.sstr(sympy.sympify(expr))
-    else:
-      lhs = sympy.sstr(sympy.sympify(operands[0]))
-      rhs = sympy.sstr(sympy.sympify(operands[1]))
-      if lhs == rhs:  # handle this case separately
-        new_expr = "True"
-      else:
-        new_expr = "{} == {}".format(lhs, rhs)
+# 	elif "!=" in expr:
+# 		operands = expr.split("!=")
+# 		assert(len(operands) == 2)
+# 		operands = [x.strip() for x in operands]
+# 		print("operands", operands)
+# 		if operands[0].isdigit() and operands[1].isdigit():
+# 			print("numerical expression")
+# 			new_expr = sympy.sstr(sympy.sympify(expr))
+# 		else:
+# 			lhs = sympy.sstr(sympy.sympify(operands[0]))
+# 			rhs = sympy.sstr(sympy.sympify(operands[1]))
+# 			if lhs == rhs:
+# 				new_expr = "False"
+# 			else:
+# 				new_expr = "{} != {}".format(lhs, rhs)
+# 	else:
+# 		assert(False)
+# 	print("to " + new_expr)
+# 	return new_expr
 
-  elif "!=" in expr:
-    operands = expr.split("!=")
-    assert (len(operands) == 2)
-    operands = [x.strip() for x in operands]
-    print("operands", operands)
-    if operands[0].isdigit() and operands[1].isdigit():
-      print("numerical expression")
-      new_expr = sympy.sstr(sympy.sympify(expr))
-    else:
-      lhs = sympy.sstr(sympy.sympify(operands[0]))
-      rhs = sympy.sstr(sympy.sympify(operands[1]))
-      if lhs == rhs:
-        new_expr = "False"
-      else:
-        new_expr = "{} != {}".format(lhs, rhs)
-  else:
-    assert (False)
-  print("to " + new_expr)
-  return new_expr
+# def simplify_bool(expr):
+# 	print("simplifying bool expression: " + expr)
+# 	tokens = tokenize_expr(expr)[0]
+# 	new_tokens = []
+# 	for tok in tokens:
+# 		new_tok = tok.value
+# 		if tok.value == "&&":
+# 			new_tok = "&"
+# 		elif tok.value == "||":
+# 			new_tok = "|"
+# 		elif tok.value == "!":
+# 			new_tok = "~"
+# 		new_tokens.append(new_tok)
 
+# 	assert(len(new_tokens) == len(tokens))
+# 	expr = " ".join(new_tokens)
+# 	print("Expression with sympy operators:" + expr)
 
-def simplify_bool(expr):
-  print("simplifying bool expression: " + expr)
-  tokens = tokenize_expr(expr)[0]
-  new_tokens = []
-  for tok in tokens:
-    new_tok = tok.value
-    if tok.value == "&&":
-      new_tok = "&"
-    elif tok.value == "||":
-      new_tok = "|"
-    elif tok.value == "!":
-      new_tok = "~"
-    new_tokens.append(new_tok)
+# 	expr = sympy.sstr(sympy.sympify(expr))
 
-  assert (len(new_tokens) == len(tokens))
-  expr = " ".join(new_tokens)
-  print("Expression with sympy operators:" + expr)
+# 	expr = expr.replace("&", "&&")
+# 	expr = expr.replace("|", "||")
+# 	expr = expr.replace("~", "!")
 
-  expr = sympy.sstr(sympy.sympify(expr))
+# 	print("to ", expr)
 
-  expr = expr.replace("&", "&&")
-  expr = expr.replace("|", "||")
-  expr = expr.replace("~", "!")
+# 	return expr
 
-  print("to ", expr)
-
-  return expr
-
-
-def simplify_arith(expr):
-  print("simplifying arith expression: " + expr)
-  expr = sympy.sstr(sympy.sympify(expr))
-  print("to ", expr)
-  return expr
-
+# def simplify_arith(expr):
+# 	print("simplifying arith expression: " + expr)
+# 	expr = sympy.sstr(sympy.sympify(expr))
+# 	print("to ", expr)
+# 	return expr
 
 def tokenize_expr(expr):
   toks = []
@@ -620,41 +617,44 @@ class codeGen:
 
 
 if __name__ == "__main__":
-  arg_parser = argparse.ArgumentParser()
-  arg_parser.add_argument("input", help="input file (preprocessed Domino program)")
-  arg_parser.add_argument("output", help="output file")
-  arg_parser.add_argument("--stages", help="number of pipeline stages", type=int)
-  arg_parser.add_argument("--ALUs", help="number of ALUs per stage", type=int)
+	
+	arg_parser = argparse.ArgumentParser()
+	arg_parser.add_argument("input", help="input file (preprocessed Domino program)")
+	arg_parser.add_argument("output", help="output directory")
+	arg_parser.add_argument("--stages", help="number of pipeline stages", type=int)
+	arg_parser.add_argument("--ALUs", help="number of ALUs per stage", type=int)
 
-  args = arg_parser.parse_args()
-  # if len(sys.argv) < 5:
-  # 	print("Usage: <input file name> <output file name> <max number of stages> <max number of ALUs per stage>")
-  # 	exit(1)
+	args = arg_parser.parse_args()
+	# if len(sys.argv) < 5:
+	# 	print("Usage: <input file name> <output file name> <max number of stages> <max number of ALUs per stage>")
+	# 	exit(1)
 
-  filename = args.input
-  outputfilename = args.output
-  max_stages = args.stages
-  max_alus = args.ALUs
+	filename = args.input
+	outputfilename = args.output
+	max_stages = args.stages
+	max_alus = args.ALUs
 
-  start = time.time()
+	start = time.time()
 
-  f = open(filename, "r")
-  # f_out = open(outputfilename, "w+")
+	f = open(filename, "r")
+	# f_out = open(outputfilename, "w+")
 
-  codeGen = codeGen(filename, outputfilename)
-  # codeGen.process_input(f, f_out)
+	codeGen = codeGen(filename, outputfilename)
+	# codeGen.process_input(f, f_out)
 
-  f.close()
-  # f_out.close()
+	f.close()
+	# f_out.close()
 
-  dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types)
-  synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
-                                    dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes, outputfilename)
-  # dep_graph_obj.write_optimized_code(outputfilename)
 
-  # sch = scheduler.Scheduler(dep_graph_obj.dep_graph, max_stages, max_alus)
-  # sch.solve()
-  # sch.draw_graph()
+	dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types)
+	synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
+					dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes, outputfilename)
+	# dep_graph_obj.write_optimized_code(outputfilename)
 
-  end = time.time()
-  print("Time taken: {} s".format(end - start))
+	
+	# sch = scheduler.Scheduler(dep_graph_obj.dep_graph, max_stages, max_alus)
+	# sch.solve()
+	# sch.draw_graph()
+	
+	end = time.time()
+	print("Time taken: {} s".format(end - start))
