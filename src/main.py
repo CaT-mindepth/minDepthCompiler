@@ -25,15 +25,14 @@ class codeGen:
   rhs_map = {}  # rhs, lhs
   state_variables = set()
 
-  def __init__(self, filename, outputfilename):
+  def __init__(self, filename, outputfilename, f):
     self.filename = filename
     self.outputfilename = outputfilename
     self.tmp_cnt = 0
 
-    self.get_type_info()
+    self.get_type_info(f)
 
-  def get_type_info(self):
-    # lines = f.readlines()
+  def get_type_info(self, f):
     decls_end = False
     line_no = 0
     state_var = False
@@ -75,15 +74,15 @@ if __name__ == "__main__":
 
   start = time.time()
 
-  f = open(filename, "r")
 
-  codeGen = codeGen(filename, outputfilename)
-
-  f.close()
+  with open(filename, "r") as f:
+    codeGen = codeGen(filename, outputfilename, f)
 
   dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types)
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
                                     dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes, outputfilename)
+
+  
 
   end = time.time()
   print("Time taken: {} s".format(end - start))

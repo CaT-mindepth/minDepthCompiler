@@ -52,14 +52,14 @@ def is_branch_var(var):
 	return var.startswith("p_br_tmp") or var.startswith("pkt_br_tmp")
 
 class Component: # group of codelets
-	def __init__(self, codelet_list):
+	def __init__(self, codelet_list, id):
 		self.codelets = codelet_list # topologically sorted
 		self.isStateful = False
 		self.grammar_path = "grammars/stateless_tofino.sk"
 		self.get_inputs_outputs()
 		self.set_component_stmts()
     # Here we name each component using comp_{} 
-		self.set_name()
+		self.set_name("comp_" + str(id))
 
 	def set_name(self, name):
 		self.name = name
@@ -432,11 +432,11 @@ class Synthesizer:
 
 		# self.stateful_alus = ["raw", "pred_raw", "if_else_raw", "sub", "nested_ifs", "pair"]
 		self.stateful_alus = ["raw", "pred_raw", "if_else_raw"]
-
-		self.synth_output_processor = SketchOutputProcessor()
 		print("Synthesizer")
 		print("output dir", self.output_dir)
 		self.process_graph()
+		self.synth_output_processor = SketchOutputProcessor(self.comp_graph)
+
 		# self.synth_output_processor.schedule()
 
 	def get_var_type(self, v):
@@ -497,7 +497,7 @@ class Synthesizer:
 				if codelet in comp:
 					comp_sorted.append(codelet)
 
-			component = Component(comp_sorted)
+			component = Component(comp_sorted, i)
 
 			for codelet in comp_sorted:
 				codelet_component[str(codelet)] = component
