@@ -657,6 +657,7 @@ class Synthesizer:
 						# NOTE: If merged component doesn't fit, throw an error
 						# TODO: Handle this case, maybe by splitting the merged component
 					else:
+                        
 						print("TODO: Not implemented yet")
 						assert(False)
 					

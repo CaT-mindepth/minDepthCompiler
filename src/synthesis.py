@@ -245,7 +245,7 @@ class Component: # group of codelets
 					print("solved")
 					result_file = sketch_outfilename
 					print("output is in " + result_file)
-					return
+					return result_file
 				else:
 					print("failed")
 		
@@ -476,7 +476,7 @@ class StatefulComponent(object):
 					print("solved")
 					result_file = sketch_outfilename
 					print("output is in " + result_file)
-					return
+					return result_file 
 				else:
 					print("failed")
 		
@@ -516,7 +516,8 @@ class Synthesizer:
 		print("output dir", self.output_dir)
 		self.process_graph()
 		self.synth_output_processor = SketchOutputProcessor(self.comp_graph)
-
+		self.do_synthesis()
+		self.synth_output_processor.postprocessing()
 		# self.synth_output_processor.schedule()
 
 	def get_var_type(self, v):
@@ -679,6 +680,8 @@ class Synthesizer:
 			print("outputs", comp.outputs)
 			i += 1
 
+
+	def do_synthesis(self):
 		# Synthesize each codelet
 		print("Synthesize each codelet")
 		for comp in nx.topological_sort(self.comp_graph):
@@ -689,8 +692,14 @@ class Synthesizer:
 			comp_name = "comp_{}".format(self.comp_index[comp])
 			comp.set_name(comp_name)
 			print(" > codelet output directory: " + self.output_dir)
-			comp.write_sketch_file(self.output_dir, comp_name, self.var_types)
-
+			result_file = comp.write_sketch_file(self.output_dir, comp_name, self.var_types)
+			print("processing sketch output...")
+			if comp.isStateful:
+				print("processing: output is stateful.")
+				self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[0])
+			else:
+				print("processing: output is stateless.")
+				self.synth_output_processor.process_stateless_output(result_file)
 
 		self.write_comp_graph()
 		# nx.draw(self.comp_graph)

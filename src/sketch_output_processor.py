@@ -428,6 +428,16 @@ class SketchOutputProcessor(object):
                             self.dependencies[alu1].append(alu)
                             self.rev_dependencies[alu].append(alu1)
 
+    # to be called after all ALUs are added.
+    def postprocessing(self):
+        print("postprocessing sketch output: finding stateful dependencies")
+        self.find_stateful_dependencies()
+        print("postprocessing sketch output: finding stateless dependencies in each component")
+        self.find_stateless_dependencies_comp()
+        print("postprocessing sketch output: finding stateless dependencies between components")
+        self.find_stateless_dependencies_intercomp()
+        print("postprocessing done!")
+
     # returns a table name object
     def to_ILP_TableInfo(self, table_name):
         import ILP_Gurobi
