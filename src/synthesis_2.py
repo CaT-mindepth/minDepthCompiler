@@ -140,11 +140,11 @@ class Component: # group of codelets
 	def merge_components(self, comp):
 		print("merge component")
 		self.codelet.add_stmts(comp.comp_stmts)
-		if not comp.isStateful:
+		if comp.isStateful:
 			raise Exception ("Cannot merge a stateful comp, " +  "comp.name, " + "with a stateless comp")
-		
-        self.set_component_stmts() # update stmts
-		self.get_inputs_outputs() # update inputs, outputs
+		else: # comp is stateless
+            self.set_component_stmts() # update stmts
+            self.get_inputs_outputs() # update inputs, outputs
     
 
 	def write_grammar(self, f):
@@ -656,10 +656,14 @@ class Synthesizer:
 						self.comp_graph.remove_node(prec_comp)
 						# NOTE: If merged component doesn't fit, throw an error
 						# TODO: Handle this case, maybe by splitting the merged component
-					else:
-                        
-						print("TODO: Not implemented yet")
-						assert(False)
+					else: # prec_comp is stateless
+						new_comp = copy.deepcopy(prec_comp)
+						new_comp.merge_components(comp)
+						self.comp_graph.add_node(new_comp)
+						self.comp_graph.add_edges_from([(x, new_comp) for x in 
+							self.comp_graph.predecessors(prec_comp)])
+						self.comp_graph.add_edges_from([(new_comp, y) for 
+							y in self.comp_graph.successors(comp)])
 					
 					self.comp_graph.remove_node(comp)
 					comp = new_comp

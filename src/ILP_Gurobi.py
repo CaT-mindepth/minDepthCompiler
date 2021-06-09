@@ -22,6 +22,12 @@ class ILP_TableInfo(object):
                 deps.append((src_alu_id, tgt_alu_id))
         return deps
 
+    # do ILP
+    def ILP(self):
+        # def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
+        return gen_and_solve_ILP([], [], [], [], {self.table_name:len(self.alu_adjacency_list)}, \
+            {self.table_name: self.get_dependency_list()}, [self.table_name] )
+
 
 class ILP_Output(object):
     """
@@ -68,7 +74,6 @@ class ILP_Output(object):
         
         self.max_alus_per_stage = max_alus_per_stage 
     
-
 # ruijief: we modify gen_and_solve_ILP to return an ILP_Output object.
 def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
     # Create a new model

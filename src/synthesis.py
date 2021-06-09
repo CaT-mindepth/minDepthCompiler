@@ -221,14 +221,12 @@ class Component: # group of codelets
 		f.write("}\n")
 
 	def write_sketch_file(self, output_path, comp_name, var_types):
-		i = 0
 		for o in self.outputs:
-			bnd = 1
 			bnd = 0
 			while True:
 				# run Sketch
-				sketch_filename = os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk")
-				sketch_outfilename = os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk.out")
+				sketch_filename = os.path.join(output_path, f"{comp_name}_stateless_bnd_{bnd}.sk")
+				sketch_outfilename = os.path.join(output_path, f"{comp_name}_stateless_bnd_{bnd}.sk.out")
 				f = open(sketch_filename, 'w+')
 				self.write_grammar(f)
 				self.write_sketch_spec(f, var_types, comp_name, o)
@@ -452,13 +450,12 @@ class StatefulComponent(object):
 		f.write("}\n")
 
 	def write_sketch_file(self, output_path, comp_name, var_types):
-		i = 0
 		for o in self.outputs:
 			bnd = 0
 			while True:
 				# run Sketch
-				sketch_filename = os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk")
-				sketch_outfilename = os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk"+ ".out")
+				sketch_filename = os.path.join(output_path, f"{comp_name}_stateful_bnd_{bnd}.sk")
+				sketch_outfilename = os.path.join(output_path, f"{comp_name}_stateful_bnd_{bnd}.sk"+ ".out")
 				f = open(sketch_filename, 'w+')
 				self.set_alu_inputs()
 				self.write_grammar(f)
@@ -518,7 +515,12 @@ class Synthesizer:
 		self.synth_output_processor = SketchOutputProcessor(self.comp_graph)
 		self.do_synthesis()
 		self.synth_output_processor.postprocessing()
+		print(self.synth_output_processor.to_ILP_str(table_name="NewTable"))
 		# self.synth_output_processor.schedule()
+		print('----- starting ILP Gurobi -----')
+		ilp_table = self.synth_output_processor.to_ILP_TableInfo(table_name = 'T')
+		ilp_output = ilp_table.ILP() 
+		print(ilp_output)
 
 	def get_var_type(self, v):
 		if v in self.var_types:
