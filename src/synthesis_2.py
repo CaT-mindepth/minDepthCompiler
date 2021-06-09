@@ -137,6 +137,16 @@ class Component: # group of codelets
 		for codelet in self.codelets:
 			self.comp_stmts.extend(codelet.get_stmt_list())
 
+	def merge_components(self, comp):
+		print("merge component")
+		self.codelet.add_stmts(comp.comp_stmts)
+		if not comp.isStateful:
+			raise Exception ("Cannot merge a stateful comp, " +  "comp.name, " + "with a stateless comp")
+		
+        self.set_component_stmts() # update stmts
+		self.get_inputs_outputs() # update inputs, outputs
+    
+
 	def write_grammar(self, f):
 		try:
 			f_grammar = open(self.grammar_path)
@@ -227,9 +237,9 @@ class Component: # group of codelets
 			bnd = 0
 			while True:
 				# run Sketch
-				sketch_filename = os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk")
-				sketch_outfilename = os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk.out")
-				f = open(sketch_filename, 'w+')
+				sketch_filename = f"{comp_name}_{i}_bnd_{bnd}.sk"
+				sketch_outfilename = sketch_filename + ".out"
+				f = open(os.path.join(output_path, sketch_filename), 'w+')
 				self.write_grammar(f)
 				self.write_sketch_spec(f, var_types, comp_name, o)
 				f.write("\n")
@@ -270,7 +280,8 @@ class Component: # group of codelets
 	def __str__(self):
 		return " ".join([s.get_stmt() for s in self.comp_stmts])
 
-class StatefulComponent(object):
+
+class StatefulComponent():
 	def __init__(self, stateful_codelet):
 		self.codelet = stateful_codelet
 		self.salu_inputs = {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 0, 'register_hi': 0}
@@ -339,7 +350,7 @@ class StatefulComponent(object):
 
 		return
 
-	def merge_component(self, comp):
+	def merge_components(self, comp):
 		print("merge component")
 		self.codelet.add_stmts(comp.comp_stmts)
 
@@ -350,6 +361,7 @@ class StatefulComponent(object):
 			assert(len(comp.state_vars) == 1)
 			self.state_vars.append(comp.state_vars[0])
 			self.state_pkt_fields.append(comp.codelet.get_state_pkt_field())
+            
 		
 		self.get_inputs_outputs() # update inputs, outputs
 		# state vars are always inputs
@@ -630,7 +642,7 @@ class Synthesizer:
 						# #########
 						
 						new_comp = copy.deepcopy(prec_comp)
-						new_comp.merge_component(comp)
+						new_comp.merge_components(comp)
 						self.comp_graph.add_node(new_comp)
 						self.comp_graph.add_edges_from([(x, new_comp) for x in 
 							self.comp_graph.predecessors(prec_comp)])
