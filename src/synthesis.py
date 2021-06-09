@@ -8,6 +8,33 @@ import subprocess
 from sketch_output_processor import SketchOutputProcessor
 from dependencyGraph import Codelet
 
+#
+# ruijief:
+# A custom function for running a Sketch file.
+#
+
+def run_sketch(self, sketch_filename, output_file):
+		bnd = 0
+		while True:
+			# run Sketch
+			sketch_outfilename =  sketch_filename + ".out"
+			print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
+			f_sk_out = open(sketch_outfilename, "w+")
+			print("running sketch, bnd = {}".format(bnd))
+			print("sketch_filename", sketch_filename)
+			ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
+			print("return code", ret_code)
+			if ret_code == 0: # successful
+				print("solved")
+				result_file = sketch_outfilename
+				print("output is in " + result_file)
+				return
+			else:
+				print("failed")
+		
+			f_sk_out.close()
+			bnd += 1
+
 # Returns true if SSA variables v1 and v2 represent the same variable
 # TODO: update preprocessing code to store SSA info in a struct/class 
 # instead of relying on string matching
@@ -197,17 +224,44 @@ class Component: # group of codelets
 		i = 0
 		for o in self.outputs:
 			bnd = 1
-			max_bnd = 3 # TODO: run till success
-			while bnd <= max_bnd:
-				f = open(os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk"), 'w+')
+			bnd = 0
+			while True:
+				# run Sketch
+				sketch_filename = f"{comp_name}_{i}_bnd_{bnd}.sk"
+				sketch_outfilename = sketch_filename + ".out"
+				f = open(os.path.join(output_path, sketch_filename), 'w+')
 				self.write_grammar(f)
 				self.write_sketch_spec(f, var_types, comp_name, o)
 				f.write("\n")
 				self.write_sketch_harness(f, var_types, comp_name, o, bnd)
-				f.close()
+				f.close()				
+				print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
+				f_sk_out = open(sketch_outfilename, "w+")
+				print("running sketch, bnd = {}".format(bnd))
+				print("sketch_filename", sketch_filename)
+				ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
+				print("return code", ret_code)
+				if ret_code == 0: # successful
+					print("solved")
+					result_file = sketch_outfilename
+					print("output is in " + result_file)
+					return
+				else:
+					print("failed")
+		
+				f_sk_out.close()
 				bnd += 1
 
-			i += 1
+	#		max_bnd = 3 # TODO: run till success
+	#		while bnd <= max_bnd:
+	#			f = open(os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk"), 'w+')
+	#			self.write_grammar(f)
+	#			self.write_sketch_spec(f, var_types, comp_name, o)
+	#			f.write("\n")
+	#			self.write_sketch_harness(f, var_types, comp_name, o, bnd)
+	#			f.close()
+	#			bnd += 1
+	#		i += 1
 
 	def print(self):
 		for s in self.comp_stmts:
@@ -228,6 +282,9 @@ class StatefulComponent():
 		self.grammar_path = "grammars/stateful_tofino.sk"
 
 		self.get_inputs_outputs()
+
+	def set_name(self, name):
+		self.name = name
 
 	def get_inputs_outputs(self):
 		self.inputs = self.codelet.get_inputs()
@@ -395,13 +452,36 @@ class StatefulComponent():
 		f.write("}\n")
 
 	def write_sketch_file(self, output_path, comp_name, var_types):
-		f = open(os.path.join(output_path, f"{comp_name}.sk"), 'w+')
-		self.set_alu_inputs()
-		self.write_grammar(f)
-		self.write_sketch_spec(f, var_types, comp_name)
-		f.write("\n")
-		self.write_sketch_harness(f, var_types, comp_name)
-		f.close()
+		i = 0
+		for o in self.outputs:
+			bnd = 0
+			while True:
+				# run Sketch
+				sketch_filename = os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk")
+				sketch_outfilename = os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk"+ ".out")
+				f = open(sketch_filename, 'w+')
+				self.set_alu_inputs()
+				self.write_grammar(f)
+				self.write_sketch_spec(f, var_types, comp_name)
+				f.write("\n")
+				self.write_sketch_harness(f, var_types, comp_name)
+				f.close()
+				print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
+				f_sk_out = open(sketch_outfilename, "w+")
+				print("running sketch, bnd = {}".format(bnd))
+				print("sketch_filename", sketch_filename)
+				ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
+				print("return code", ret_code)
+				if ret_code == 0: # successful
+					print("solved")
+					result_file = sketch_outfilename
+					print("output is in " + result_file)
+					return
+				else:
+					print("failed")
+		
+				f_sk_out.close()
+				bnd += 1
 
 	def print(self):
 		stmts = self.codelet.get_stmt_list()
@@ -608,6 +688,7 @@ class Synthesizer:
 			print("outputs", comp.outputs)
 			comp_name = "comp_{}".format(self.comp_index[comp])
 			comp.set_name(comp_name)
+			print(" > codelet output directory: " + self.output_dir)
 			comp.write_sketch_file(self.output_dir, comp_name, self.var_types)
 
 
