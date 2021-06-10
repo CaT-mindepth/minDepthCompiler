@@ -19,6 +19,7 @@ class P4Codegen(object):
         self._process_alus()
         self.generate_stateless_alu_matrix()
         self.generate_stateful_alu_matrix_and_config()
+        print('salu_configs: ', self.salu_configs_matrix)
         self.tofinop4 = populate_j2.TofinoP4(sketch_name, self.num_alus_per_stage, \
             self.num_state_groups, self.num_pipeline_stages, self.stateful_alus_matrix, \
                 self.stateless_alus_matrix, self.salu_configs_matrix)
@@ -79,9 +80,10 @@ class P4Codegen(object):
                 print(' -* this SALU: ', salu )
                 salu_dict, enabled = self.stateful_alu_to_dict_config_pair(salu, stage)
                 curr_stage.append(salu_dict)
-                curr_stage_configs.append(enabled)
+                curr_stage_configs.append(1 if enabled else 0)
             self.salu_configs_matrix.append(curr_stage_configs)
             self.stateful_alus_matrix.append(curr_stage)
 
     def generate_p4_output(self, filename):
-        return self.tofinop4.render(filename)
+        print('----------------------------------------------------')
+        print(self.tofinop4.render('./', filename))

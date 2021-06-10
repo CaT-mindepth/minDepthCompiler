@@ -119,7 +119,7 @@ class SALU(GenericALU):
         for x in self.demangle_list:
             if var_name.startswith(x):
                 return x
-            if var_name == '_out[1]':
+            if var_name == '_out':
                 return 'output_value'
         return var_name
 
@@ -241,6 +241,16 @@ class SALU(GenericALU):
                         bool_op_lhs = self.demangle(toks[5].value)
                         bool_op_rhs_expression = self.eval_bool_op(bool_op_opcode, bool_op_operand1, bool_op_operand2)
                         self.var_expressions[bool_op_lhs] = bool_op_rhs_expression
+                # Case IV: _out[1] -> output_value
+                # In this case, toks[0] is ID, toks[1] is LBRACKET, toks[2] is 'NUMBER' with value '1', toks[3] is 'RBRACKET'
+                if toks[0].type == 'ID' and toks[0].value.startswith('_out') \
+                    and toks[1].type == 'LBRACKET' \
+                    and toks[3].type == 'RBRACKET':
+                    if toks[2].type == 'NUMBER' and toks[2].value == '1':
+                        # toks[4] is '=' sign, everything after toks[4] is part of RHS
+                        rhs_expression = ''.join(list(map(lambda x: x.value, toks[5:])))
+                        print('output_value found, is ', rhs_expression)
+                        self.var_expressions['output_value'] = rhs_expression
                 elif toks[0].type == 'RBRACKET':
                     break
                 # read the next line.
