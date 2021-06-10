@@ -13,12 +13,15 @@ class P4Codegen(object):
         self.ilp_output = ilp_output 
         ilp_output.compute_alus_per_stage()
         self.num_pipeline_stages = ilp_output.num_stages 
+
+        print('================P4Codegen')
+        print(self.table_info.alus)
         self._process_alus()
         self.generate_stateless_alu_matrix()
         self.generate_stateful_alu_matrix_and_config()
         self.tofinop4 = populate_j2.TofinoP4(sketch_name, self.num_alus_per_stage, \
-            self.num_state_groups, self.num_pipeline_stages, self.stateful_alus, \
-                self.stateful_alus, self.salu_configs)
+            self.num_state_groups, self.num_pipeline_stages, self.stateful_alus_matrix, \
+                self.stateless_alus_matrix, self.salu_configs_matrix)
 
     def _process_alus(self):
         self.stateless_alus = []
@@ -57,25 +60,28 @@ class P4Codegen(object):
 
 
     def generate_stateless_alu_matrix(self):
-        self.stateless_alus = []
-        for stage in self.num_pipeline_stages:
+        self.stateless_alus_matrix = []
+        for stage in range(self.num_pipeline_stages):
             curr_stage = []
             for alu in self.stateless_alus:
                 curr_stage.append(self.stateless_alu_to_dict(alu, stage))
-            self.stateless_alus.append(curr_stage)
+            self.stateless_alus_matrix.append(curr_stage)
 
     def generate_stateful_alu_matrix_and_config(self):
-        self.salu_configs = []
-        self.stateful_alus = []
-        for stage in self.num_pipeline_stages:
+        self.salu_configs_matrix = []
+        self.stateful_alus_matrix = []
+        print('* generating stateful ALU matrix. num pipeline stages: ', self.num_pipeline_stages)
+        for stage in range(self.num_pipeline_stages):
             curr_stage = []
             curr_stage_configs = []
-            for salu in self.stateful_alus:
+            print(' - curr_stage: ', stage)
+            for salu, alu_id in self.stateful_alus:
+                print(' -* this SALU: ', salu )
                 salu_dict, enabled = self.stateful_alu_to_dict_config_pair(salu, stage)
                 curr_stage.append(salu_dict)
                 curr_stage_configs.append(enabled)
-            self.salu_configs.append(curr_stage_configs)
-            self.stateful_alus.append(curr_stage)
+            self.salu_configs_matrix.append(curr_stage_configs)
+            self.stateful_alus_matrix.append(curr_stage)
 
     def generate_p4_output(self, filename):
         return self.tofinop4.render(filename)

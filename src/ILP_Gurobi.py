@@ -54,20 +54,26 @@ class ILP_Output(object):
 
     def find_number_of_stages(self):
         max_stages = 0
-        for table, actions in self.tables:
-            for action, stage in actions: 
+        for actions in self.tables:
+            for action in actions: 
+                stage = actions[action]
                 max_stages = max(max_stages, stage)
-        self.num_stages = max_stages 
-        return max_stages 
+        self.num_stages = max_stages + 1
+        return max_stages + 1
     
 
     def compute_alus_per_stage(self):
         self.find_number_of_stages()
+        print('number of stages: ', self.num_stages)
         self.alus_per_stage = [[] for i in range(self.num_stages)]
         max_alus_per_stage = 0
-        for table, actions in self.tables:
-            for action, stage in actions:
-                self.alus_per_stage[stage].append(action)
+        for actions in self.tables:
+            for action in actions:
+                stage = actions[action]
+                print('stage: ', stage)
+                print('action: ', action)
+                print("num stages: ", len(self.alus_per_stage))
+                self.alus_per_stage[int(stage)].append(action)
         
         for alus_list in self.alus_per_stage: 
             max_alus_per_stage = max(max_alus_per_stage, len(alus_list))

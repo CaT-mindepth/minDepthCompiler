@@ -477,7 +477,7 @@ class SketchOutputProcessor(object):
         return filter(lambda x: x.get_type() == "STATELESS", self.alus)
 
     def alus_in_a_component(self, comp_name):
-        return filter(lambda x: self.alu_compnames[x] == comp_name, self.alus)
+        return filter(lambda x: self.alu_compnames[x.id] == comp_name, self.alus)
 
     # Lower dependencies between stateful components in the component graph
     # into the ALU dependency graph. Here we find only dependencies between
@@ -502,7 +502,7 @@ class SketchOutputProcessor(object):
     # stateful and exactly one of {u,v} is stateless.
     def find_stateless_dependencies_intercomp(self):
         for alu in self.all_stateless_alus():
-            comp_name = self.alu_compnames[alu]
+            comp_name = self.alu_compnames[alu.id]
             # XXX: Here we have to iterate through the component graph,
             # since each node is a component type but not a string.
             # We might want to find a faster way to directly query for the

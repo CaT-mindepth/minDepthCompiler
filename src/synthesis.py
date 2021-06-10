@@ -518,9 +518,12 @@ class Synthesizer:
 		print(self.synth_output_processor.to_ILP_str(table_name="NewTable"))
 		# self.synth_output_processor.schedule()
 		print('----- starting ILP Gurobi -----')
-		ilp_table = self.synth_output_processor.to_ILP_TableInfo(table_name = 'T')
+		ilp_table = self.synth_output_processor.to_ILP_TableInfo(table_name = 'T0')
+		print("# alus: = ", ilp_table.get_num_alus())
 		ilp_output = ilp_table.ILP() 
-		print(ilp_output)
+		import p4_codegen 
+		codegen = p4_codegen.P4Codegen(ilp_table, ilp_output, "test")
+		codegen.generate_p4_output('test.p4')
 
 	def get_var_type(self, v):
 		if v in self.var_types:
@@ -701,7 +704,7 @@ class Synthesizer:
 				self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[0])
 			else:
 				print("processing: output is stateless.")
-				self.synth_output_processor.process_stateless_output(result_file)
+				self.synth_output_processor.process_stateless_output(result_file, comp.outputs[0])
 
 		self.write_comp_graph()
 		# nx.draw(self.comp_graph)

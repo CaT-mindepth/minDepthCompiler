@@ -190,6 +190,14 @@ class TofinoP4(object):
         ]
         self.stateless_alu_fields = ['enable', 'opcode', 'operand0', 'operand1', 'result', 'immediate_operand']
 
+        print('TofinoP4 J2 template codegen: --------------------')
+        print(stateful_alus)
+        print(stateless_alus)
+        print(salu_configs)
+        print('num pipeline stages: ', num_pipeline_stages)
+        print('num_state_groups: ', num_state_groups)
+        print('num alus per stage: ', num_alus_per_stage)
+        print('--------------------------------------------------')
         if stateful_alus == None:
             self.stateful_alus = [[self._produce_dummy_stateful_alu() for j in range(num_state_groups)] for i in range(num_pipeline_stages)]
         else:
