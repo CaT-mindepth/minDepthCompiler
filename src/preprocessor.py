@@ -1,6 +1,6 @@
 import sys
 import sympy
-import lexerRules
+import lexerRulesOrig
 import ply.lex as lex
 
 
@@ -23,7 +23,7 @@ class Preprocessor:
     self.cond = {}  # key: branch var, value: condition
     self.cond_idx = {}  # idx of vars before cond
 
-    self.lexer = lex.lex(module=lexerRules)
+    self.lexer = lex.lex(module=lexerRulesOrig)
 
     self.pkt_name = ""
     self.branch_var_prefix = "br_tmp"
