@@ -32,8 +32,8 @@ import json
 #  
 # stateful_alus: dict array of size (num_pipeline_stages * num_state_groups)
 #   stateful_alus[i][j] contains a dict with the following entries:
-#       { condition_lo_expr
-#         condition_hi_expr
+#       { condition_lo
+#         condition_hi
 #         update_lo_1_predicate_expr
 #         update_lo_1_value_expr
 #         update_lo_2_predicate_expr
@@ -118,17 +118,17 @@ class TofinoP4(object):
 
     def _produce_dummy_stateful_alu(self):
         return {
-            'condition_lo_expr': 0,
-            'condition_hi_expr': 0,
-            'update_lo_1_predicate_expr': 0,
-            'update_lo_1_value_expr': 0,
-            'update_lo_2_predicate_expr': 0,
-            'update_lo_2_value_expr': 0,
-            'update_hi_1_predicate_expr': 0,
-            'update_hi_1_value_expr': 0,
-            'update_hi_2_predicate_expr': 0,
-            'update_hi_2_value_expr': 0,
-            'output_value_expr': 0,
+            'condition_lo': 0,
+            'condition_hi': 0,
+            'update_lo_1_predicate': 0,
+            'update_lo_1_value': 0,
+            'update_lo_2_predicate': 0,
+            'update_lo_2_value': 0,
+            'update_hi_1_predicate': 0,
+            'update_hi_1_value': 0,
+            'update_hi_2_predicate': 0,
+            'update_hi_2_value': 0,
+            'output_value': 0,
             'output_dst': 'ipv4.pkt_0' }
 
 
@@ -176,20 +176,28 @@ class TofinoP4(object):
         self.num_alus_per_stage = num_alus_per_stage
         self.num_state_groups = num_state_groups
         self.num_pipeline_stages = num_pipeline_stages
-        self.stateful_alu_fields = ['condition_lo_expr', 'condition_hi_expr',
-            'update_lo_1_predicate_expr',
-            'update_lo_1_value_expr',
-            'update_lo_2_predicate_expr',
-            'update_lo_2_value_expr',
-            'update_hi_1_predicate_expr',
-            'update_hi_1_value_expr',
-            'update_hi_2_predicate_expr',
-            'update_hi_2_value_expr',
-            'output_value_expr',
+        self.stateful_alu_fields = ['condition_lo', 'condition_hi',
+            'update_lo_1_predicate',
+            'update_lo_1_value',
+            'update_lo_2_predicate',
+            'update_lo_2_value',
+            'update_hi_1_predicate',
+            'update_hi_1_value',
+            'update_hi_2_predicate',
+            'update_hi_2_value',
+            'output_value',
             'output_dst'
         ]
         self.stateless_alu_fields = ['enable', 'opcode', 'operand0', 'operand1', 'result', 'immediate_operand']
 
+        print('TofinoP4 J2 template codegen: --------------------')
+        print(stateful_alus)
+        print(stateless_alus)
+        print(salu_configs)
+        print('num pipeline stages: ', num_pipeline_stages)
+        print('num_state_groups: ', num_state_groups)
+        print('num alus per stage: ', num_alus_per_stage)
+        print('--------------------------------------------------')
         if stateful_alus == None:
             self.stateful_alus = [[self._produce_dummy_stateful_alu() for j in range(num_state_groups)] for i in range(num_pipeline_stages)]
         else:

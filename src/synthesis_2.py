@@ -142,10 +142,11 @@ class Component: # group of codelets
 		self.codelet.add_stmts(comp.comp_stmts)
 		if comp.isStateful:
 			raise Exception ("Cannot merge a stateful comp, " +  "comp.name, " + "with a stateless comp")
-		else:
-			self.set_component_stmts()
-			self.get_inputs_outputs()
-		
+		else: # comp is stateless
+            self.set_component_stmts() # update stmts
+            self.get_inputs_outputs() # update inputs, outputs
+    
+
 	def write_grammar(self, f):
 		try:
 			f_grammar = open(self.grammar_path)
@@ -230,13 +231,15 @@ class Component: # group of codelets
 		f.write("}\n")
 
 	def write_sketch_file(self, output_path, comp_name, var_types):
+		i = 0
 		for o in self.outputs:
+			bnd = 1
 			bnd = 0
 			while True:
 				# run Sketch
-				sketch_filename = os.path.join(output_path, f"{comp_name}_stateless_bnd_{bnd}.sk")
-				sketch_outfilename = os.path.join(output_path, f"{comp_name}_stateless_bnd_{bnd}.sk.out")
-				f = open(sketch_filename, 'w+')
+				sketch_filename = f"{comp_name}_{i}_bnd_{bnd}.sk"
+				sketch_outfilename = sketch_filename + ".out"
+				f = open(os.path.join(output_path, sketch_filename), 'w+')
 				self.write_grammar(f)
 				self.write_sketch_spec(f, var_types, comp_name, o)
 				f.write("\n")
@@ -252,7 +255,7 @@ class Component: # group of codelets
 					print("solved")
 					result_file = sketch_outfilename
 					print("output is in " + result_file)
-					return result_file
+					return
 				else:
 					print("failed")
 		
@@ -277,7 +280,8 @@ class Component: # group of codelets
 	def __str__(self):
 		return " ".join([s.get_stmt() for s in self.comp_stmts])
 
-class StatefulComponent(object):
+
+class StatefulComponent():
 	def __init__(self, stateful_codelet):
 		self.codelet = stateful_codelet
 		self.salu_inputs = {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 0, 'register_hi': 0}
@@ -346,12 +350,9 @@ class StatefulComponent(object):
 
 		return
 
-	def merge_component(self, comp, reversed=False):
+	def merge_components(self, comp):
 		print("merge component")
-		if reversed:
-			self.codelet.add_stmts_before(comp.comp_stmts)
-		else:
-			self.codelet.add_stmts(comp.comp_stmts)
+		self.codelet.add_stmts(comp.comp_stmts)
 
 		if comp.isStateful:
 			if len(self.state_vars) == 2:
@@ -360,6 +361,7 @@ class StatefulComponent(object):
 			assert(len(comp.state_vars) == 1)
 			self.state_vars.append(comp.state_vars[0])
 			self.state_pkt_fields.append(comp.codelet.get_state_pkt_field())
+            
 		
 		self.get_inputs_outputs() # update inputs, outputs
 		# state vars are always inputs
@@ -462,12 +464,13 @@ class StatefulComponent(object):
 		f.write("}\n")
 
 	def write_sketch_file(self, output_path, comp_name, var_types):
+		i = 0
 		for o in self.outputs:
 			bnd = 0
 			while True:
 				# run Sketch
-				sketch_filename = os.path.join(output_path, f"{comp_name}_stateful_bnd_{bnd}.sk")
-				sketch_outfilename = os.path.join(output_path, f"{comp_name}_stateful_bnd_{bnd}.sk"+ ".out")
+				sketch_filename = os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk")
+				sketch_outfilename = os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk"+ ".out")
 				f = open(sketch_filename, 'w+')
 				self.set_alu_inputs()
 				self.write_grammar(f)
@@ -485,7 +488,7 @@ class StatefulComponent(object):
 					print("solved")
 					result_file = sketch_outfilename
 					print("output is in " + result_file)
-					return result_file 
+					return
 				else:
 					print("failed")
 		
@@ -525,17 +528,8 @@ class Synthesizer:
 		print("output dir", self.output_dir)
 		self.process_graph()
 		self.synth_output_processor = SketchOutputProcessor(self.comp_graph)
-		self.do_synthesis()
-		self.synth_output_processor.postprocessing()
-		print(self.synth_output_processor.to_ILP_str(table_name="NewTable"))
+
 		# self.synth_output_processor.schedule()
-		print('----- starting ILP Gurobi -----')
-		ilp_table = self.synth_output_processor.to_ILP_TableInfo(table_name = 'T0')
-		print("# alus: = ", ilp_table.get_num_alus())
-		ilp_output = ilp_table.ILP() 
-		import p4_codegen 
-		codegen = p4_codegen.P4Codegen(ilp_table, ilp_output, "test")
-		codegen.generate_p4_output('tofino_p4.j2')
 
 	def get_var_type(self, v):
 		if v in self.var_types:
@@ -648,7 +642,7 @@ class Synthesizer:
 						# #########
 						
 						new_comp = copy.deepcopy(prec_comp)
-						new_comp.merge_component(comp)
+						new_comp.merge_components(comp)
 						self.comp_graph.add_node(new_comp)
 						self.comp_graph.add_edges_from([(x, new_comp) for x in 
 							self.comp_graph.predecessors(prec_comp)])
@@ -662,21 +656,15 @@ class Synthesizer:
 						self.comp_graph.remove_node(prec_comp)
 						# NOTE: If merged component doesn't fit, throw an error
 						# TODO: Handle this case, maybe by splitting the merged component
-					else:
-						if not comp.isStateful:
-							new_comp = copy.deepcopy(prec_comp)
-							new_comp.merge_components(comp)
-						else:
-							new_comp = copy.deepcopy(comp)
-							new_comp.merg_components(comp, True)
-							
+					else: # prec_comp is stateless
+						new_comp = copy.deepcopy(prec_comp)
+						new_comp.merge_components(comp)
 						self.comp_graph.add_node(new_comp)
 						self.comp_graph.add_edges_from([(x, new_comp) for x in 
 							self.comp_graph.predecessors(prec_comp)])
 						self.comp_graph.add_edges_from([(new_comp, y) for 
 							y in self.comp_graph.successors(comp)])
-						self.comp_graph.remove_node(prec_comp)
-
+					
 					self.comp_graph.remove_node(comp)
 					comp = new_comp
 
@@ -708,8 +696,6 @@ class Synthesizer:
 			print("outputs", comp.outputs)
 			i += 1
 
-
-	def do_synthesis(self):
 		# Synthesize each codelet
 		print("Synthesize each codelet")
 		for comp in nx.topological_sort(self.comp_graph):
@@ -720,14 +706,8 @@ class Synthesizer:
 			comp_name = "comp_{}".format(self.comp_index[comp])
 			comp.set_name(comp_name)
 			print(" > codelet output directory: " + self.output_dir)
-			result_file = comp.write_sketch_file(self.output_dir, comp_name, self.var_types)
-			print("processing sketch output...")
-			if comp.isStateful:
-				print("processing: output is stateful.")
-				self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[0])
-			else:
-				print("processing: output is stateless.")
-				self.synth_output_processor.process_stateless_output(result_file, comp.outputs[0])
+			comp.write_sketch_file(self.output_dir, comp_name, self.var_types)
+
 
 		self.write_comp_graph()
 		# nx.draw(self.comp_graph)

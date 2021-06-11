@@ -1,0 +1,7 @@
+decorator==4.4.2
+graphviz==0.16
+gurobipy==9.1.2
+Jinja2==3.0.1
+networkx==2.5.1
+overrides==6.1.0
+ply==3.8

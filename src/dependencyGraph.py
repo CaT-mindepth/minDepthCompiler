@@ -40,6 +40,8 @@ class Statement:
 
 	def is_read_flank(self, state_vars):
 		# if len(self.rhs_vars) == 1:
+
+
 		r = self.rhs_vars[0]
 		if is_array_var(r):
 			r = r[:r.find("[")] # array name
@@ -108,6 +110,13 @@ class Codelet:
 
 	def add_stmts(self, stmts):
 		self.stmt_list.extend(stmts)
+
+	def add_stmts_before(self, stmts):
+		# for safety
+		new_stmts = []
+		new_stmts.extend(stmts)
+		new_stmts.extend(self.stmt_list)
+		self.stmt_list = new_stmts 
 
 	def replace_char(self, char_old, char_new):
 		for stmt in self.stmt_list:

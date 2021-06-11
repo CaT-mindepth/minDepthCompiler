@@ -2,6 +2,85 @@ import sys
 import gurobipy as gp
 from gurobipy import GRB
 
+class ILP_TableInfo(object):
+    # represents ALU dependencies in a single action (resp. table)
+    def __init__(self, table_name, num_alus, alus, alu_adjacency_list):
+        self.table_name = table_name 
+        self.num_alus = num_alus 
+        self.alu_adjacency_list = alu_adjacency_list
+        self.alus = alus
+
+    def get_num_alus(self):
+        return self.num_alus 
+
+    # returns a list of edges in the ALU dependency graph.
+    def get_dependency_list(self):
+        deps = []
+        for src_alu_id in range(len(self.alu_adjacency_list)):
+            for tgt_alu in self.alu_adjacency_list[src_alu_id]:
+                tgt_alu_id = tgt_alu.id 
+                deps.append((src_alu_id, tgt_alu_id))
+        return deps
+
+    # do ILP
+    def ILP(self):
+        # def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
+        return gen_and_solve_ILP([], [], [], [], {self.table_name:len(self.alu_adjacency_list)}, \
+            {self.table_name: self.get_dependency_list()}, [self.table_name] )
+
+
+class ILP_Output(object):
+    """
+        ILP_Output: represents the output of an ILP program.
+        Will be filled during gen_and_solve ILP and returned.
+    """
+
+    def __init__(self, num_tables):
+        # tables: contains a dict mapping each ALU id to a stage
+        self.tables = [{} for i in range(num_tables)]
+        self.optimal = False 
+    
+    def add_stage_info(self, var_name, stage):
+        # var name format: T3_A_3 -> 1
+        exploded = var_name.split("_")
+        assert len(exploded) == 3
+        self.tables[int(exploded[0][1])][int(exploded[2])] = stage 
+
+    # is Gurobi output optimal. If it isn't, then this instance
+    # will contain a blank table assignment.
+    def optimal_status(self, op):
+        self.optimal = op 
+
+
+    def find_number_of_stages(self):
+        max_stages = 0
+        for actions in self.tables:
+            for action in actions: 
+                stage = actions[action]
+                max_stages = max(max_stages, stage)
+        self.num_stages = max_stages + 1
+        return max_stages + 1
+    
+
+    def compute_alus_per_stage(self):
+        self.find_number_of_stages()
+        print('number of stages: ', self.num_stages)
+        self.alus_per_stage = [[] for i in range(self.num_stages)]
+        max_alus_per_stage = 0
+        for actions in self.tables:
+            for action in actions:
+                stage = actions[action]
+                print('stage: ', stage)
+                print('action: ', action)
+                print("num stages: ", len(self.alus_per_stage))
+                self.alus_per_stage[int(stage)].append(action)
+        
+        for alus_list in self.alus_per_stage: 
+            max_alus_per_stage = max(max_alus_per_stage, len(alus_list))
+        
+        self.max_alus_per_stage = max_alus_per_stage 
+    
+# ruijief: we modify gen_and_solve_ILP to return an ILP_Output object.
 def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
     # Create a new model
     m = gp.Model("ILP")
@@ -147,6 +226,18 @@ def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic
             match_dep_c + action_dep_c + successor_dep_c + reverse_dep_c)
     '''
     # TODO: output the layout of ALU grid
+    # ruijief:
+    # here we return an ILP_Output object.
+    output = ILP_Output(len(table_list))
+    if m.status == GRB.OPTIMAL:
+        output.optimal_status(True)
+        for v in m.getVars():
+            if v.varName.find('stage') == -1 and v.varName[-1] != 'M' and v.varName != 'cost':
+                output.add_stage_info(v.varName, v.x)
+    else:
+        output.optimal_status(False)
+    return output
+
 
 def main(argv):
     """main program."""
