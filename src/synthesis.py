@@ -220,6 +220,7 @@ class Component: # group of codelets
 		output_type = var_types[o]
 		# TODO: more robust type checking; relational expression can be assigned to an integer variable (should be bool)
 		# if output_type == "int":
+		print(' - TODO output type is int? but it is ', output_type)
 		assert(output_type == "int")
 		f.write("\tassert expr(vars, {}) == {};\n".format(bnd, comp_fxn))
 		# else:
