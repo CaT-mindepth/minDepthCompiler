@@ -11,6 +11,10 @@ gurobipy
 ## Non-python dependencies
 Sketch-1.7.6
 
+## Testing
+
+To run tests on one of the passing benchmarks, simply go and locate the `test_*.sh` files in the main directory and run it in the main directory. The script will tell you where to find the generated `.p4` file.
+
 ## Running the code
 
 Go to the src directory ("cd src").
