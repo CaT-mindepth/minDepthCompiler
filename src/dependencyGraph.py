@@ -41,17 +41,18 @@ class Statement:
 	def is_read_flank(self, state_vars):
 		# if len(self.rhs_vars) == 1:
 
+		print(' is_read_flank: processing rhs_vars = ', self.rhs_vars)
+		if len(self.rhs_vars) > 0:
+			r = self.rhs_vars[0]
+			if is_array_var(r):
+				r = r[:r.find("[")] # array name
 
-		r = self.rhs_vars[0]
-		if is_array_var(r):
-			r = r[:r.find("[")] # array name
-
-		if r in state_vars:
-			self.is_stateful = True
-			self.read_flank = True
-			self.state_var = r # Check: works for for array types?
-			self.state_pkt_field_init = self.lhs
-			return (True, r)
+			if r in state_vars:
+				self.is_stateful = True
+				self.read_flank = True
+				self.state_var = r # Check: works for for array types?
+				self.state_pkt_field_init = self.lhs
+				return (True, r)
 			
 		return (False, "")
 
@@ -229,6 +230,7 @@ class DependencyGraph:
 			print("state_vars", self.state_variables)
 
 			# read, write flanks
+			print('read/write flanks: processing line ', line)
 			is_read_flank, state = stmt.is_read_flank(self.state_variables)
 			if is_read_flank:
 				print("read flank")
