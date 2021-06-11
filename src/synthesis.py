@@ -137,7 +137,7 @@ class Component: # group of codelets
 		for codelet in self.codelets:
 			self.comp_stmts.extend(codelet.get_stmt_list())
 
-	def merge_components(self, comp):
+	def merge_component(self, comp):
 		print("merge component")
 		self.codelet.add_stmts(comp.comp_stmts)
 		if comp.isStateful:
@@ -220,6 +220,7 @@ class Component: # group of codelets
 		output_type = var_types[o]
 		# TODO: more robust type checking; relational expression can be assigned to an integer variable (should be bool)
 		# if output_type == "int":
+		print(' - TODO output type is int? but it is ', output_type)
 		assert(output_type == "int")
 		f.write("\tassert expr(vars, {}) == {};\n".format(bnd, comp_fxn))
 		# else:
@@ -665,10 +666,10 @@ class Synthesizer:
 					else:
 						if not comp.isStateful:
 							new_comp = copy.deepcopy(prec_comp)
-							new_comp.merge_components(comp)
+							new_comp.merge_component(comp)
 						else:
 							new_comp = copy.deepcopy(comp)
-							new_comp.merg_components(comp, True)
+							new_comp.merge_component(comp, True)
 							
 						self.comp_graph.add_node(new_comp)
 						self.comp_graph.add_edges_from([(x, new_comp) for x in 
