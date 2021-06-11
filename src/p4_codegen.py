@@ -84,6 +84,9 @@ class P4Codegen(object):
             self.salu_configs_matrix.append(curr_stage_configs)
             self.stateful_alus_matrix.append(curr_stage)
 
-    def generate_p4_output(self, filename):
+    def generate_p4_output(self, filename, p4outputname):
         print('----------------------------------------------------')
-        print(self.tofinop4.render('./', filename))
+        p4program = (self.tofinop4.render('./', filename))
+        print(p4program)
+        with open(p4outputname, 'w+') as fd:
+            fd.writelines([p4program])

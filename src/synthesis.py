@@ -8,32 +8,6 @@ import subprocess
 from sketch_output_processor import SketchOutputProcessor
 from dependencyGraph import Codelet
 
-#
-# ruijief:
-# A custom function for running a Sketch file.
-#
-
-def run_sketch(self, sketch_filename, output_file):
-		bnd = 0
-		while True:
-			# run Sketch
-			sketch_outfilename =  sketch_filename + ".out"
-			print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
-			f_sk_out = open(sketch_outfilename, "w+")
-			print("running sketch, bnd = {}".format(bnd))
-			print("sketch_filename", sketch_filename)
-			ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
-			print("return code", ret_code)
-			if ret_code == 0: # successful
-				print("solved")
-				result_file = sketch_outfilename
-				print("output is in " + result_file)
-				return
-			else:
-				print("failed")
-		
-			f_sk_out.close()
-			bnd += 1
 
 # Returns true if SSA variables v1 and v2 represent the same variable
 # TODO: update preprocessing code to store SSA info in a struct/class 
@@ -502,7 +476,7 @@ class StatefulComponent(object):
 		return str(self.codelet)
 
 class Synthesizer:
-	def __init__(self, state_vars, var_types, dep_graph, stateful_nodes, filename):
+	def __init__(self, state_vars, var_types, dep_graph, stateful_nodes, filename, p4_output_name):
 		self.state_vars = state_vars
 		self.var_types = var_types
 		self.filename = filename
@@ -536,7 +510,7 @@ class Synthesizer:
 		ilp_output = ilp_table.ILP() 
 		import p4_codegen 
 		codegen = p4_codegen.P4Codegen(ilp_table, ilp_output, "test")
-		codegen.generate_p4_output('tofino_p4.j2')
+		codegen.generate_p4_output('tofino_p4.j2', p4_output_name)
 
 	def get_var_type(self, v):
 		if v in self.var_types:
