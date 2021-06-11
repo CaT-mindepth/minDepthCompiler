@@ -64,7 +64,7 @@ class P4Codegen(object):
         self.stateless_alus_matrix = []
         for stage in range(self.num_pipeline_stages):
             curr_stage = []
-            for alu in self.stateless_alus:
+            for alu, alu_id in self.stateless_alus:
                 curr_stage.append(self.stateless_alu_to_dict(alu, stage))
             self.stateless_alus_matrix.append(curr_stage)
 
