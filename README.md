@@ -26,9 +26,9 @@ To install `dot` on Ubuntu:
 sudo apt install graphviz
 ```
 
-To install `dot` on macOS/OSX:
+To install `dot` on macOS/OSX: Make sure to have Homebrew installed, and run
 ```
-
+brew install graphviz
 ```
 ` 
 ## Non-python dependencies
