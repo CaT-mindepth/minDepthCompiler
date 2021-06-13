@@ -12,6 +12,7 @@ header_type ethernet_t {
 
 header ethernet_t ethernet;
 
+/* // XXX: legacy code below
 header_type ipv4_t {
     fields {
         // TODO: Have a hard limit on 5 fields for now. Ensure this in the tofino code generator.
@@ -20,6 +21,14 @@ header_type ipv4_t {
         pkt_2 : 32 (signed);
         pkt_3 : 32 (signed);
         pkt_4 : 32 (signed);
+    }
+}*/
+
+/* ruijief: added support for customized PHV container fields. */
+header_type ipv4_t {
+    fields {
+{% for field in phv_container_fields %} 
+        {{field}} : 32 (signed);  {% endfor %}
     }
 }
 

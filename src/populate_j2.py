@@ -171,11 +171,14 @@ class TofinoP4(object):
         return "".join(lines)
 
 
-    def __init__(self, sketch_name, num_alus_per_stage, num_state_groups, num_pipeline_stages, stateful_alus=None, stateless_alus=None, salu_configs=None):
+    def __init__(self, sketch_name, num_alus_per_stage, num_state_groups, num_pipeline_stages, stateful_alus=None, stateless_alus=None, salu_configs=None, phv_container_fields=None):
         self.sketch_name = sketch_name 
         self.num_alus_per_stage = num_alus_per_stage
         self.num_state_groups = num_state_groups
         self.num_pipeline_stages = num_pipeline_stages
+        self.phv_container_fields = phv_container_fields 
+        if phv_container_fields == None:
+            print("WARNING: PHV container fields = None in TofinoP4 object!")
         self.stateful_alu_fields = ['condition_lo', 'condition_hi',
             'update_lo_1_predicate',
             'update_lo_1_value',
@@ -260,7 +263,8 @@ class TofinoP4(object):
                 'stateful_alus': self.stateful_alus,
                 'stateless_alus': self.stateless_alus,
                 'salu_configs': self.salu_configs,
-                'ignore_all_table_deps': self._generate_pragma_lines() }
+                'ignore_all_table_deps': self._generate_pragma_lines(),
+                'phv_container_fields': self.phv_container_fields }
 
 
     # path: path under which the tofino_p4.j2 template is stored.

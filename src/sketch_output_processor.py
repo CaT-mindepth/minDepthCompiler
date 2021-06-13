@@ -93,7 +93,7 @@ class SALU(GenericALU):
             'metadata_lo': metadata_lo_name,
             'metadata_hi': metadata_hi_name,
             'register_lo': register_lo_0_name,
-            'register_hi_1_name': register_hi_1_name,
+            'register_hi': register_hi_1_name,
         }
         self.process_salu_function()
         for lhs in self.var_expressions:
@@ -310,6 +310,12 @@ class ALU(GenericALU):
             assert (toks[2].type == 'ID')
             self.inputs = [toks[2].value]
             self.output = output
+
+    def set_inputs(self, inputs):
+        self.inputs = inputs 
+    
+    def set_output(self, output):
+        self.output = output
 
     def print(self):
         if not self.wire:
