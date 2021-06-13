@@ -205,12 +205,13 @@ class Component: # group of codelets
 		f.write("}\n")
 
 	def write_sketch_file(self, output_path, comp_name, var_types):
+		filenames = []
 		for o in self.outputs:
 			bnd = 0
 			while True:
 				# run Sketch
-				sketch_filename = os.path.join(output_path, f"{comp_name}_stateless_bnd_{bnd}.sk")
-				sketch_outfilename = os.path.join(output_path, f"{comp_name}_stateless_bnd_{bnd}.sk.out")
+				sketch_filename = os.path.join(output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
+				sketch_outfilename = os.path.join(output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk.out")
 				f = open(sketch_filename, 'w+')
 				self.write_grammar(f)
 				self.write_sketch_spec(f, var_types, comp_name, o)
@@ -227,13 +228,14 @@ class Component: # group of codelets
 					print("solved")
 					result_file = sketch_outfilename
 					print("output is in " + result_file)
-					return result_file
+					filenames.append(result_file)
+					break
 				else:
 					print("failed")
 		
 				f_sk_out.close()
 				bnd += 1
-
+		return filenames
 	#		max_bnd = 3 # TODO: run till success
 	#		while bnd <= max_bnd:
 	#			f = open(os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk"), 'w+')
@@ -437,35 +439,34 @@ class StatefulComponent(object):
 		f.write("}\n")
 
 	def write_sketch_file(self, output_path, comp_name, var_types):
-		for o in self.outputs:
-			bnd = 0
-			while True:
-				# run Sketch
-				sketch_filename = os.path.join(output_path, f"{comp_name}_stateful_bnd_{bnd}.sk")
-				sketch_outfilename = os.path.join(output_path, f"{comp_name}_stateful_bnd_{bnd}.sk"+ ".out")
-				f = open(sketch_filename, 'w+')
-				self.set_alu_inputs()
-				self.write_grammar(f)
-				self.write_sketch_spec(f, var_types, comp_name)
-				f.write("\n")
-				self.write_sketch_harness(f, var_types, comp_name)
-				f.close()
-				print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
-				f_sk_out = open(sketch_outfilename, "w+")
-				print("running sketch, bnd = {}".format(bnd))
-				print("sketch_filename", sketch_filename)
-				ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
-				print("return code", ret_code)
-				if ret_code == 0: # successful
-					print("solved")
-					result_file = sketch_outfilename
-					print("output is in " + result_file)
-					return result_file 
-				else:
-					print("failed")
-		
-				f_sk_out.close()
-				bnd += 1
+		bnd = 0
+		while True:
+			# run Sketch
+			sketch_filename = os.path.join(output_path, f"{comp_name}_stateful_bnd_{bnd}.sk")
+			sketch_outfilename = os.path.join(output_path, f"{comp_name}_stateful_bnd_{bnd}.sk"+ ".out")
+			f = open(sketch_filename, 'w+')
+			self.set_alu_inputs()
+			self.write_grammar(f)
+			self.write_sketch_spec(f, var_types, comp_name)
+			f.write("\n")
+			self.write_sketch_harness(f, var_types, comp_name)
+			f.close()
+			print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
+			f_sk_out = open(sketch_outfilename, "w+")
+			print("running sketch, bnd = {}".format(bnd))
+			print("sketch_filename", sketch_filename)
+			ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
+			print("return code", ret_code)
+			if ret_code == 0: # successful
+				print("solved")
+				result_file = sketch_outfilename
+				print("output is in " + result_file)
+				return result_file 
+			else:
+				print("failed")
+	
+			f_sk_out.close()
+			bnd += 1
 
 	def print(self):
 		stmts = self.codelet.get_stmt_list()
@@ -702,7 +703,10 @@ class Synthesizer:
 				self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[0])
 			else:
 				print("processing: output is stateless.")
-				self.synth_output_processor.process_stateless_output(result_file, comp.outputs[0])
+				output_idx = 0
+				for file in result_file:
+					self.synth_output_processor.process_stateless_output(file, comp.outputs[output_idx])
+					output_idx += 1
 
 		self.write_comp_graph()
 		# nx.draw(self.comp_graph)

@@ -153,7 +153,7 @@ class Codelet:
 		
 		inputs.extend([u for u in uses if u not in defines])
 
-		return inputs
+		return list(set(inputs))
 
 	def get_state_var(self):
 		assert(self.stateful)
@@ -161,7 +161,7 @@ class Codelet:
 
 	def get_outputs(self):
 		# all defines are outputs (may or may not be used by subsequent codelets)
-		return [stmt.lhs for stmt in self.stmt_list]
+		return list(set([stmt.lhs for stmt in self.stmt_list]))
 
 	def print(self):
 		for stmt in self.stmt_list:

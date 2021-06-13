@@ -502,6 +502,7 @@ class Preprocessor:
     self.process_function()
 
     print("final stmts")
+    self.process_array_stmts()
     for i in self.final_stmts:
       print(i)
 
@@ -538,6 +539,12 @@ class Preprocessor:
 
     f_out.close()
 
+  def process_array_stmts(self):
+    import re 
+    processed = []
+    for stmt in self.final_stmts:
+      processed.append(re.sub(r'\[.*\]', '', stmt))
+    self.final_stmts = processed
 
 if __name__ == "__main__":
   if len(sys.argv) < 3:

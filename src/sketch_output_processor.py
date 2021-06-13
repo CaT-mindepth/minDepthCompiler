@@ -1,8 +1,7 @@
 from os import confstr
 import lexerRules
 import ply.lex as lex
-import networkx as nx
-
+import re
 
 class GenericALU(object):
     #
@@ -94,10 +93,14 @@ class SALU(GenericALU):
             'metadata_lo': metadata_lo_name,
             'metadata_hi': metadata_hi_name,
             'register_lo': register_lo_0_name,
-            'register_hi_1_name': register_hi_1_name,
+            'register_hi': register_hi_1_name,
         }
         self.process_salu_function()
-
+        for lhs in self.var_expressions:
+            rhs = self.var_expressions[lhs]
+            for arg in self.salu_arguments_mapping:
+                rhs = re.sub(arg, self.salu_arguments_mapping[arg], rhs)
+            self.var_expressions[lhs] = rhs
 
     """
         This helper method helps construct a new PLY LexToken object.
@@ -272,6 +275,7 @@ class ALU(GenericALU):
         self.stmt = stmt
         self.lineno = lineno
         self.wire = wire
+        # will add self.opcode, self.inputs, self.output
         self.process_stmt()
 
     def process_stmt(self):
@@ -306,6 +310,12 @@ class ALU(GenericALU):
             assert (toks[2].type == 'ID')
             self.inputs = [toks[2].value]
             self.output = output
+
+    def set_inputs(self, inputs):
+        self.inputs = inputs 
+    
+    def set_output(self, output):
+        self.output = output
 
     def print(self):
         if not self.wire:
@@ -352,7 +362,7 @@ class SketchOutputProcessor(object):
 
     def process_stateless_output(self, input_file, output):
         f = open(input_file, "r")
-
+        print('process_stateless_output: processing file ', input_file)
         l = f.readline()
         while not l.startswith("void sketch"):
             l = f.readline()
@@ -401,8 +411,9 @@ class SketchOutputProcessor(object):
     def filename_to_specname(self, filename):
         import re
         file = filename.split('/')[-1]
-        return '_'.join(list(filter(lambda x: len(x) > 0, re.split('stateless|_|stateful|_|bnd|_', file.split('.')[0])))[:-1])
-    
+        # return '_'.join(list(filter(lambda x: len(x) > 0, re.split('stateless|_|stateful|_|bnd|_', file.split('.')[0])))[:-1])
+        return (lambda x: x[0] + '_' + x[1])(file.split('_'))
+
     def find_output_dst(self, input_file):
         with open(input_file, "r") as f:
             specname = self.filename_to_specname(input_file)
@@ -476,7 +487,7 @@ class SketchOutputProcessor(object):
             if alu1.get_type() == "STATELESS":
                 for alu2 in self.alus:
                     if alu2.get_type() == "STATELESS":
-                        if alu2 != alu1 and alu1.output in alu2.inputs and alu1.lineno < alu2.lineno:  # RAW
+                        if alu2 != alu1 and alu1.output in alu2.inputs:  # RAW
                             self.dependencies[alu1].append(alu2)
                             self.rev_dependencies[alu2].append(alu1)
 

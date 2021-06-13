@@ -1,7 +1,9 @@
 
 import ILP_Gurobi
 import populate_j2
-
+from ply import lex # for parsing PHV vars in stateful ALUs
+import lexerRules
+import re
 class P4Codegen(object):
 
 
@@ -17,12 +19,68 @@ class P4Codegen(object):
         print('================P4Codegen')
         print(self.table_info.alus)
         self._process_alus()
+        self._allocate_phv_container_struct_fields()
+        self._postprocess_phv_container_fields()
         self.generate_stateless_alu_matrix()
         self.generate_stateful_alu_matrix_and_config()
         print('salu_configs: ', self.salu_configs_matrix)
         self.tofinop4 = populate_j2.TofinoP4(sketch_name, self.num_alus_per_stage, \
             self.num_state_groups, self.num_pipeline_stages, self.stateful_alus_matrix, \
-                self.stateless_alus_matrix, self.salu_configs_matrix)
+                self.stateless_alus_matrix, self.salu_configs_matrix, self.packet_fields)
+
+
+    def _postprocess_phv_container_fields(self):
+        for alu in self.table_info.alus:
+            if alu.get_type() == 'STATELESS':
+                # Perform substitution to add the ipv4_t.* prefix into variables.
+                alu.set_inputs(list(map(lambda x: 'ipv4_t.' + x if x in self.packet_fields else x, alu.inputs)))
+                alu.set_output('ipv4_t.' + alu.output if alu.output in self.packet_fields else alu.output)
+            if alu.get_type() == 'STATEFUL':
+                pass # done in _allocate_phv_container_struct_fields already
+    
+
+    def _allocate_phv_container_struct_fields(self):
+        self.packet_fields = set()
+        lexer = lex.lex(module=lexerRules)
+        for alu in self.table_info.alus:
+            if alu.get_type() == 'STATELESS':
+                # XXX: We use the lexer (again!) on the input and output fields
+                # to each stateless ALU in order to see whether input/outputs
+                # are indeed valid IDs (they can also be immediates, which are NUMBERs).
+                # This might consume a bit more resources, but is cleaner than regexing manually.
+
+                for input in alu.inputs + [alu.output]:
+                    lexer.input(input)
+                    toks = [tok for tok in lexer]
+                    if toks[0].type == 'ID':
+                        self.packet_fields.add(input)
+
+            if alu.get_type() == 'STATEFUL':
+                # XXX: here we need to parse out the rhs of each stateful ALU field
+                # and see if it uses a variable that isn't the lhs of the ALU field.
+                # this is rather clumsey to do, since the RHS currently is a string that
+                # needs to be re-lexed although we have already lexed it again and again
+                # in sketch_output_processor.py. 
+                # However, there's not really a better alternative, since the relational
+                # expressions (i.e. in condition_lo and condition_hi, correspondingly)
+                # might also contain PHV vars.
+                for lhs in alu.var_expressions:
+                    rhs = alu.var_expressions[lhs]
+                    lexer.input(rhs)
+                    toks = []
+                    for tok in lexer:
+                        # look at each ID-type. Does it belong in the PHV container?
+                        if tok.type == 'ID':
+                            if not (alu.demangle(tok.value)) in alu.var_expressions: 
+                                # if the token is an ID and its ID name is not
+                                # one of the SALU vars, we conclude that it must be
+                                # a packet field that belongs in the PHV container.
+                                print('p4_codegen: PHV var found for stateful ALU, it is ', tok.value)
+                                self.packet_fields.add(tok.value)
+                                tok.value = 'ipv4_t.' + tok.value
+                        toks.append(tok)
+                    alu.var_expressions[lhs] = ''.join(list(map(lambda x: x.value, toks)))
+                
 
     def _process_alus(self):
         self.stateless_alus = []
