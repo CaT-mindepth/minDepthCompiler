@@ -28,12 +28,12 @@ header_type ipv4_t {
 header_type ipv4_t {
     fields {
  
-        last_update_0 : 32 (signed);   
-        p_p_mark2 : 32 (signed);   
-        p_now_plus_free1 : 32 (signed);   
         p_mark : 32 (signed);   
         p_mark_1 : 32 (signed);   
-        p_now0 : 32 (signed);  
+        p_now0 : 32 (signed);   
+        p_p_mark2 : 32 (signed);   
+        p_now_plus_free1 : 32 (signed);   
+        last_update_0 : 32 (signed);  
     }
 }
 
@@ -76,19 +76,19 @@ register reg_0 {
 blackbox stateful_alu test_stateful_alu_0_0_blackbox {
     
     reg                       : reg_0;
-    condition_lo              : =(((0-ipv4_t.p_now_plus_free1)+ipv4_t.last_update_0)+1)>0;
-    condition_hi              : =(((0-ipv4_t.p_now_plus_free1)+ipv4_t.last_update_0)+1)==0;
+    condition_lo              : ((0-ipv4.p_now_plus_free1)+ipv4.last_update_0)<0;
+    condition_hi              : ((0-ipv4.p_now_plus_free1)-ipv4.p_mark_1)>0;
     update_lo_1_predicate     : true;
-    update_lo_1_value         : (ipv4_t.p_now0)+(0);
+    update_lo_1_value         : (ipv4.p_now0);
     update_lo_2_predicate     : true;
-    update_lo_2_value         : (ipv4_t.p_now0);
+    update_lo_2_value         : 0;
     update_hi_1_predicate     : true;
-    update_hi_1_value         : (2)+(1);
+    update_hi_1_value         : (ipv4.p_mark_1)-(2);
     update_hi_2_predicate     : true;
-    update_hi_2_value         : (ipv4_t.p_mark_1)-(2);
+    update_hi_2_value         : (ipv4.p_mark_1)-(ipv4.p_now_plus_free1);
     output_predicate          : 1;
-    output_value              : ipv4_t.p_mark;
-    output_dst                : ipv4_t.p_p_mark2;
+    output_value              : ipv4.p_mark;
+    output_dst                : ipv4.p_p_mark2;
     
     initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
     initial_register_hi_value : 0;
@@ -129,7 +129,7 @@ table test_stateful_alu_0_0_table {
 action test_stateless_alu_0_0_action () {
     
     
-    min(ipv4_t.p_now_plus_free1, 1, 0);
+    subtract(ipv4.p_now_plus_free1, ipv4.p_now0, 1);
     
 }
 
