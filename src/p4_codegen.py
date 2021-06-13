@@ -36,13 +36,7 @@ class P4Codegen(object):
                 alu.set_inputs(list(map(lambda x: 'ipv4_t.' + x if x in self.packet_fields else x, alu.inputs)))
                 alu.set_output('ipv4_t.' + alu.output if alu.output in self.packet_fields else alu.output)
             if alu.get_type() == 'STATEFUL':
-                for lhs in alu.var_expressions:
-                    rhs = alu.var_expressions[lhs]
-                    for packet_field in self.packet_fields:
-                        rhs1 = rhs.replace(packet_field, 'ipv4_t.' + packet_field)
-                        print('postprocessing: changing rhs=', rhs, ' to rhs1=', rhs1)
-                        rhs = rhs1
-                    alu.var_expressions[lhs] = rhs 
+                pass # done in _allocate_phv_container_struct_fields already
     
 
     def _allocate_phv_container_struct_fields(self):
@@ -73,6 +67,7 @@ class P4Codegen(object):
                 for lhs in alu.var_expressions:
                     rhs = alu.var_expressions[lhs]
                     lexer.input(rhs)
+                    toks = []
                     for tok in lexer:
                         # look at each ID-type. Does it belong in the PHV container?
                         if tok.type == 'ID':
@@ -82,6 +77,9 @@ class P4Codegen(object):
                                 # a packet field that belongs in the PHV container.
                                 print('p4_codegen: PHV var found for stateful ALU, it is ', tok.value)
                                 self.packet_fields.add(tok.value)
+                                tok.value = 'ipv4_t.' + tok.value
+                        toks.append(tok)
+                    alu.var_expressions[lhs] = ''.join(list(map(lambda x: x.value, toks)))
                 
 
     def _process_alus(self):
