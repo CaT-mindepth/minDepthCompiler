@@ -411,8 +411,9 @@ class SketchOutputProcessor(object):
     def filename_to_specname(self, filename):
         import re
         file = filename.split('/')[-1]
-        return '_'.join(list(filter(lambda x: len(x) > 0, re.split('stateless|_|stateful|_|bnd|_', file.split('.')[0])))[:-1])
-    
+        # return '_'.join(list(filter(lambda x: len(x) > 0, re.split('stateless|_|stateful|_|bnd|_', file.split('.')[0])))[:-1])
+        return (lambda x: x[0] + '_' + x[1])(file.split('_'))
+
     def find_output_dst(self, input_file):
         with open(input_file, "r") as f:
             specname = self.filename_to_specname(input_file)
@@ -486,7 +487,7 @@ class SketchOutputProcessor(object):
             if alu1.get_type() == "STATELESS":
                 for alu2 in self.alus:
                     if alu2.get_type() == "STATELESS":
-                        if alu2 != alu1 and alu1.output in alu2.inputs and alu1.lineno < alu2.lineno:  # RAW
+                        if alu2 != alu1 and alu1.output in alu2.inputs:  # RAW
                             self.dependencies[alu1].append(alu2)
                             self.rev_dependencies[alu2].append(alu1)
 
