@@ -275,6 +275,7 @@ class ALU(GenericALU):
         self.stmt = stmt
         self.lineno = lineno
         self.wire = wire
+        # will add self.opcode, self.inputs, self.output
         self.process_stmt()
 
     def process_stmt(self):
