@@ -212,7 +212,6 @@ class Component: # group of codelets
 				# run Sketch
 				sketch_filename = os.path.join(output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
 				sketch_outfilename = os.path.join(output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk.out")
-				filenames.append(sketch_outfilename)
 				f = open(sketch_filename, 'w+')
 				self.write_grammar(f)
 				self.write_sketch_spec(f, var_types, comp_name, o)
@@ -230,6 +229,7 @@ class Component: # group of codelets
 					result_file = sketch_outfilename
 					print("output is in " + result_file)
 					filenames.append(result_file)
+					break
 				else:
 					print("failed")
 		

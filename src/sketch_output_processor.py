@@ -362,7 +362,7 @@ class SketchOutputProcessor(object):
 
     def process_stateless_output(self, input_file, output):
         f = open(input_file, "r")
-
+        print('process_stateless_output: processing file ', input_file)
         l = f.readline()
         while not l.startswith("void sketch"):
             l = f.readline()
