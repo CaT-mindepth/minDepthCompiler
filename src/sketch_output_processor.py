@@ -1,8 +1,7 @@
 from os import confstr
 import lexerRules
 import ply.lex as lex
-import networkx as nx
-
+import re
 
 class GenericALU(object):
     #
@@ -97,7 +96,11 @@ class SALU(GenericALU):
             'register_hi_1_name': register_hi_1_name,
         }
         self.process_salu_function()
-
+        for lhs in self.var_expressions:
+            rhs = self.var_expressions[lhs]
+            for arg in self.salu_arguments_mapping:
+                rhs = re.sub(arg, self.salu_arguments_mapping[arg], rhs)
+            self.var_expressions[lhs] = rhs
 
     """
         This helper method helps construct a new PLY LexToken object.
