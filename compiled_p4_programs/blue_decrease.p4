@@ -76,18 +76,18 @@ register reg_0 {
 blackbox stateful_alu test_stateful_alu_0_0_blackbox {
     
     reg                       : reg_0;
-    condition_lo              : ((0-ipv4.p_now_plus_free1)+ipv4.last_update_0)<0;
-    condition_hi              : ((0-ipv4.p_now_plus_free1)-ipv4.p_mark_1)>0;
+    condition_lo              : ((0-ipv4.p_now_plus_free1)+register_lo)<0;
+    condition_hi              : ((0-ipv4.p_now_plus_free1)-register_hi)>0;
     update_lo_1_predicate     : true;
     update_lo_1_value         : (ipv4.p_now0);
     update_lo_2_predicate     : true;
     update_lo_2_value         : 0;
     update_hi_1_predicate     : true;
-    update_hi_1_value         : (ipv4.p_mark_1)-(2);
+    update_hi_1_value         : (register_hi)-(2);
     update_hi_2_predicate     : true;
-    update_hi_2_value         : (ipv4.p_mark_1)-(ipv4.p_now_plus_free1);
+    update_hi_2_value         : (register_hi)-(ipv4.p_now_plus_free1);
     output_predicate          : 1;
-    output_value              : ipv4.p_mark;
+    output_value              : register_hi;
     output_dst                : ipv4.p_p_mark2;
     
     initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
@@ -164,15 +164,12 @@ control ingress {
     // Call all the required ALUs.
     
       
-        
+          apply(test_stateful_alu_0_0_table);
           apply(test_stateless_alu_0_0_table);
         
       
       
         
-          apply(test_stateful_alu_0_0_table);
-        
-      
     
     // MAC Forwarding by default
     apply(mac_forward);
