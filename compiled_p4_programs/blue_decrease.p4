@@ -102,7 +102,8 @@ action test_stateful_alu_0_0_action () {
 }
 
 // Stateful ALU table
-@pragma ignore_table_dependency test_stateful_alu_0_0_table@pragma ignore_table_dependency test_stateful_alu_1_0_table
+@pragma ignore_table_dependency test_stateful_alu_0_0_table
+@pragma ignore_table_dependency test_stateful_alu_1_0_table
 @pragma stage 0
 table test_stateful_alu_0_0_table {
     actions {
