@@ -1,0 +1,74 @@
+SKETCH version 1.7.6
+Benchmark = _blue_increase_out/comp_0_stateless_p_now_plus_free1_bnd_1.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*comp_0_.._bnd_1.sk:1*/
+
+void alu (int opcode, int operand0, int operand1, int immediate_operand, ref int _out)/*comp_0_.._bnd_1.sk:1*/
+{
+  _out = 0;
+  if(opcode == 0)/*comp_0_.._bnd_1.sk:2*/
+  {
+    _out = operand0;
+    return;
+  }
+  if(opcode == 1)/*comp_0_.._bnd_1.sk:5*/
+  {
+    _out = immediate_operand;
+    return;
+  }
+  if(opcode == 2)/*comp_0_.._bnd_1.sk:8*/
+  {
+    _out = operand0 + operand1;
+    return;
+  }
+  if(opcode == 3)/*comp_0_.._bnd_1.sk:11*/
+  {
+    _out = operand0 + immediate_operand;
+    return;
+  }
+  if(opcode == 4)/*comp_0_.._bnd_1.sk:14*/
+  {
+    _out = operand1 - operand0;
+    return;
+  }
+  if(opcode == 5)/*comp_0_.._bnd_1.sk:17*/
+  {
+    _out = operand0 - immediate_operand;
+    return;
+  }
+  if(opcode == 6)/*comp_0_.._bnd_1.sk:20*/
+  {
+    _out = immediate_operand - operand0;
+    return;
+  }
+}
+/*comp_0_.._bnd_1.sk:54*/
+
+void comp_0 (int p_now0, ref int _out)/*comp_0_.._bnd_1.sk:54*/
+{
+  _out = p_now0 - 1;
+  return;
+}
+/*comp_0_.._bnd_1.sk:60*/
+
+void sketch (int p_now0)/*comp_0_.._bnd_1.sk:60*/
+{
+  int _out_s10 = 0;
+  alu(5, p_now0, p_now0, 1, _out_s10)//{};
+  int _out_s4 = 0;
+  comp_0(p_now0, _out_s4);
+  assert (_out_s10 == _out_s4); //Assert at comp_0_.._bnd_1.sk:64 (0)
+}
+/*comp_0_.._bnd_1.sk:60*/
+
+void sketch__Wrapper (int p_now0)  implements sketch__WrapperNospec/*comp_0_.._bnd_1.sk:60*/
+{
+  sketch(p_now0);
+}
+/*comp_0_.._bnd_1.sk:60*/
+
+void sketch__WrapperNospec (int p_now0)/*comp_0_.._bnd_1.sk:60*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 217
