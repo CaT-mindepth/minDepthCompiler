@@ -94,7 +94,11 @@ class P4Codegen(object):
         stateless_id = 0
         stateful_id = 0
         for alu in self.table_info.alus:
-            alu.set_attribute("stage_status", [False for i in range(self.num_pipeline_stages)])
+            # TODO: problem: stage_status was never set!!!
+            stages_vec = [False for i in range(self.num_pipeline_stages)]
+            stages_vec[self.ilp_output.get_alu_stage(0, alu.id)] = True
+            print('alu ', alu.id, ' is of type ', alu.get_type(), '; scheduled to stage ', self.ilp_output.get_alu_stage(0, alu.id))
+            alu.set_attribute("stage_status", stages_vec)
             if alu.get_type() == 'STATELESS':
                 alu.set_attribute("stateless_id", stateless_id)
                 self.stateless_alus.append((alu, stateless_id))
@@ -107,11 +111,13 @@ class P4Codegen(object):
                 raise Exception("P4Codegen: _process_alus: error: invalid alu type: " + alu.get_type())
         self.num_state_groups = stateful_id 
         self.num_alus_per_stage = stateless_id 
+        print('Codegen processed ALUs: ', len(self.stateless_alus), ' ; ', self.stateless_alus)
+        print('Codegen processed SALUs: ', len(self.stateful_alus), ' ; ', self.stateful_alus)
 
     def stateless_alu_to_dict(self, alu, stage):
         assert alu.get_type() == "STATELESS"
         return {
-            'enable': 1 if alu.get_attribute("stage_status") else 0,
+            'enable': 1 if alu.get_attribute("stage_status")[stage] else 0,
             'opcode': int(alu.opcode), # jinja template tests equality using int comparisons
             'operand0': alu.inputs[0],
             'operand1': alu.inputs[1],
@@ -121,7 +127,7 @@ class P4Codegen(object):
 
     def stateful_alu_to_dict_config_pair(self, salu, stage):
         assert salu.get_type() == "STATEFUL"
-        return salu.var_expressions, salu.get_attribute('stage_status')
+        return salu.var_expressions, salu.get_attribute('stage_status')[stage]
 
 
     def generate_stateless_alu_matrix(self):
@@ -130,6 +136,7 @@ class P4Codegen(object):
             curr_stage = []
             for alu, alu_id in self.stateless_alus:
                 curr_stage.append(self.stateless_alu_to_dict(alu, stage))
+            print('generate_stateless_alu_matrix: stage ', stage, ', with ALUs ', curr_stage)
             self.stateless_alus_matrix.append(curr_stage)
 
     def generate_stateful_alu_matrix_and_config(self):
