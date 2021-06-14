@@ -119,12 +119,7 @@ action test_stateful_alu_1_1_action () {
 }
 
 // Stateful ALU table
-@pragma ignore_table_dependency test_stateful_alu_0_0_table
-@pragma ignore_table_dependency test_stateful_alu_0_1_table
-@pragma ignore_table_dependency test_stateful_alu_1_0_table
 @pragma ignore_table_dependency test_stateful_alu_1_1_table
-@pragma ignore_table_dependency test_stateful_alu_2_0_table
-@pragma ignore_table_dependency test_stateful_alu_2_1_table
 @pragma stage 1
 table test_stateful_alu_1_1_table {
     actions {
@@ -170,12 +165,7 @@ action test_stateful_alu_2_0_action () {
 }
 
 // Stateful ALU table
-@pragma ignore_table_dependency test_stateful_alu_0_0_table
-@pragma ignore_table_dependency test_stateful_alu_0_1_table
-@pragma ignore_table_dependency test_stateful_alu_1_0_table
-@pragma ignore_table_dependency test_stateful_alu_1_1_table
 @pragma ignore_table_dependency test_stateful_alu_2_0_table
-@pragma ignore_table_dependency test_stateful_alu_2_1_table
 @pragma stage 2
 table test_stateful_alu_2_0_table {
     actions {
@@ -206,12 +196,7 @@ action test_stateless_alu_0_0_action () {
 }
 
 // Stateless ALU table
-@pragma ignore_table_dependency test_stateful_alu_0_0_table
-@pragma ignore_table_dependency test_stateful_alu_0_1_table
-@pragma ignore_table_dependency test_stateful_alu_1_0_table
-@pragma ignore_table_dependency test_stateful_alu_1_1_table
-@pragma ignore_table_dependency test_stateful_alu_2_0_table
-@pragma ignore_table_dependency test_stateful_alu_2_1_table
+@pragma ignore_table_dependency test_stateless_alu_0_0_table
 @pragma stage 0
 table test_stateless_alu_0_0_table {
     actions {
@@ -221,15 +206,6 @@ table test_stateless_alu_0_0_table {
 }
 
   
-
-  
-
-  
-
-  
-
-  
-
 
 // Required: mac_forward table for forwarding to switch CPU.
 action set_egr(egress_spec) {
