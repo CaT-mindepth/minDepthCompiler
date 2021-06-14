@@ -86,20 +86,21 @@ class SALU(GenericALU):
                               'update_hi_2_predicate',
                               'update_hi_2_value',
                               'output_value',
-                              'output_dst']
+                              'output_dst' ]
         # dict for storing expressions of synthesized variables.
         self.var_expressions = {'output_dst': self.output_dst}
         self.salu_arguments_mapping = {
             'metadata_lo': metadata_lo_name,
             'metadata_hi': metadata_hi_name,
-            'register_lo': register_lo_0_name,
-            'register_hi': register_hi_1_name,
+          #  'register_lo_0': 'register_lo_' #register_lo_0_name,
+          #  'register_hi': register_hi_1_name,
         }
         self.process_salu_function()
         for lhs in self.var_expressions:
             rhs = self.var_expressions[lhs]
             for arg in self.salu_arguments_mapping:
                 rhs = re.sub(arg, self.salu_arguments_mapping[arg], rhs)
+                
             self.var_expressions[lhs] = rhs
 
     """
@@ -207,7 +208,7 @@ class SALU(GenericALU):
                 # that rel_op is always hoisted out by Sketch and computed down into a rhs expression.
                 if toks[0].type == 'BIT' and toks[1].type == 'ID':
                     if self.demangle(toks[1].value) == 'condition_lo' or self.demangle(toks[1].value) == 'condition_hi':
-                        rhs_expression = ''.join(list(map(lambda x: x.value, toks[2:])))
+                        rhs_expression = ''.join(list(map(lambda x: x.value, toks[3:])))
                         print('process_salu_function: parsing ', toks[1].value, '; rhs = ', rhs_expression)
                         print('    ( line = ', l, ' )')
                         self.var_expressions[self.demangle(toks[1].value)] = rhs_expression
@@ -472,6 +473,10 @@ class SketchOutputProcessor(object):
                     # (self, id, alu_filename, metadata_lo_name, metadata_hi_name,
                     #        register_lo_0_name, register_hi_1_name, out_name):
                     output_dst = self.find_output_dst(input_file)
+                    print('Constructing new SALU: id=', self.alu_id, ' metadata_lo=', l_toks[2].value, \
+                        ' metadata_hi=', l_toks[3].value, ' register_lo=', l_toks[4].value, 
+                        ' register_hi=', l_toks[5].value, 
+                        ' output_dst=', output_dst)
                     alu = SALU(self.alu_id, input_file, l_toks[2].value, \
                       l_toks[3].value, l_toks[4].value, l_toks[5].value, output_dst)
                     self.add_new_alu(alu, input_file)
