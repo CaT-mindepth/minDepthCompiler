@@ -71,7 +71,8 @@ class P4Codegen(object):
                     for tok in lexer:
                         # look at each ID-type. Does it belong in the PHV container?
                         if tok.type == 'ID':
-                            if not (alu.demangle(tok.value)) in alu.var_expressions: 
+                            if (not (alu.demangle(tok.value)) in alu.var_expressions) \
+                                and (alu.demangle(tok.value) != 'register_lo' and alu.demangle(tok.value) != 'register_hi'): 
                                 # if the token is an ID and its ID name is not
                                 # one of the SALU vars, we conclude that it must be
                                 # a packet field that belongs in the PHV container.
