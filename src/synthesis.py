@@ -207,7 +207,7 @@ class Component: # group of codelets
 	def write_sketch_file(self, output_path, comp_name, var_types):
 		filenames = []
 		for o in self.outputs:
-			bnd = 0
+			bnd = 1 # start with bound 1, since ALU cannot be a wire (which is bnd 0)
 			while True:
 				# run Sketch
 				sketch_filename = os.path.join(output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
@@ -439,7 +439,7 @@ class StatefulComponent(object):
 		f.write("}\n")
 
 	def write_sketch_file(self, output_path, comp_name, var_types):
-		bnd = 0
+		bnd = 1 # start with bound 1, since SALU cannot be a wire (which is bnd 0)
 		while True:
 			# run Sketch
 			sketch_filename = os.path.join(output_path, f"{comp_name}_stateful_bnd_{bnd}.sk")
