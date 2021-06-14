@@ -32,9 +32,9 @@ class P4Codegen(object):
     def _postprocess_phv_container_fields(self):
         for alu in self.table_info.alus:
             if alu.get_type() == 'STATELESS':
-                # Perform substitution to add the ipv4_t.* prefix into variables.
-                alu.set_inputs(list(map(lambda x: 'ipv4_t.' + x if x in self.packet_fields else x, alu.inputs)))
-                alu.set_output('ipv4_t.' + alu.output if alu.output in self.packet_fields else alu.output)
+                # Perform substitution to add the ipv4.* prefix into variables.
+                alu.set_inputs(list(map(lambda x: 'ipv4.' + x if x in self.packet_fields else x, alu.inputs)))
+                alu.set_output('ipv4.' + alu.output if alu.output in self.packet_fields else alu.output)
             if alu.get_type() == 'STATEFUL':
                 pass # done in _allocate_phv_container_struct_fields already
     
@@ -77,7 +77,7 @@ class P4Codegen(object):
                                 # a packet field that belongs in the PHV container.
                                 print('p4_codegen: PHV var found for stateful ALU, it is ', tok.value)
                                 self.packet_fields.add(tok.value)
-                                tok.value = 'ipv4_t.' + tok.value
+                                tok.value = 'ipv4.' + tok.value
                         toks.append(tok)
                     alu.var_expressions[lhs] = ''.join(list(map(lambda x: x.value, toks)))
                 
@@ -106,7 +106,7 @@ class P4Codegen(object):
         assert alu.get_type() == "STATELESS"
         return {
             'enable': 1 if alu.get_attribute("stage_status") else 0,
-            'opcode': alu.opcode,
+            'opcode': int(alu.opcode), # jinja template tests equality using int comparisons
             'operand0': alu.inputs[0],
             'operand1': alu.inputs[1],
             'result': alu.output,
