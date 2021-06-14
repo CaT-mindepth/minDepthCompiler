@@ -168,7 +168,7 @@ class TofinoP4(object):
         for i in range(self.num_pipeline_stages):
             for j in range(self.num_state_groups):
                 lines.append('@pragma ignore_table_dependency ' + self.sketch_name + '_stateful_alu_' + str(i) + '_' + str(j) + '_table')
-        return "".join(lines)
+        return "\n".join(lines)
 
 
     def __init__(self, sketch_name, num_alus_per_stage, num_state_groups, num_pipeline_stages, stateful_alus=None, stateless_alus=None, salu_configs=None, phv_container_fields=None):
