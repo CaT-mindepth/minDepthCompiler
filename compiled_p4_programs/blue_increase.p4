@@ -103,7 +103,6 @@ action test_stateful_alu_0_0_action () {
 
 // Stateful ALU table
 @pragma ignore_table_dependency test_stateful_alu_0_0_table
-@pragma ignore_table_dependency test_stateful_alu_1_0_table
 @pragma stage 0
 table test_stateful_alu_0_0_table {
     actions {
@@ -112,23 +111,7 @@ table test_stateful_alu_0_0_table {
     default_action: test_stateful_alu_0_0_action;
 }
 
-  
-
-  
-    
-  
-
-
-
-  
-
-  
-
-  
-
 // Stateless ALU action
-
-
 
 
 
@@ -140,7 +123,6 @@ action test_stateless_alu_1_0_action () {
 }
 
 // Stateless ALU table
-@pragma ignore_table_dependency test_stateful_alu_0_0_table
 @pragma ignore_table_dependency test_stateful_alu_1_0_table
 @pragma stage 1
 table test_stateless_alu_1_0_table {
