@@ -363,6 +363,7 @@ class SketchOutputProcessor(object):
 
     # add a new ALU (stateful or stateless) to the ALU graph
     def add_new_alu(self, alu, input_file):
+        print('>>>>>>>>>> add_new_alu: adding ALU with id ', alu.id, ' and component ', self.filename_to_compname(input_file), ', type? ', alu.get_type())
         self.alu_compnames[self.alu_id] = self.filename_to_compname(input_file)
         if self.alu_compnames[self.alu_id] == None:
             raise Exception("invalid filename: " + input_file)
@@ -499,13 +500,18 @@ class SketchOutputProcessor(object):
     # in the ILP dependency graph.
 
     def find_stateless_dependencies_comp(self):
+        print(' *** finding dependencies between stateless ALUs ***')
         for alu1 in self.alus:
             if alu1.get_type() == "STATELESS":
                 for alu2 in self.alus:
+                    print('alu1 id: ', alu1.id, ' ; alu1 type: ', alu1.get_type())
+                    print('alu2 id: ', alu2.id, ' ; alu2 type: ', alu2.get_type())
                     if alu2.get_type() == "STATELESS":
                         if alu2 != alu1 and alu1.output in alu2.inputs:  # RAW
+                            print(' *** found stateless dependency between ALU ', alu1.id, ' and ALU ', alu2.id)
                             self.dependencies[alu1].append(alu2)
                             self.rev_dependencies[alu2].append(alu1)
+        print(' *** done finding dependencies between stateless ALUs ***')
 
     def all_stateful_alus(self):
         return filter(lambda x: x.get_type() == "STATEFUL", self.alus)
@@ -513,7 +519,9 @@ class SketchOutputProcessor(object):
     def all_stateless_alus(self):
         return filter(lambda x: x.get_type() == "STATELESS", self.alus)
 
-    def alus_in_a_component(self, comp_name):
+    def alus_in_a_component(self, comp):
+        comp_name = comp.name
+        print('||| alus_in_a_component ', comp_name, ': self.alu_compnames is ', self.alu_compnames)
         return filter(lambda x: self.alu_compnames[x.id] == comp_name, self.alus)
 
     # Lower dependencies between stateful components in the component graph
@@ -521,23 +529,28 @@ class SketchOutputProcessor(object):
     # stateful ALUs (resp. components).
 
     def find_stateful_dependencies(self):
+        print(' *** find_stateful_dependencies ***')
         for alu in self.all_stateful_alus():
             alu_compname = self.alu_compnames[alu.id]
             for comp in self.comp_graph:
                 if comp.name == alu_compname:
                     for comp1 in self.comp_graph.predecessors(comp):
+                        print('type of component in graph: ', type(comp1))
                         if comp1.isStateful:
                             # No need to check if alu1 is stateful, since by
                             # definition a stateful component (comp1) only includes a single stateful ALU.
                             for alu1 in self.alus_in_a_component(comp1):
+                                print(' *** found stateful dependencies between ', comp.name, ' and ', comp1.name)
                                 self.dependencies[alu].append(alu1)
                                 self.rev_dependencies[alu1].append(alu)
+    print(' *** Done find_stateful_dependencies ***')
 
     # Lower dependencies from/to a stateless weakly connected component.
     # This includes exactly the edges from/to a stateful component.
     # edges added will be of the form (u,v) where exactly one of {u,v} is
     # stateful and exactly one of {u,v} is stateless.
     def find_stateless_dependencies_intercomp(self):
+        print(' *** find stateless dependencies between components *** ')
         for alu in self.all_stateless_alus():
             comp_name = self.alu_compnames[alu.id]
             # XXX: Here we have to iterate through the component graph,
@@ -549,23 +562,30 @@ class SketchOutputProcessor(object):
                     # Find all stateful components going into the current
                     # stateless weakly connected component.
                     for comp1 in self.comp_graph.predecessors(comp):
+                        print('------predecessor of comp ', comp.name, ' : ', comp1.name)
                         # By definition comp1 is stateful.
                         assert comp1.isStateful
                         # For each ALU in the stateful component, add dependency
                         # from that ALU into us.
                         for alu1 in self.alus_in_a_component(comp1):
+                            print(' *** found stateless dependency between ALU ', alu1.id , ' and ALU ', alu.id)
                             self.dependencies[alu].append(alu1)
                             self.rev_dependencies[alu1].append(alu)
                     # Find all stateful components that follows from the
                     # current weakly connected component.
                     for comp1 in self.comp_graph.successors(comp):
+                        print('------successor of comp ', comp.name, ' : ', comp1.name)
+
                         # Again, by definition comp1 is stateful.
                         assert comp1.isStateful
                         # For each ALU in the stateful component, add dependency
                         # from that ALU into us.
+                        print('-------ALU in the component of ', comp1.name, ': ', list(self.alus_in_a_component(comp1)))
                         for alu1 in self.alus_in_a_component(comp1):
+                            print(' *** found dependency between stateless ALU ', alu.id, ' and stateful ALU ', alu1.id)
                             self.dependencies[alu1].append(alu)
                             self.rev_dependencies[alu].append(alu1)
+            print(' *** Done finding stateless+stateful dependencies ***')
 
     # to be called after all ALUs are added.
     def postprocessing(self):
