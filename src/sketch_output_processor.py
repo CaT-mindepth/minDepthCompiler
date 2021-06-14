@@ -371,7 +371,6 @@ class SketchOutputProcessor(object):
         self.alus.append(alu)
         self.dependencies[alu] = []
         self.rev_dependencies[alu] = []
-        self.alu_id += 1
 
     def process_stateless_output(self, input_file, output):
         f = open(input_file, "r")
