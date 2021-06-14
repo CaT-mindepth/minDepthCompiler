@@ -71,6 +71,11 @@ class P4Codegen(object):
                     for tok in lexer:
                         # look at each ID-type. Does it belong in the PHV container?
                         if tok.type == 'ID':
+                            # If the variable name is not one of the stateful ALU blackbox built-ins,
+                            # AND it is not register_lo or register_hi (see our comment in the SALU class;
+                            # now we treat register_lo and register_hi as a keyword), we conclude that 
+                            # it must be a packet field in the Domino program, and assign it to a PHV container
+                            # struct field in the generated P4 program.
                             if (not (alu.demangle(tok.value)) in alu.var_expressions) \
                                 and (alu.demangle(tok.value) != 'register_lo' and alu.demangle(tok.value) != 'register_hi'): 
                                 # if the token is an ID and its ID name is not
