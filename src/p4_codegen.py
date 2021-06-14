@@ -32,9 +32,9 @@ class P4Codegen(object):
     def _postprocess_phv_container_fields(self):
         for alu in self.table_info.alus:
             if alu.get_type() == 'STATELESS':
-                # Perform substitution to add the ipv4_t.* prefix into variables.
-                alu.set_inputs(list(map(lambda x: 'ipv4_t.' + x if x in self.packet_fields else x, alu.inputs)))
-                alu.set_output('ipv4_t.' + alu.output if alu.output in self.packet_fields else alu.output)
+                # Perform substitution to add the ipv4.* prefix into variables.
+                alu.set_inputs(list(map(lambda x: 'ipv4.' + x if x in self.packet_fields else x, alu.inputs)))
+                alu.set_output('ipv4.' + alu.output if alu.output in self.packet_fields else alu.output)
             if alu.get_type() == 'STATEFUL':
                 pass # done in _allocate_phv_container_struct_fields already
     
@@ -71,13 +71,19 @@ class P4Codegen(object):
                     for tok in lexer:
                         # look at each ID-type. Does it belong in the PHV container?
                         if tok.type == 'ID':
-                            if not (alu.demangle(tok.value)) in alu.var_expressions: 
+                            # If the variable name is not one of the stateful ALU blackbox built-ins,
+                            # AND it is not register_lo or register_hi (see our comment in the SALU class;
+                            # now we treat register_lo and register_hi as a keyword), we conclude that 
+                            # it must be a packet field in the Domino program, and assign it to a PHV container
+                            # struct field in the generated P4 program.
+                            if (not (alu.demangle(tok.value)) in alu.var_expressions) \
+                                and (alu.demangle(tok.value) != 'register_lo' and alu.demangle(tok.value) != 'register_hi'): 
                                 # if the token is an ID and its ID name is not
                                 # one of the SALU vars, we conclude that it must be
                                 # a packet field that belongs in the PHV container.
                                 print('p4_codegen: PHV var found for stateful ALU, it is ', tok.value)
                                 self.packet_fields.add(tok.value)
-                                tok.value = 'ipv4_t.' + tok.value
+                                tok.value = 'ipv4.' + tok.value
                         toks.append(tok)
                     alu.var_expressions[lhs] = ''.join(list(map(lambda x: x.value, toks)))
                 
@@ -88,7 +94,11 @@ class P4Codegen(object):
         stateless_id = 0
         stateful_id = 0
         for alu in self.table_info.alus:
-            alu.set_attribute("stage_status", [False for i in range(self.num_pipeline_stages)])
+            # TODO: problem: stage_status was never set!!!
+            stages_vec = [False for i in range(self.num_pipeline_stages)]
+            stages_vec[self.ilp_output.get_alu_stage(0, alu.id)] = True
+            print('alu ', alu.id, ' is of type ', alu.get_type(), '; scheduled to stage ', self.ilp_output.get_alu_stage(0, alu.id))
+            alu.set_attribute("stage_status", stages_vec)
             if alu.get_type() == 'STATELESS':
                 alu.set_attribute("stateless_id", stateless_id)
                 self.stateless_alus.append((alu, stateless_id))
@@ -101,12 +111,14 @@ class P4Codegen(object):
                 raise Exception("P4Codegen: _process_alus: error: invalid alu type: " + alu.get_type())
         self.num_state_groups = stateful_id 
         self.num_alus_per_stage = stateless_id 
+        print('Codegen processed ALUs: ', len(self.stateless_alus), ' ; ', self.stateless_alus)
+        print('Codegen processed SALUs: ', len(self.stateful_alus), ' ; ', self.stateful_alus)
 
     def stateless_alu_to_dict(self, alu, stage):
         assert alu.get_type() == "STATELESS"
         return {
-            'enable': 1 if alu.get_attribute("stage_status") else 0,
-            'opcode': alu.opcode,
+            'enable': 1 if alu.get_attribute("stage_status")[stage] else 0,
+            'opcode': int(alu.opcode), # jinja template tests equality using int comparisons
             'operand0': alu.inputs[0],
             'operand1': alu.inputs[1],
             'result': alu.output,
@@ -115,7 +127,7 @@ class P4Codegen(object):
 
     def stateful_alu_to_dict_config_pair(self, salu, stage):
         assert salu.get_type() == "STATEFUL"
-        return salu.var_expressions, salu.get_attribute('stage_status')
+        return salu.var_expressions, salu.get_attribute('stage_status')[stage]
 
 
     def generate_stateless_alu_matrix(self):
@@ -124,6 +136,7 @@ class P4Codegen(object):
             curr_stage = []
             for alu, alu_id in self.stateless_alus:
                 curr_stage.append(self.stateless_alu_to_dict(alu, stage))
+            print('generate_stateless_alu_matrix: stage ', stage, ', with ALUs ', curr_stage)
             self.stateless_alus_matrix.append(curr_stage)
 
     def generate_stateful_alu_matrix_and_config(self):

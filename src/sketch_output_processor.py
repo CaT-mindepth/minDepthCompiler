@@ -86,20 +86,25 @@ class SALU(GenericALU):
                               'update_hi_2_predicate',
                               'update_hi_2_value',
                               'output_value',
-                              'output_dst']
+                              'output_dst',
+                              # used for demangling register_lo / hi values
+                              'register_lo',
+                              'register_hi' ]
         # dict for storing expressions of synthesized variables.
         self.var_expressions = {'output_dst': self.output_dst}
+        # XXX: retain register_lo and register_hi as keywords; don't process them.
         self.salu_arguments_mapping = {
             'metadata_lo': metadata_lo_name,
             'metadata_hi': metadata_hi_name,
-            'register_lo': register_lo_0_name,
-            'register_hi': register_hi_1_name,
+          #  'register_lo_0': 'register_lo_' #register_lo_0_name,
+          #  'register_hi': register_hi_1_name,
         }
         self.process_salu_function()
         for lhs in self.var_expressions:
             rhs = self.var_expressions[lhs]
             for arg in self.salu_arguments_mapping:
                 rhs = re.sub(arg, self.salu_arguments_mapping[arg], rhs)
+                
             self.var_expressions[lhs] = rhs
 
     """
@@ -119,11 +124,11 @@ class SALU(GenericALU):
   """
 
     def demangle(self, var_name):
+        if var_name == '_out':
+            return 'output_value'
         for x in self.demangle_list:
             if var_name.startswith(x):
                 return x
-            if var_name == '_out':
-                return 'output_value'
         return var_name
 
     # copied over from chipc project
@@ -186,6 +191,13 @@ class SALU(GenericALU):
 
         return template_str.format(op1=op1, op2=op2)
 
+    def demangle_token(self, tok):
+        tok.value = self.demangle(tok.value)
+        return tok
+
+    def demangle_line(self, toks):
+        return list(map(lambda x: self.demangle_token(x) if x.type == 'ID' else x, toks))
+
     def process_salu_function(self):
         with open(self.alu_filename) as f:
             l = f.readline()
@@ -201,13 +213,14 @@ class SALU(GenericALU):
                 toks = []
                 for tok in lexer:
                     toks.append(tok)
-
+                toks = self.demangle_line(toks)
+                print('demangled line: ', ' '.join(list(map(lambda x: x.value, toks))))
                 # Case I: bit (condition_lo|condition_hi)
                 # XXX: ruijief: we're making a bit of an assumption here. Specifically we assume
                 # that rel_op is always hoisted out by Sketch and computed down into a rhs expression.
                 if toks[0].type == 'BIT' and toks[1].type == 'ID':
                     if self.demangle(toks[1].value) == 'condition_lo' or self.demangle(toks[1].value) == 'condition_hi':
-                        rhs_expression = ''.join(list(map(lambda x: x.value, toks[2:])))
+                        rhs_expression = ''.join(list(map(lambda x: x.value, toks[3:])))
                         print('process_salu_function: parsing ', toks[1].value, '; rhs = ', rhs_expression)
                         print('    ( line = ', l, ' )')
                         self.var_expressions[self.demangle(toks[1].value)] = rhs_expression
@@ -222,12 +235,11 @@ class SALU(GenericALU):
                         assert toks[4].type == 'ID' or toks[4].type == 'NUMBER' # operand2
                         assert toks[5].type == 'ID' # return 
                         compute_alu_opcode = int(toks[2].value)
-                        compute_alu_operand1 = self.demangle(toks[3].value) 
-                        compute_alu_operand2 = self.demangle(toks[4].value) 
+                        compute_alu_operand1 = toks[3].value
+                        compute_alu_operand2 = toks[4].value 
                         compute_alu_lhs = toks[5].value 
-                        demangled_compute_alu_lhs = self.demangle(compute_alu_lhs)
                         rhs_expression = self.eval_compute_alu(compute_alu_operand1, compute_alu_operand2, compute_alu_opcode)
-                        self.var_expressions[demangled_compute_alu_lhs] = rhs_expression
+                        self.var_expressions[compute_alu_lhs] = rhs_expression
                     # Case III: bool_op
                     # example: bool_op(12, condition_hi_s55, condition_lo_s67, update_lo_2_predicate_s75)
                     if toks[0].value == 'bool_op':
@@ -239,9 +251,9 @@ class SALU(GenericALU):
                         assert toks[5].type == 'ID' # return 
                         assert toks[6].type == 'RPAREN'
                         bool_op_opcode = int(toks[2].value)
-                        bool_op_operand1 = self.demangle(toks[3].value)
-                        bool_op_operand2 = self.demangle(toks[4].value)
-                        bool_op_lhs = self.demangle(toks[5].value)
+                        bool_op_operand1 = toks[3].value
+                        bool_op_operand2 = toks[4].value
+                        bool_op_lhs = toks[5].value
                         bool_op_rhs_expression = self.eval_bool_op(bool_op_opcode, bool_op_operand1, bool_op_operand2)
                         self.var_expressions[bool_op_lhs] = bool_op_rhs_expression
                 # Case IV: _out[1] -> output_value
@@ -351,6 +363,7 @@ class SketchOutputProcessor(object):
 
     # add a new ALU (stateful or stateless) to the ALU graph
     def add_new_alu(self, alu, input_file):
+        print('>>>>>>>>>> add_new_alu: adding ALU with id ', alu.id, ' and component ', self.filename_to_compname(input_file), ', type? ', alu.get_type())
         self.alu_compnames[self.alu_id] = self.filename_to_compname(input_file)
         if self.alu_compnames[self.alu_id] == None:
             raise Exception("invalid filename: " + input_file)
@@ -358,7 +371,6 @@ class SketchOutputProcessor(object):
         self.alus.append(alu)
         self.dependencies[alu] = []
         self.rev_dependencies[alu] = []
-        self.alu_id += 1
 
     def process_stateless_output(self, input_file, output):
         f = open(input_file, "r")
@@ -472,6 +484,10 @@ class SketchOutputProcessor(object):
                     # (self, id, alu_filename, metadata_lo_name, metadata_hi_name,
                     #        register_lo_0_name, register_hi_1_name, out_name):
                     output_dst = self.find_output_dst(input_file)
+                    print('Constructing new SALU: id=', self.alu_id, ' metadata_lo=', l_toks[2].value, \
+                        ' metadata_hi=', l_toks[3].value, ' register_lo=', l_toks[4].value, 
+                        ' register_hi=', l_toks[5].value, 
+                        ' output_dst=', output_dst)
                     alu = SALU(self.alu_id, input_file, l_toks[2].value, \
                       l_toks[3].value, l_toks[4].value, l_toks[5].value, output_dst)
                     self.add_new_alu(alu, input_file)
@@ -483,13 +499,18 @@ class SketchOutputProcessor(object):
     # in the ILP dependency graph.
 
     def find_stateless_dependencies_comp(self):
+        print(' *** finding dependencies between stateless ALUs ***')
         for alu1 in self.alus:
             if alu1.get_type() == "STATELESS":
                 for alu2 in self.alus:
+                    print('alu1 id: ', alu1.id, ' ; alu1 type: ', alu1.get_type())
+                    print('alu2 id: ', alu2.id, ' ; alu2 type: ', alu2.get_type())
                     if alu2.get_type() == "STATELESS":
                         if alu2 != alu1 and alu1.output in alu2.inputs:  # RAW
+                            print(' *** found stateless dependency between ALU ', alu1.id, ' and ALU ', alu2.id)
                             self.dependencies[alu1].append(alu2)
                             self.rev_dependencies[alu2].append(alu1)
+        print(' *** done finding dependencies between stateless ALUs ***')
 
     def all_stateful_alus(self):
         return filter(lambda x: x.get_type() == "STATEFUL", self.alus)
@@ -497,7 +518,9 @@ class SketchOutputProcessor(object):
     def all_stateless_alus(self):
         return filter(lambda x: x.get_type() == "STATELESS", self.alus)
 
-    def alus_in_a_component(self, comp_name):
+    def alus_in_a_component(self, comp):
+        comp_name = comp.name
+        print('||| alus_in_a_component ', comp_name, ': self.alu_compnames is ', self.alu_compnames)
         return filter(lambda x: self.alu_compnames[x.id] == comp_name, self.alus)
 
     # Lower dependencies between stateful components in the component graph
@@ -505,23 +528,28 @@ class SketchOutputProcessor(object):
     # stateful ALUs (resp. components).
 
     def find_stateful_dependencies(self):
+        print(' *** find_stateful_dependencies ***')
         for alu in self.all_stateful_alus():
             alu_compname = self.alu_compnames[alu.id]
             for comp in self.comp_graph:
                 if comp.name == alu_compname:
                     for comp1 in self.comp_graph.predecessors(comp):
+                        print('type of component in graph: ', type(comp1))
                         if comp1.isStateful:
                             # No need to check if alu1 is stateful, since by
                             # definition a stateful component (comp1) only includes a single stateful ALU.
                             for alu1 in self.alus_in_a_component(comp1):
+                                print(' *** found stateful dependencies between ', comp.name, ' and ', comp1.name)
                                 self.dependencies[alu].append(alu1)
                                 self.rev_dependencies[alu1].append(alu)
+    print(' *** Done find_stateful_dependencies ***')
 
     # Lower dependencies from/to a stateless weakly connected component.
     # This includes exactly the edges from/to a stateful component.
     # edges added will be of the form (u,v) where exactly one of {u,v} is
     # stateful and exactly one of {u,v} is stateless.
     def find_stateless_dependencies_intercomp(self):
+        print(' *** find stateless dependencies between components *** ')
         for alu in self.all_stateless_alus():
             comp_name = self.alu_compnames[alu.id]
             # XXX: Here we have to iterate through the component graph,
@@ -533,23 +561,30 @@ class SketchOutputProcessor(object):
                     # Find all stateful components going into the current
                     # stateless weakly connected component.
                     for comp1 in self.comp_graph.predecessors(comp):
+                        print('------predecessor of comp ', comp.name, ' : ', comp1.name)
                         # By definition comp1 is stateful.
                         assert comp1.isStateful
                         # For each ALU in the stateful component, add dependency
                         # from that ALU into us.
                         for alu1 in self.alus_in_a_component(comp1):
+                            print(' *** found stateless dependency between ALU ', alu1.id , ' and ALU ', alu.id)
                             self.dependencies[alu].append(alu1)
                             self.rev_dependencies[alu1].append(alu)
                     # Find all stateful components that follows from the
                     # current weakly connected component.
                     for comp1 in self.comp_graph.successors(comp):
+                        print('------successor of comp ', comp.name, ' : ', comp1.name)
+
                         # Again, by definition comp1 is stateful.
                         assert comp1.isStateful
                         # For each ALU in the stateful component, add dependency
                         # from that ALU into us.
+                        print('-------ALU in the component of ', comp1.name, ': ', list(self.alus_in_a_component(comp1)))
                         for alu1 in self.alus_in_a_component(comp1):
+                            print(' *** found dependency between stateless ALU ', alu.id, ' and stateful ALU ', alu1.id)
                             self.dependencies[alu1].append(alu)
                             self.rev_dependencies[alu].append(alu1)
+            print(' *** Done finding stateless+stateful dependencies ***')
 
     # to be called after all ALUs are added.
     def postprocessing(self):

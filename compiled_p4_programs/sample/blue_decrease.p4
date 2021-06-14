@@ -28,9 +28,12 @@ header_type ipv4_t {
 header_type ipv4_t {
     fields {
  
-        p_now_plus_free1 : 32 (signed);   
+        p_mark : 32 (signed);   
+        p_mark_1 : 32 (signed);   
         p_now0 : 32 (signed);   
-        p_p_mark2 : 32 (signed);  
+        p_p_mark2 : 32 (signed);   
+        p_now_plus_free1 : 32 (signed);   
+        last_update_0 : 32 (signed);  
     }
 }
 
@@ -73,16 +76,16 @@ register reg_0 {
 blackbox stateful_alu test_stateful_alu_0_0_blackbox {
     
     reg                       : reg_0;
-    condition_lo              : (((0-ipv4.p_now0)-register_hi)+2)<0;
-    condition_hi              : (((0-ipv4.p_now_plus_free1)+register_lo)+1)>0;
+    condition_lo              : ((0-ipv4.p_now_plus_free1)+register_lo)<0;
+    condition_hi              : ((0-ipv4.p_now_plus_free1)-register_hi)>0;
     update_lo_1_predicate     : true;
-    update_lo_1_value         : (ipv4.p_now0)+(0);
+    update_lo_1_value         : (ipv4.p_now0);
     update_lo_2_predicate     : true;
-    update_lo_2_value         : (ipv4.p_now0)-(0);
+    update_lo_2_value         : 0;
     update_hi_1_predicate     : true;
-    update_hi_1_value         : (ipv4.p_now_plus_free1)-(3);
+    update_hi_1_value         : (register_hi)-(2);
     update_hi_2_predicate     : true;
-    update_hi_2_value         : (register_hi)-(2);
+    update_hi_2_value         : (register_hi)-(ipv4.p_now_plus_free1);
     output_predicate          : 1;
     output_value              : register_hi;
     output_dst                : ipv4.p_p_mark2;
@@ -111,11 +114,19 @@ table test_stateful_alu_0_0_table {
     default_action: test_stateful_alu_0_0_action;
 }
 
- 
+  
+
+
+
+  
 
 // Stateless ALU action
 
-action test_stateless_alu_1_0_action () {
+
+
+
+
+action test_stateless_alu_0_0_action () {
     
     
     subtract(ipv4.p_now_plus_free1, ipv4.p_now0, 1);
@@ -123,13 +134,13 @@ action test_stateless_alu_1_0_action () {
 }
 
 // Stateless ALU table
-@pragma ignore_table_dependency test_stateless_alu_1_0_table
-@pragma stage 1
-table test_stateless_alu_1_0_table {
+@pragma ignore_table_dependency test_stateful_alu_0_0_table
+@pragma stage 0
+table test_stateless_alu_0_0_table {
     actions {
-        test_stateless_alu_1_0_action;
+        test_stateless_alu_0_0_action;
     }
-    default_action:  test_stateless_alu_1_0_action;
+    default_action:  test_stateless_alu_0_0_action;
 }
 
   
@@ -153,22 +164,12 @@ control ingress {
     // Call all the required ALUs.
     
       
-        
-      
-      
-        
           apply(test_stateful_alu_0_0_table);
-        
-      
-    
-      
-        
-          apply(test_stateless_alu_1_0_table);
+          apply(test_stateless_alu_0_0_table);
         
       
       
         
-      
     
     // MAC Forwarding by default
     apply(mac_forward);

@@ -19,6 +19,7 @@ class ILP_TableInfo(object):
         for src_alu_id in range(len(self.alu_adjacency_list)):
             for tgt_alu in self.alu_adjacency_list[src_alu_id]:
                 tgt_alu_id = tgt_alu.id 
+                print(' * gen_dependency_list: dependency between ', src_alu_id, ' and ', tgt_alu_id)
                 deps.append((src_alu_id, tgt_alu_id))
         return deps
 
@@ -44,7 +45,13 @@ class ILP_Output(object):
         # var name format: T3_A_3 -> 1
         exploded = var_name.split("_")
         assert len(exploded) == 3
-        self.tables[int(exploded[0][1])][int(exploded[2])] = stage 
+        table_number = int(exploded[0][1])
+        alu_id = int(exploded[2])
+        self.tables[table_number][alu_id] = stage 
+
+    def get_alu_stage(self, table_num, alu_id):
+        print(' > get_alu_stage: table ', table_num, ', alu_id = ', alu_id, ': ', self.tables[table_num][alu_id])
+        return int(self.tables[table_num][alu_id])
 
     # is Gurobi output optimal. If it isn't, then this instance
     # will contain a blank table assignment.
@@ -58,6 +65,7 @@ class ILP_Output(object):
             for action in actions: 
                 stage = actions[action]
                 max_stages = max(max_stages, stage)
+        max_stages = int(max_stages)
         self.num_stages = max_stages + 1
         return max_stages + 1
     
@@ -93,9 +101,17 @@ def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic
         z3_match_list.append(m.addVar(name='%s_M' % t, vtype=GRB.INTEGER))
     # print(z3_match_list)
     z3_alu_list = []
+    print('ILP_Gurobi: alu_dic = ', alu_dic)
+#    for t in table_list:
+#        for i in range(1, int(alu_dic[t]) + 1):
+#            print('ILP_Gurobi: Adding var ', '%s_A_%s' % (t, i))
+#            z3_alu_list.append(m.addVar(name='%s_A_%s' % (t, i), vtype=GRB.INTEGER))
+    # ruijief: change to use 0-based indexing scheme
     for t in table_list:
-        for i in range(1, int(alu_dic[t]) + 1):
+        for i in range(int(alu_dic[t])):
+            print('ILP_Gurobi: Adding var ', '%s_A_%s' % (t, i))
             z3_alu_list.append(m.addVar(name='%s_A_%s' % (t, i), vtype=GRB.INTEGER))
+
     # print(z3_alu_list)
     # z3_match_list = [Int('%s_M' % t) for t in table_list]
     # z3_alu_list = [Int('%s_A_%s' % (t, i)) for t in table_list for i in range(1, int(alu_dic[t]) + 1)]
@@ -104,7 +120,8 @@ def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic
     # z3_alu_loc_vec is a list of 0/1 which specifies which stage this ALU is at
     z3_alu_loc_vec = []
     for t in table_list:
-        for i in range(1, int(alu_dic[t]) + 1):
+        #for i in range(1, int(alu_dic[t]) + 1): # ruijief: change to use 0-based indexing
+        for i in range(int(alu_dic[t])):
             new_v = []
             for k in range(total_stage):
                 new_v.append(m.addVar(name="%s_A%s_stage_%s" % (t, i, k), vtype=GRB.INTEGER))
@@ -148,6 +165,7 @@ def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic
     # for key in alu_dep_dic:
     #     for pair in alu_dep_dic[key]:
     #         alu_level_c.append(And(Int('%s_A_%s' % (key, pair[0])) < Int('%s_A_%s' % (key, pair[1]))))
+    print('ILP_Gurobi: alu_dep_dic: ', alu_dep_dic)
     for key in alu_dep_dic:
         for pair in alu_dep_dic[key]:
             m.addConstr(m.getVarByName('%s_A_%s' % (key, pair[0])) <= m.getVarByName('%s_A_%s' % (key, pair[1])) - 1)
@@ -187,13 +205,17 @@ def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic
     for ele in match_dep:
         t1 = ele[0]
         t2 = ele[1]
-        for i in range(1, int(alu_dic[t1]) + 1):
+        #for i in range(1, int(alu_dic[t1]) + 1): #ruijief: change to use 0-based indexing
+        for i in range(int(alu_dic[t])):
             m.addConstr(m.getVarByName('%s_A_%s' % (t1, i)) <= m.getVarByName('%s_M' % t2) - 1)
     for ele in action_dep:
         t1 = ele[0]
         t2 = ele[1]
-        for i in range(1, int(alu_dic[t1]) + 1):
-            for j in range(1, int(alu_dic[t2]) + 1):
+        # ruijief: change to use 0-based indexing
+        #for i in range(1, int(alu_dic[t1]) + 1):
+        #    for j in range(1, int(alu_dic[t2]) + 1):
+        for i in range(alu_dic[t1]):
+            for i in range(alu_dic[t2]):
                 m.addConstr(m.getVarByName('%s_A_%s' % (t1, i)) <= m.getVarByName('%s_A_%s' % (t2, j)) - 1)
                 # action_dep_c.append(And(Int('%s_A_%s' % (t1, i)) < Int('%s_A_%s' % (t2, j))))
     # successor_dep_c = []
