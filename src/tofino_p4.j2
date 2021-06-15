@@ -70,6 +70,7 @@ register reg_{{j}} {
 // Stateful ALU blackbox
 blackbox stateful_alu {{sketch_name}}_stateful_alu_{{i}}_{{j}}_blackbox {
     {% set alu = stateful_alus[i][j] %}
+    {% set ignore_all_table_deps = alu['ignore_all_table_deps'] %}
     reg                       : reg_{{j}};
     condition_lo              : {{alu['condition_lo']}};
     condition_hi              : {{alu['condition_hi']}};
@@ -129,6 +130,7 @@ table {{sketch_name}}_stateful_alu_{{i}}_{{j}}_table {
 {% set operand1          = stateless_alus[i][j]['operand1'] %}
 {% set result            = stateless_alus[i][j]['result'] %}
 {% set immediate_operand = stateless_alus[i][j]['immediate_operand'] %}
+{% set ignore_all_table_deps = stateless_alus[i][j]['ignore_all_table_deps'] %}
 action {{sketch_name}}_stateless_alu_{{i}}_{{j}}_action () {
     {# NOTE: Please use the same opcode for the ones in
     stateless_alu_for_tofino.alu #}

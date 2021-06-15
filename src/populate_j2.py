@@ -163,12 +163,12 @@ class TofinoP4(object):
                     raise Exception('salu_configs[' + str(i) + '][' + str(j) + '] is non-binary')
 
 
-    def _generate_pragma_lines(self):
-        lines = []
-        for i in range(self.num_pipeline_stages):
-            for j in range(self.num_state_groups):
-                lines.append('@pragma ignore_table_dependency ' + self.sketch_name + '_stateful_alu_' + str(i) + '_' + str(j) + '_table')
-        return "\n".join(lines)
+   #def _generate_pragma_lines(self):
+   #     lines = []
+   #     for i in range(self.num_pipeline_stages):
+   #         for j in range(self.num_state_groups):
+   #             lines.append('@pragma ignore_table_dependency ' + self.sketch_name + '_stateful_alu_' + str(i) + '_' + str(j) + '_table')
+   #     return "\n".join(lines)
 
 
     def __init__(self, sketch_name, num_alus_per_stage, num_state_groups, num_pipeline_stages, stateful_alus=None, stateless_alus=None, salu_configs=None, phv_container_fields=None):
@@ -216,6 +216,13 @@ class TofinoP4(object):
         self._stateful_alus_wellformed()
         self._stateless_alus_wellformed()
         self._salu_configs_wellformed()
+        # insert pragma ignore statements into each ALU 
+        for i in range(len(self.stateful_alus)):
+            for j in range(len(self.stateful_alus[i])):
+                self.stateful_alus[i][j]['ignore_all_table_deps'] = '@pragma ignore_table_dependency ' + self.sketch_name + '_stateful_alu_' + str(i) + '_' + str(j) + '_table'
+        for i in range(len(self.stateless_alus)):
+            for j in range(len(self.stateless_alus[i])):
+                self.stateless_alus[i][j]['ignore_all_table_deps'] = '@pragma ignore_table_dependency ' + self.sketch_name + '_stateless_alu_' + str(i) + '_' + str(j) + '_table'
 
 
     # set the (i,j)-th stateful alu object
@@ -263,7 +270,6 @@ class TofinoP4(object):
                 'stateful_alus': self.stateful_alus,
                 'stateless_alus': self.stateless_alus,
                 'salu_configs': self.salu_configs,
-                'ignore_all_table_deps': self._generate_pragma_lines(),
                 'phv_container_fields': self.phv_container_fields }
 
 
