@@ -427,12 +427,14 @@ class SketchOutputProcessor(object):
         return (lambda x: x[0] + '_' + x[1])(file.split('_'))
 
     def find_output_dst(self, input_file):
-        with open(input_file, "r") as f:
+        sketch_file = input_file[:-4] # sans '.out'
+        print(' find_output_dst: reading from sketch file ', sketch_file)
+        with open(sketch_file, "r") as f:
             specname = self.filename_to_specname(input_file)
             l = f.readline()
             outs = []
             print('find_output_dst: trying to find `void ' + specname + '`')
-            while not l.startswith("void " + specname):
+            while not l.startswith("int[2] " + specname):
                 #print('curr line: ' + l)
                 l = f.readline()
             print('done')
