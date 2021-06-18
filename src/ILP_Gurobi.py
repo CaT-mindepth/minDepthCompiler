@@ -26,6 +26,13 @@ class ILP_TableInfo(object):
     # do ILP
     def ILP(self):
         # def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
+        # match_dep: [(u, v)], where u and v are table names
+        # action_dep: ...
+        # successor_dep: ...
+        # reverse_dep:  ...
+        # alu_dic : map from table name to the number of ALUs in each table
+        # alu_dep_dic: map from table name to dependency (edge) list between ALUs in each table
+        # table_list: list of tables
         return gen_and_solve_ILP([], [], [], [], {self.table_name:len(self.alu_adjacency_list)}, \
             {self.table_name: self.get_dependency_list()}, [self.table_name] )
 

@@ -495,8 +495,6 @@ class Synthesizer:
 		self.stateful_nodes = stateful_nodes
 		self.components = []
 
-		# self.stateful_alus = ["raw", "pred_raw", "if_else_raw", "sub", "nested_ifs", "pair"]
-		self.stateful_alus = ["raw", "pred_raw", "if_else_raw"]
 		print("Synthesizer")
 		print("output dir", self.output_dir)
 		self.process_graph()
@@ -532,8 +530,11 @@ class Synthesizer:
 
 		for comp in nx.topological_sort(self.comp_graph):
 			print(' - merge_branches: looking at component ', comp)
-			outputs_comp[comp] = comp 
 			print('  | component inputs: ', comp.inputs)
+			comp_to_merged_comp[comp] = comp
+			for o in comp.outputs:
+				outputs_comp[o] = comp
+
 			for input in comp.inputs:
 				print('   | input ', input, ' type is ', self.var_types[input])
 				if self.var_types[input] == 'bit':
@@ -565,16 +566,10 @@ class Synthesizer:
 			self.comp_graph.add_edges_from([(x, new_comp) for x in self.comp_graph.predecessors(src_comp)])
 			self.comp_graph.add_edges_from([(new_comp, y) for y in self.comp_graph.successors(dst_comp)])
 			self.comp_graph.remove_node(src_comp)
-			comp.update_outputs(self.comp_graph.neighbors(comp))
+			self.comp_graph.remove_node(dst_comp)
+			new_comp.update_outputs(self.comp_graph.neighbors(new_comp))
 			comp_to_merged_comp[prev_src_comp] = new_comp 
 			comp_to_merged_comp[prev_dst_comp] = new_comp
-			comp.print()
-			print("inputs", comp.inputs)
-			print("outputs", comp.outputs)
-
-			# update outputs_comp map
-			for o in comp.outputs:
-				outputs_comp[o] = comp
 
 
 	def process_graph(self):
@@ -664,72 +659,72 @@ class Synthesizer:
 		# Duplicate components to eliminate inputs of type bit (branch variables)
 		outputs_comp = {} # output -> component
 
-		#for comp in nx.topological_sort(self.comp_graph):
-	#		for input in comp.inputs:
-#				if self.var_types[input] == 'bit':
-#					print("Found input of type bit")
-#					print("Copy preceding component")
-#					prec_comp = outputs_comp[input]
-#					print(' | preceeding component: ', prec_comp)
-#					if prec_comp.isStateful:
-#						# new_codelet = Codelet(prec_comp.codelet.get_stmt_list())
-#						# # TODO: restructure Codelet class so that this initialization is not needed
-#						# new_codelet.stateful = True # it is a stateful codelet
-#						# new_codelet.state_var = prec_comp.codelet.state_var
-#						# #########
-#						print(' | prec_comp is stateful...')
-#						new_comp = copy.deepcopy(prec_comp)
-#						new_comp.merge_component(comp)
-#						self.comp_graph.add_node(new_comp)
-#						self.comp_graph.add_edges_from([(x, new_comp) for x in 
-#							self.comp_graph.predecessors(prec_comp)])
-#						self.comp_graph.add_edges_from([(new_comp, y) for 
-#							y in self.comp_graph.successors(comp)])
-#						
-#						# Delete prec_comp (new_comp subsumes it)
-#						print(' *** deleting component ', prec_comp)
-#						self.comp_graph.remove_node(prec_comp)
-#						# NOTE: If merged component doesn't fit, throw an error
-#						# TODO: Handle this case, maybe by splitting the merged component
-#					else:
-#						print(' | prec_comp is stateless.')
-#						if not comp.isStateful:
-#							new_comp = copy.deepcopy(prec_comp)
-#							new_comp.merge_component(comp)
-#						else:
-#							new_comp = copy.deepcopy(comp)
-#							new_comp.merge_component(comp, True)
-#						
-#						self.comp_graph.add_node(new_comp)
-#						print('merge_components: added new node ', new_comp)
-#						print('prec_comp is: ', prec_comp)
-#						for x in self.comp_graph.predecessors(prec_comp):
-#							print(' - predecessor of ', prec_comp, ': is ', x)
-#						self.comp_graph.add_edges_from([(x, new_comp) for x in 
-#							self.comp_graph.predecessors(prec_comp)])
-#						self.comp_graph.add_edges_from([(new_comp, y) for 
-#							y in self.comp_graph.successors(comp)])
-#						print(' | removing node ', prec_comp, ' since merging finished.')
-#						self.comp_graph.remove_node(prec_comp)
-#
-#					self.comp_graph.remove_node(comp)
-#					comp = new_comp
-#
-#			comp.update_outputs(self.comp_graph.neighbors(comp))
-#			comp.print()
-#			print("inputs", comp.inputs)
-#			print("outputs", comp.outputs)
-#
-#			# update outputs_comp map
-#			for o in comp.outputs:
-#				outputs_comp[o] = comp
-#
-#			# if comp.isStateful:
-#			# 	self.synthesize_stateful_tofino(comp, comp_name)
-#			# else:
-#			# 	self.synthesize_stateless_tofino(comp, comp_name)
-#
-		self.merge_branches()
+		for comp in nx.topological_sort(self.comp_graph):
+			for input in comp.inputs:
+					if self.var_types[input] == 'bit':
+						print("Found input of type bit")
+						print("Copy preceding component")
+						prec_comp = outputs_comp[input]
+						print(' | preceeding component: ', prec_comp)
+						if prec_comp.isStateful:
+							# new_codelet = Codelet(prec_comp.codelet.get_stmt_list())
+							# # TODO: restructure Codelet class so that this initialization is not needed
+							# new_codelet.stateful = True # it is a stateful codelet
+							# new_codelet.state_var = prec_comp.codelet.state_var
+							# #########
+							print(' | prec_comp is stateful...')
+							new_comp = copy.deepcopy(prec_comp)
+							new_comp.merge_component(comp)
+							self.comp_graph.add_node(new_comp)
+							self.comp_graph.add_edges_from([(x, new_comp) for x in 
+								self.comp_graph.predecessors(prec_comp)])
+							self.comp_graph.add_edges_from([(new_comp, y) for 
+								y in self.comp_graph.successors(comp)])
+							
+							# Delete prec_comp (new_comp subsumes it)
+							print(' *** deleting component ', prec_comp)
+							self.comp_graph.remove_node(prec_comp)
+							# NOTE: If merged component doesn't fit, throw an error
+							# TODO: Handle this case, maybe by splitting the merged component
+						else:
+							print(' | prec_comp is stateless.')
+							if not comp.isStateful:
+								new_comp = copy.deepcopy(prec_comp)
+								new_comp.merge_component(comp)
+							else:
+								new_comp = copy.deepcopy(comp)
+								new_comp.merge_component(comp, True)
+							
+							self.comp_graph.add_node(new_comp)
+							print('merge_components: added new node ', new_comp)
+							print('prec_comp is: ', prec_comp)
+							for x in self.comp_graph.predecessors(prec_comp):
+								print(' - predecessor of ', prec_comp, ': is ', x)
+							self.comp_graph.add_edges_from([(x, new_comp) for x in 
+								self.comp_graph.predecessors(prec_comp)])
+							self.comp_graph.add_edges_from([(new_comp, y) for 
+								y in self.comp_graph.successors(comp)])
+							print(' | removing node ', prec_comp, ' since merging finished.')
+							self.comp_graph.remove_node(prec_comp)
+
+						self.comp_graph.remove_node(comp)
+						comp = new_comp
+
+					comp.update_outputs(self.comp_graph.neighbors(comp))
+					comp.print()
+					print("inputs", comp.inputs)
+					print("outputs", comp.outputs)
+
+					# update outputs_comp map
+					for o in comp.outputs:
+						outputs_comp[o] = comp
+
+			# if comp.isStateful:
+			# 	self.synthesize_stateful_tofino(comp, comp_name)
+			# else:
+			# 	self.synthesize_stateless_tofino(comp, comp_name)
+
+		#self.merge_branches()
 		self.comp_index = {} # component -> index
 		print("comp index", self.comp_index)
 		# check for redundant outputs
