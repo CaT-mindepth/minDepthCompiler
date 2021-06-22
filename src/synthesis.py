@@ -111,6 +111,7 @@ class Component: # group of codelets
 		for codelet in self.codelets:
 			self.comp_stmts.extend(codelet.get_stmt_list())
 
+	# This merge_component should be removed since two stateless components cannot be merged
 	def merge_component(self, comp):
 		print("merge component")
 		self.codelet.add_stmts(comp.comp_stmts)
@@ -521,56 +522,72 @@ class Synthesizer:
 			assert(array_name in self.var_types)
 			return self.var_types[array_name]
 
-	def merge_branches(self):
-		# Duplicate components to eliminate inputs of type bit (branch variables)
-		outputs_comp = {} # map outputs to component 
-		comp_to_merged_comp = {}
+	# returns True iff merging a, b increases depth of DAG by 1.
+	# this is a symmetric condition.
+	def merging_increases_depth(self, a, b):
+		import graphutil 
+		return (graphutil.merge_increases_depth(a, b))
+	
+	def try_merge(self, a, b):
+		pass # TODO: calls sketch to determine if component A+B is synthesizeable.
 
-		tentative_merges = [] # tentative components to be merged together.
+	def merge_candidate(self, a, b):
+		# returns True if components A and B are valid merge candidates.
+		if not (a.isStateful or b.isStateful): # if a and b are both stateless, return
+			return False
+		if a.isStateful and b.isStateful:
+			if ((len(a.state_vars) == 1) and (len(a.state_vars) == 1)): # TODO: ruijief: ask Kexin if this condition is right.
+				return not (self.merging_increases_depth(a, b))
+			else:
+				return False
+		return not (self.merging_increases_depth(a, b))
 
-		for comp in nx.topological_sort(self.comp_graph):
-			print(' - merge_branches: looking at component ', comp)
-			print('  | component inputs: ', comp.inputs)
-			comp_to_merged_comp[comp] = comp
-			for o in comp.outputs:
-				outputs_comp[o] = comp
+	def perform_merge(self, a, b): 
+		# actually merge two components (a, b) into one. 
+		# a is pred. This is mainly to see which direction we do the merge.
+		if a.isStateful:
+			new_comp = copy.deepcopy(a)
+			new_comp.merge_component(b)
+		else: # b must be a stateful comp
+			new_comp = copy.deepcopy(b)
+			new_comp.merge_component(a, True)
 
-			for input in comp.inputs:
-				print('   | input ', input, ' type is ', self.var_types[input])
-				if self.var_types[input] == 'bit':
-					print('appending component ', comp, ' to tentative_merges')
-					prec_comp = outputs_comp[input]
-					if prec_comp.isStateful: 
-						tentative_merges.append((prec_comp, comp, False))
-					else:
-						# is stateless
-						if not comp.isStateful:
-							new_comp = copy.deepcopy(prec_comp)
-							new_comp.merge_component(comp)
-							tentative_merges.append((prec_comp, comp, False))
-						else:
-							tentative_merges.append((comp, prec_comp, True))
-							new_comp = copy.deepcopy(comp)
-							new_comp.merge_component(comp, True)
+		# create new merged component, add edges
+		self.comp_graph.add_node(new_comp)
+		self.comp_graph.add_edges_from([(x, new_comp) for x in self.comp_graph.predecessors(a)])
+		self.comp_graph.add_edges_from([(new_comp, y) for y in self.comp_graph.successors(b)])
+		# remove two old components
+		self.comp_graph.remove_node(a)
+		self.comp_graph.remove_node(b)
+		return new_comp
 
-		print('tentative merges: ', tentative_merges)
+	def reverse_top_order(self):
+		top = list(nx.topological_sort(self.comp_graph))
+		top.reverse() 
+		return top 
 
-		for src_comp, dst_comp, direction in tentative_merges:
-			print('merging component: ', src_comp, ' with ', dst_comp)
-			prev_src_comp, prev_dst_comp = src_comp, dst_comp
-			src_comp = comp_to_merged_comp[src_comp]
-			dst_comp = comp_to_merged_comp[dst_comp]
-			new_comp = copy.deepcopy(src_comp)
-			new_comp.merge_component(dst_comp, direction)
-			self.comp_graph.add_node(new_comp)
-			self.comp_graph.add_edges_from([(x, new_comp) for x in self.comp_graph.predecessors(src_comp)])
-			self.comp_graph.add_edges_from([(new_comp, y) for y in self.comp_graph.successors(dst_comp)])
-			self.comp_graph.remove_node(src_comp)
-			self.comp_graph.remove_node(dst_comp)
-			new_comp.update_outputs(self.comp_graph.neighbors(new_comp))
-			comp_to_merged_comp[prev_src_comp] = new_comp 
-			comp_to_merged_comp[prev_dst_comp] = new_comp
+	def recursive_merge(self):
+		nodes = self.reverse_top_order() 
+		for node in nodes: 
+			if not (node in self.merge_processed):
+				halt = False 
+				merged_component = None 
+				for pred in self.comp_graph.predecessors(node):
+					if self.merge_candidate(pred, node):
+						# try calling sketch to synthesize new component. 
+						if self.try_merge(pred, node):
+							# merging successful. 
+							merged_component = self.perform_merge(pred, node)
+							self.recursive_merge() 
+							halt = True 
+					if halt: 
+						break 
+				self.merge_processed.add(merged_component) 
 
+
+	def merge_components(self):
+		self.merge_processed = set() 
+		self.recursive_merge() 
 
 	def process_graph(self):
 		original_dep_edges = copy.deepcopy(self.dep_graph.edges())
@@ -606,10 +623,6 @@ class Synthesizer:
 			stateful_comp.set_name('comp_' + str(i))
 			self.components.append(stateful_comp)
 			codelet_component[str(u)] = stateful_comp
-			# output_file = "{}_stateful_{}".format(self.filename, i)
-			# codelet_name = "stateful_{}".format(i)
-			# self.synthesize_stateful_codelet(u, codelet_name, output_file) # TODO: synthesize stateful components
-			# self.synthesize_stateful_codelet_tofino(u, codelet_name, output_file) # TODO: synthesize stateful components
 			i += 1
 	
 		for comp in nx.weakly_connected_components(self.dep_graph):
@@ -739,7 +752,6 @@ class Synthesizer:
 			print("outputs", comp.outputs)
 			i += 1
 		self.write_comp_graph()
-		#nx.draw(self.comp_graph)
 
 	def do_synthesis(self):
 		# Synthesize each codelet
