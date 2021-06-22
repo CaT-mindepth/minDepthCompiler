@@ -28,12 +28,12 @@ header_type ipv4_t {
 header_type ipv4_t {
     fields {
  
-        pkt_next_hop1 : 32 (signed);   
-        pkt_arrival0 : 32 (signed);   
-        pkt_br_tmp0 : 32 (signed);   
+        pkt_last_time_pkt_id0_0 : 32 (signed);   
         pkt_saved_hop_pkt_id0_2 : 32 (signed);   
+        pkt_br_tmp0 : 32 (signed);   
+        pkt_next_hop1 : 32 (signed);   
         pkt_new_hop0 : 32 (signed);   
-        pkt_last_time_pkt_id0_0 : 32 (signed);  
+        pkt_arrival0 : 32 (signed);  
     }
 }
 
@@ -83,16 +83,16 @@ blackbox stateful_alu test_stateful_alu_0_0_blackbox {
     
     
     reg                       : reg_0;
-    condition_lo              : (((0-ipv4.pkt_arrival0)-register_lo)+7)==0;
-    condition_hi              : (((0-ipv4.pkt_arrival0)-register_lo)+7)==0;
+    condition_lo              : (((0-ipv4.pkt_arrival0)-register_lo)+10)==0;
+    condition_hi              : (0+13)<0;
     update_lo_1_predicate     : true;
-    update_lo_1_value         : (25)+(23);
-    update_lo_2_predicate     : true;
-    update_lo_2_value         : (ipv4.pkt_arrival0);
-    update_hi_1_predicate     : true;
-    update_hi_1_value         : (0)-(3);
-    update_hi_2_predicate     : true;
-    update_hi_2_value         : (1);
+    update_lo_1_value         : (ipv4.pkt_arrival0);
+    update_lo_2_predicate     : (condition_hi)&&(condition_lo);
+    update_lo_2_value         : (3)-(26);
+    update_hi_1_predicate     : (condition_hi)&&(!(condition_lo));
+    update_hi_1_value         : (ipv4.pkt_arrival0);
+    update_hi_2_predicate     : (condition_hi)&&(condition_lo);
+    update_hi_2_value         : (31)-(29);
     output_predicate          : 1;
     output_value              : register_lo;
     output_dst                : ipv4.pkt_last_time_pkt_id0_0;
@@ -134,16 +134,16 @@ blackbox stateful_alu test_stateful_alu_1_1_blackbox {
     
     
     reg                       : reg_1;
-    condition_lo              : (((0-ipv4.pkt_br_tmp0)+register_lo)+17)>0;
-    condition_hi              : (((0-ipv4.pkt_br_tmp0)-0)+1)==0;
-    update_lo_1_predicate     : true;
-    update_lo_1_value         : (ipv4.pkt_new_hop0)+(register_lo);
-    update_lo_2_predicate     : true;
+    condition_lo              : (0-ipv4.pkt_br_tmp0)==0;
+    condition_hi              : ((0-register_lo)+2)==0;
+    update_lo_1_predicate     : false;
+    update_lo_1_value         : (8);
+    update_lo_2_predicate     : !(condition_lo);
     update_lo_2_value         : (ipv4.pkt_new_hop0)+(register_hi);
-    update_hi_1_predicate     : true;
-    update_hi_1_value         : (15)+(31);
-    update_hi_2_predicate     : true;
-    update_hi_2_value         : (register_hi)-(ipv4.pkt_br_tmp0);
+    update_hi_1_predicate     : (condition_lo);
+    update_hi_1_value         : (6);
+    update_hi_2_predicate     : false;
+    update_hi_2_value         : (30)-(ipv4.pkt_br_tmp0);
     output_predicate          : 1;
     output_value              : register_lo;
     output_dst                : ipv4.pkt_saved_hop_pkt_id0_2;

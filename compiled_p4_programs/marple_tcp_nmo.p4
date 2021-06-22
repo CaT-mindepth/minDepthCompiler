@@ -29,9 +29,9 @@ header_type ipv4_t {
     fields {
  
         p_br_tmp0 : 32 (signed);   
-        p_maxseq0 : 32 (signed);   
         p_tcpseq0 : 32 (signed);   
-        count : 32 (signed);  
+        count : 32 (signed);   
+        p_maxseq0 : 32 (signed);  
     }
 }
 
@@ -81,18 +81,18 @@ blackbox stateful_alu test_stateful_alu_0_0_blackbox {
     
     
     reg                       : reg_0;
-    condition_lo              : ((ipv4.p_tcpseq0+register_lo)+31)<0;
-    condition_hi              : (((0-ipv4.p_tcpseq0)+register_lo)+1)>0;
-    update_lo_1_predicate     : true;
-    update_lo_1_value         : (ipv4.p_tcpseq0)-(register_lo);
-    update_lo_2_predicate     : true;
-    update_lo_2_value         : (ipv4.p_tcpseq0);
-    update_hi_1_predicate     : true;
-    update_hi_1_value         : (0)-(8);
+    condition_lo              : ((ipv4.p_tcpseq0-register_lo)+1)==0;
+    condition_hi              : (ipv4.p_tcpseq0-register_lo)>0;
+    update_lo_1_predicate     : (condition_hi);
+    update_lo_1_value         : (ipv4.p_tcpseq0);
+    update_lo_2_predicate     : false;
+    update_lo_2_value         : (0)+(3);
+    update_hi_1_predicate     : (condition_hi)&&(condition_lo);
+    update_hi_1_value         : (26)+(7);
     update_hi_2_predicate     : true;
-    update_hi_2_value         : (23)-(30);
+    update_hi_2_value         : (0)+(register_lo);
     output_predicate          : 1;
-    output_value              : register_lo;
+    output_value              : register_hi;
     output_dst                : ipv4.p_maxseq0;
     
     initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
@@ -132,16 +132,16 @@ blackbox stateful_alu test_stateful_alu_1_1_blackbox {
     
     
     reg                       : reg_1;
-    condition_lo              : ((0-register_lo)+28)<0;
-    condition_hi              : (((0-ipv4.p_br_tmp0)-0)+1)!=0;
-    update_lo_1_predicate     : true;
-    update_lo_1_value         : (25)+(23);
-    update_lo_2_predicate     : true;
-    update_lo_2_value         : (1)+(register_lo);
-    update_hi_1_predicate     : true;
-    update_hi_1_value         : (0)-(20);
-    update_hi_2_predicate     : true;
-    update_hi_2_value         : (30)-(13);
+    condition_lo              : (register_lo+18)<0;
+    condition_hi              : (0+register_lo)==0;
+    update_lo_1_predicate     : !(condition_lo);
+    update_lo_1_value         : (ipv4.p_br_tmp0)+(register_lo);
+    update_lo_2_predicate     : (!(condition_hi))&&(condition_lo);
+    update_lo_2_value         : (21)-(2);
+    update_hi_1_predicate     : (condition_hi)&&(condition_lo);
+    update_hi_1_value         : (0)-(0);
+    update_hi_2_predicate     : false;
+    update_hi_2_value         : (23);
     output_predicate          : 1;
     output_value              : register_lo;
     output_dst                : ipv4.count;
