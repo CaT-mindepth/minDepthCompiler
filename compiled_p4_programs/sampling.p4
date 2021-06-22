@@ -70,17 +70,18 @@ register reg_0 {
 // Stateful ALU blackbox
 blackbox stateful_alu test_stateful_alu_0_0_blackbox {
     
+    
     reg                       : reg_0;
-    condition_lo              : ((0-register_lo)+29)==0;
-    condition_hi              : (0-register_hi)==0;
-    update_lo_1_predicate     : true;
-    update_lo_1_value         : (0)-(0);
-    update_lo_2_predicate     : true;
-    update_lo_2_value         : (1)+(register_lo);
-    update_hi_1_predicate     : true;
+    condition_lo              : ((0-register_lo)+2)>0;
+    condition_hi              : ((0-register_lo)+29)==0;
+    update_lo_1_predicate     : !(condition_hi);
+    update_lo_1_value         : (1)+(register_lo);
+    update_lo_2_predicate     : (condition_hi);
+    update_lo_2_value         : (0);
+    update_hi_1_predicate     : (condition_hi);
     update_hi_1_value         : 1;
-    update_hi_2_predicate     : true;
-    update_hi_2_value         : (9)+(register_hi);
+    update_hi_2_predicate     : false;
+    update_hi_2_value         : (29)-(31);
     output_predicate          : 1;
     output_value              : register_hi;
     output_dst                : ipv4.p_sample4;
