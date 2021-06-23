@@ -227,30 +227,23 @@ int[2] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) 
     return result;
 }
 
-int[2] comp_1(int last_update, int p_now0, int p_now_plus_free1, int p_mark){
+int[2] comp_0(int maxseq, int p_tcpseq0){
 	int[2] _out;
-	int p_p_mark2;
-	int p_last_update0;
-	int p_p_mark1;
-	bit p_br_tmp0;
-	int p_p_mark0;
-	int p_last_update2;
-	p_last_update0 = last_update;
-	p_br_tmp0 = (p_now_plus_free1 > p_last_update0);
-	p_last_update2 = p_br_tmp0 ? p_now0 : p_last_update0;
-	last_update = p_last_update2;
-	p_p_mark0 = p_mark;
-	p_p_mark1 = p_p_mark0 - 2;
-	p_p_mark2 = p_br_tmp0 ? p_p_mark1 : p_p_mark0;
-	p_mark = p_p_mark2;
-	_out[0] = last_update;
-	_out[1] = p_mark;
+	int p_maxseq2;
+	bit p_br_tmp1;
+	int p_maxseq0;
+	p_maxseq0 = maxseq;
+	p_br_tmp1 = !(p_tcpseq0 < p_maxseq0);
+	p_maxseq2 = p_br_tmp1 ? p_tcpseq0 : p_maxseq0;
+	maxseq = p_maxseq2;
+	_out[0] = maxseq;
+	_out[1] = p_maxseq0;
 	return _out;
 }
 
-harness void sketch(int last_update, int p_now0, int p_now_plus_free1, int p_mark) {
-	int[2] impl = salu(p_now0, p_now_plus_free1, last_update, p_mark);
-	int [2] spec = comp_1(last_update, p_now0, p_now_plus_free1, p_mark);
+harness void sketch(int maxseq, int p_tcpseq0) {
+	int[2] impl = salu(p_tcpseq0, 0, maxseq, 0);
+	int [2] spec = comp_0(maxseq, p_tcpseq0);
 	assert(impl[0] == spec[0]);
 	assert(impl[1] == spec[1]);
 }

@@ -1,5 +1,5 @@
 SKETCH version 1.7.6
-Benchmark = _blue_increase_out/comp_0_stateless_p_now_plus_free1_bnd_1.sk
+Benchmark = ../all_tests/_blue_increase_out/comp_0_stateless_p_now_plus_free1_bnd_1.sk
 /* BEGIN PACKAGE ANONYMOUS*/
 /*comp_0_.._bnd_1.sk:1*/
 
@@ -71,4 +71,4 @@ void sketch__WrapperNospec (int p_now0)/*comp_0_.._bnd_1.sk:60*/
 { }
 /* END PACKAGE ANONYMOUS*/
 [SKETCH] DONE
-Total time = 217
+Total time = 250
