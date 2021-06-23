@@ -60,53 +60,44 @@ class codeGen:
 
 if __name__ == "__main__":
   arg_parser = argparse.ArgumentParser()
-  arg_parser.add_argument("--input", nargs='+', dest='input', help="input file (preprocessed Domino program)", required=True)
+  arg_parser.add_argument("input", help="input file (preprocessed Domino program)")
   arg_parser.add_argument("sketch", help="Sketch files folder")
   arg_parser.add_argument('output', help='P4 output location')
-  arg_parser.add_argument('--table-deps', dest='table_deps', help='table dependencies file')
-  arg_parser.add_argument('--table-action-mapping', dest='table_action_map', help='table action mapping')
+  arg_parser.add_argument("--stages", help="number of pipeline stages", type=int)
+  arg_parser.add_argument("--ALUs", help="number of ALUs per stage", type=int)
+
   args = arg_parser.parse_args()
 
   filename = args.input
   outputfilename = args.sketch
   p4outputname = args.output
-
-  table_deps_file = args.table_deps 
-  table_action_map = args.table_action_map
-
-  print('filenames: ', filename)
-  print('table deps file: ', table_deps_file)
-  print('table action mapping: ', table_action_map)
-  print('output folder: ', outputfilename)
-  print('output p4 program: ', p4outputname)
+  max_stages = args.stages
+  max_alus = args.ALUs
 
   start = time.time()
 
 
-  codeGens = []
-  depGraphs = []
-  synthObjs = []
-  for file in filename: 
-    with open(filename, "r") as f:
-      codeGen = codeGen(filename, outputfilename, f)
-    dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types)
-    synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
+  with open(filename, "r") as f:
+    codeGen = codeGen(filename, outputfilename, f)
+
+  dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types)
+  synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
                                     dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes, outputfilename, p4outputname)
-    codeGens.append(codeGen)
-    depGraphs.append(dep_graph_obj)
-    synthObjs.append(synthObjs)
-  
+
   # ILP
   # self.synth_output_processor.schedule()
 	# TODO here
   print('----- starting ILP Gurobi -----')
-	ilp_table = self.synth_output_processor.to_ILP_TableInfo(table_name = 'T0')
-	print("# alus: = ", ilp_table.get_num_alus())
-	ilp_output = ilp_table.ILP() 
-	import p4_codegen 
-	codegen = p4_codegen.P4Codegen(ilp_table, ilp_output, "test")
-	codegen.generate_p4_output('tofino_p4.j2', p4_output_name)
+  ilp_table = synth_obj.synth_output_processor.to_ILP_TableInfo(table_name = 'T0')
+  print("# alus: = ", ilp_table.get_num_alus())
+  ilp_output = ilp_table.ILP() 
+  import p4_codegen 
+  codegen = p4_codegen.P4Codegen(ilp_table, ilp_output, "test")
+  codegen.generate_p4_output('tofino_p4.j2', p4outputname)
+  
+
   
 
   end = time.time()
   print("Time taken: {} s".format(end - start))
+

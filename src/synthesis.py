@@ -503,14 +503,7 @@ class Synthesizer:
 		self.do_synthesis()
 		self.synth_output_processor.postprocessing()
 		print(self.synth_output_processor.to_ILP_str(table_name="NewTable"))
-		# self.synth_output_processor.schedule()
-		print('----- starting ILP Gurobi -----')
-		ilp_table = self.synth_output_processor.to_ILP_TableInfo(table_name = 'T0')
-		print("# alus: = ", ilp_table.get_num_alus())
-		ilp_output = ilp_table.ILP() 
-		import p4_codegen 
-		codegen = p4_codegen.P4Codegen(ilp_table, ilp_output, "test")
-		codegen.generate_p4_output('tofino_p4.j2', p4_output_name)
+
 
 	def get_var_type(self, v):
 		if v in self.var_types:

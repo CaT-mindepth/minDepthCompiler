@@ -96,8 +96,11 @@ class P4Codegen(object):
                                 self.packet_fields.add(tok.value)
                                 tok.value = self.rename_packet_field(tok.value) #'ipv4.' + tok.value
                         toks.append(tok)
-                    alu.var_expressions[lhs] = ''.join(list(map(lambda x: x.value, toks)))
-                
+                    x = ''.join(list(map(lambda x: x.value, toks)))
+                    x = x.replace('&&', ' and ')
+                    x = x.replace('!', ' not ')
+                    x = x.replace('||', ' or ')
+                    alu.var_expressions[lhs] = x
 
     def _process_alus(self):
         self.stateless_alus = []

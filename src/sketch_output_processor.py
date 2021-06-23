@@ -152,40 +152,41 @@ class SALU(GenericALU):
 
     # copied over from chipc project
     def eval_bool_op(self, op1, op2, opcode):
+        print(' | -> eval_bool_op: op1 ', op1, ' ; op2 ', op2, ' ; opcode: ', opcode)
         if opcode == 0:
             template_str = 'false'
         elif opcode == 1:
-            template_str = 'not(({op1}) or ({op2}))'
+            template_str = '!(({op1}) || ({op2}))'
         elif opcode == 2:
-            template_str = '(not({op1})) and ({op2})'
+            template_str = '(!({op1})) && ({op2})'
         elif opcode == 3:
-            template_str = 'not({op1})'
+            template_str = '!({op1})'
         elif opcode == 4:
-            template_str = '({op1}) and (not({op2}))'
+            template_str = '({op1}) && (!({op2}))'
         elif opcode == 5:
-            template_str = 'not({op2})'
+            template_str = '!({op2})'
         elif opcode == 6:
             # This used to be XOR; it's been switched to AND because
             # the Tofino compiler doesn't accept it (issue #20).
-            template_str = '({op1}) and ({op2})'
+            template_str = '({op1}) && ({op2})'
         elif opcode == 7:
-            template_str = 'not(({op1}) and ({op2}))'
+            template_str = '!(({op1}) && ({op2}))'
         elif opcode == 8:
-            template_str = '({op1}) and ({op2})'
+            template_str = '({op1}) && ({op2})'
         elif opcode == 9:
             # This used to be XOR; it's been switched to AND because
             # the Tofino compiler doesn't accept it (issue #20).
-            template_str = 'not(({op1}) and ({op2}))'
+            template_str = '~(({op1}) && ({op2}))'
         elif opcode == 10:
             template_str = '({op2})'
         elif opcode == 11:
-            template_str = '(not({op1})) or ({op2})'
+            template_str = '(!({op1})) || ({op2})'
         elif opcode == 12:
             template_str = '({op1})'
         elif opcode == 13:
-            template_str = '({op1}) or (not({op2}))'
+            template_str = '({op1}) || (!({op2}))'
         elif opcode == 14:
-            template_str = '({op1}) or ({op2})'
+            template_str = '({op1}) || ({op2})'
         else:
             template_str = 'true'
 
@@ -254,8 +255,9 @@ class SALU(GenericALU):
                         bool_op_operand1 = toks[3].value
                         bool_op_operand2 = toks[4].value
                         bool_op_lhs = toks[5].value
-                        bool_op_rhs_expression = self.eval_bool_op(bool_op_opcode, bool_op_operand1, bool_op_operand2)
+                        bool_op_rhs_expression = self.eval_bool_op(bool_op_operand1, bool_op_operand2, bool_op_opcode)
                         self.var_expressions[bool_op_lhs] = bool_op_rhs_expression
+                        print('PARSING BOOL_OP <---------------------- LHS: ', bool_op_lhs, ' | RHS: ', bool_op_rhs_expression)
                 # Case IV: _out[1] -> output_value
                 # In this case, toks[0] is ID, toks[1] is LBRACKET, toks[2] is 'NUMBER' with value '1', toks[3] is 'RBRACKET'
                 if toks[0].type == 'ID' and toks[0].value.startswith('_out') \

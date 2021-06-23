@@ -2,13 +2,57 @@ import sys
 import gurobipy as gp
 from gurobipy import GRB
 
+class ILP_ActionInfo(object):
+    # represents ALU dependencies in a single action (resp. table)
+    def __init__(self, table_name, action_name, num_alus, alus, alu_adjacency_list):
+        self.table_name = table_name 
+        self.action_name = action_name
+        self.num_alus = num_alus 
+        self.alu_adjacency_list = alu_adjacency_list
+        self.alus = alus
+
+    def get_num_alus(self):
+        return self.num_alus 
+
+    def get_table_action_pair(self):
+        return (self.table_name, self.action_name)
+
+    # returns a list of edges in the ALU dependency graph.
+    def get_dependency_list(self):
+        deps = []
+        for src_alu_id in range(len(self.alu_adjacency_list)):
+            for tgt_alu in self.alu_adjacency_list[src_alu_id]:
+                tgt_alu_id = tgt_alu.id 
+                print(' * gen_dependency_list: dependency between ', src_alu_id, ' and ', tgt_alu_id)
+                deps.append((src_alu_id, tgt_alu_id))
+        return deps
+
+class ILP_TableDeps(object):
+    def __init__(self, match_deps, action_deps, successor_deps, reverse_deps):
+        self.match_deps = match_deps 
+        self.action_deps = action_deps 
+        self.successor_deps = successor_deps 
+        self.reverse_deps = reverse_deps 
+
 class ILP_TableInfo(object):
     # represents ALU dependencies in a single action (resp. table)
+    # If this constructor is caleld, multi_table_mode is set to false.
     def __init__(self, table_name, num_alus, alus, alu_adjacency_list):
         self.table_name = table_name 
         self.num_alus = num_alus 
         self.alu_adjacency_list = alu_adjacency_list
         self.alus = alus
+        self.multi_table_mode = False 
+
+    # alternatively, read in from multiple action infos.
+    # If this constructor is called, multi_table_mode is set to true. 
+    # table_action_map: map from table name (str) to list of actions (list[str])
+    def __init__(self, table_dependencies : ILP_TableDeps, table_action_map : dict[str, list[str]], action_infos : dict[str, list[ILP_ActionInfo]]):
+        self.action_infos = action_infos 
+        self.multi_table_mode = True 
+        self.table_dependencies = table_dependencies 
+        self.table_action_map = table_action_map
+        
 
     def get_num_alus(self):
         return self.num_alus 
@@ -23,6 +67,24 @@ class ILP_TableInfo(object):
                 deps.append((src_alu_id, tgt_alu_id))
         return deps
 
+    def get_multi_table_info(self):
+        assert self.multi_table_mode == True 
+        alu_dep_dic = {}
+        alu_dic = {}
+        table_list = []
+        for table in self.table_action_map: 
+            alu_dep_dic[table] = [] # empty dependency list 
+            alu_dic[table] = len(self.table_action_map)
+            table_list.append(table)
+            for action in self.table_action_map[table]:
+                alu_dep_dic[table] += self.action_infos[action] # actions 
+        return alu_dic, alu_dep_dic, table_list 
+        
+    def multi_table_ILP(self):
+        alu_dic, alu_dep_dic, table_list = self.get_multi_table_info()
+        return gen_and_solve_ILP(self.table_dependencies.match_deps, self.table_dependencies.action_deps, \
+            self.table_dependencies.successor_deps, self.table_dependencies.reverse_deps, alu_dic, alu_dep_dic, table_list)
+
     # do ILP
     def ILP(self):
         # def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
@@ -33,6 +95,8 @@ class ILP_TableInfo(object):
         # alu_dic : map from table name to the number of ALUs in each table
         # alu_dep_dic: map from table name to dependency (edge) list between ALUs in each table
         # table_list: list of tables
+        if self.multi_table_mode:
+            return self.multi_table_ILP()
         return gen_and_solve_ILP([], [], [], [], {self.table_name:len(self.alu_adjacency_list)}, \
             {self.table_name: self.get_dependency_list()}, [self.table_name] )
 
