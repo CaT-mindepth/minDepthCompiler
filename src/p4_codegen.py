@@ -100,6 +100,8 @@ class P4Codegen(object):
                     x = x.replace('&&', ' and ')
                     x = x.replace('!', ' not ')
                     x = x.replace('||', ' or ')
+                    x = x.replace('register_lo', 'alu_lo')
+                    x = x.replace('register_hi', 'alu_hi')
                     alu.var_expressions[lhs] = x
 
     def _process_alus(self):
