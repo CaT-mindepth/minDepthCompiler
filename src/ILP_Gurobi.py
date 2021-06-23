@@ -47,11 +47,11 @@ class ILP_TableInfo(object):
     # alternatively, read in from multiple action infos.
     # If this constructor is called, multi_table_mode is set to true. 
     # table_action_map: map from table name (str) to list of actions (list[str])
-    def __init__(self, table_dependencies : ILP_TableDeps, table_action_map : dict[str, list[str]], action_infos : dict[str, list[ILP_ActionInfo]]):
-        self.action_infos = action_infos 
-        self.multi_table_mode = True 
-        self.table_dependencies = table_dependencies 
-        self.table_action_map = table_action_map
+    #def __init__(self, table_dependencies : ILP_TableDeps, table_action_map : dict[str, list[str]], action_infos : dict[str, list[ILP_ActionInfo]]):
+    #    self.action_infos = action_infos 
+    #    self.multi_table_mode = True 
+    #    self.table_dependencies = table_dependencies 
+    #    self.table_action_map = table_action_map
         
 
     def get_num_alus(self):
