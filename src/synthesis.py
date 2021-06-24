@@ -372,6 +372,7 @@ class StatefulComponent(object):
 				else:
 					print("Error: Cannot have > 2 state variables in a stateful ALU. Component: ", str(self))
 					print(' problematic inputs: ', self.inputs)
+					print(' problematic state vars: ', self.state_vars)
 					assert(False)
 			else:
 				if self.salu_inputs['metadata_lo'] == 0:
@@ -381,6 +382,7 @@ class StatefulComponent(object):
 				else:
 					print("Error: Cannot have > 2 metadata fields in a stateful ALU. Component: ", str(self))
 					print(' problematic inputs: ', self.inputs)
+					print(' problematic state vars: ', self.state_vars)
 					assert(False)
 
 		print("salu_inputs", self.salu_inputs)
@@ -926,9 +928,9 @@ class Synthesizer:
 		#print("------------------------------------------------- transfer components end. ------------------------------------")
 		#exit(1)
 
-		#print("------------------------------------------------- Merging components... ------------------------------------")
-		#self.merge_components() 
-		#print("------------------------------------------------- Merge components end. ------------------------------------")
+		print("------------------------------------------------- Merging components... ------------------------------------")
+		self.merge_components() 
+		print("------------------------------------------------- Merge components end. ------------------------------------")
 		#exit(1)
 		self.comp_index = {} # component -> index
 		print("comp index", self.comp_index)

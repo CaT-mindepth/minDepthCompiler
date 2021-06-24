@@ -367,7 +367,8 @@ class DependencyGraph:
 			self.read_write_edges.add((read_c, write_c))
 			self.read_write_edges.add((write_c, read_c))
 
-		self.condense_phi_nodes()
+		# ruijief: commented out 6/25/2021
+		# self.condense_phi_nodes()
 
 		self.draw_graph(self.dep_graph, self.inputfilename + "_dep")
 
