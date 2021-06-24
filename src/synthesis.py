@@ -7,7 +7,7 @@ from graphviz import Digraph
 import subprocess
 from sketch_output_processor import SketchOutputProcessor
 from dependencyGraph import Codelet
-
+from dependencyGraph import Statement
 
 # Returns true if SSA variables v1 and v2 represent the same variable
 # TODO: update preprocessing code to store SSA info in a struct/class 
@@ -178,25 +178,29 @@ class Component: # group of codelets
 					f.write(" {} |".format(v))
 		f.write("};\n")
 		f.write("\t}\n")
+#ruijief: TODO TODO
 
-		assert("bit" not in [var_types[v] for v in self.inputs]) # no inputs of type bit
-
-		# f.write("\tgenerator bit bool_vars(){\n")
-		# f.write("\t\treturn {| 1 |")
-		# # if "bit" in [var_types[v) for v in inputs]:
-		# for v in self.inputs:
-		# 	if var_types[v] == "bit":
-		# 		f.write(" %s |" % v)
-		# f.write("};\n")
-		# f.write("\t}\n")
+		if not ("bit" not in [var_types[v] for v in self.inputs]): # no inputs of type bit
+			print('ERROR: bit present in inputs')
+			assert False
+		#f.write("\tgenerator bit bool_vars(){\n")
+		#f.write("\t\treturn {| 1 |")
+		#if "bit" in [var_types[v] for v in self.inputs]:
+	#		for v in self.inputs:
+#		 		if var_types[v] == "bit":
+#		 			f.write(" %s |" % v)
+#			f.write("};\n")
+#			f.write("\t}\n")
 
 		comp_fxn = comp_name + "(" + ", ".join(self.inputs) + ")"
 
 		output_type = var_types[o]
 		# TODO: more robust type checking; relational expression can be assigned to an integer variable (should be bool)
 		# if output_type == "int":
-		print(' - TODO output type of ', o, ' is int? but it is ', output_type)
-		assert(output_type == "int")
+		# print(' - TODO output type of ', o, ' is int? but it is ', output_type)
+		if not (output_type == "int"):
+			print('ERROR:bit present as output type')
+			assert False
 		f.write("\tassert expr(vars, {}) == {};\n".format(bnd, comp_fxn))
 		# else:
 		# 	assert(output_type == "bit")
@@ -261,7 +265,7 @@ class StatefulComponent(object):
 		self.salu_inputs = {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 0, 'register_hi': 0}
 		self.isStateful = True
 		self.state_vars = [stateful_codelet.state_var]
-		self.state_pkt_fields = [stateful_codelet.get_state_pkt_field()]
+		self.state_pkt_fields = stateful_codelet.get_state_pkt_field()
 		self.comp_stmts = stateful_codelet.get_stmt_list()
 
 		self.grammar_path = "grammars/stateful_tofino.sk"
@@ -325,7 +329,9 @@ class StatefulComponent(object):
 		return
 
 	def merge_component(self, comp, reversed=False):
-		print("merge component")
+		print("merge component: component is ---- ", self)
+		print(' ********************** adding statements from component ', comp, ' with *************************')
+		print(comp.comp_stmts)
 		if reversed:
 			self.codelet.add_stmts_before(comp.comp_stmts)
 		else:
@@ -337,7 +343,7 @@ class StatefulComponent(object):
 				assert(False)
 			assert(len(comp.state_vars) == 1)
 			self.state_vars.append(comp.state_vars[0])
-			self.state_pkt_fields.append(comp.codelet.get_state_pkt_field())
+			self.state_pkt_fields += (comp.codelet.get_state_pkt_field()) # get_state_pkt_field() returns a list
 		
 		self.get_inputs_outputs() # update inputs, outputs
 		# state vars are always inputs
@@ -351,6 +357,12 @@ class StatefulComponent(object):
 			print("Error: stateful update does not fit in the stateful ALU.")
 			exit(1)
 		
+		print("~~~~~~~~~~set_alu_inputs: ", self.inputs)
+		print(" ~~~| state var: ", self.state_vars)
+		self.salu_inputs['register_lo'] = 0
+		self.salu_inputs['register_hi'] = 0
+		self.salu_inputs['metadata_lo'] = 0
+		self.salu_inputs['metadata_hi'] = 0
 		for i in self.inputs:
 			if i in self.state_vars:
 				if self.salu_inputs['register_lo'] == 0:
@@ -358,7 +370,8 @@ class StatefulComponent(object):
 				elif self.salu_inputs['register_hi'] == 0:
 					self.salu_inputs['register_hi'] = i
 				else:
-					print("Error: Cannot have > 2 state variables in a stateful ALU.")
+					print("Error: Cannot have > 2 state variables in a stateful ALU. Component: ", str(self))
+					print(' problematic inputs: ', self.inputs)
 					assert(False)
 			else:
 				if self.salu_inputs['metadata_lo'] == 0:
@@ -366,7 +379,8 @@ class StatefulComponent(object):
 				elif self.salu_inputs['metadata_hi'] == 0:
 					self.salu_inputs['metadata_hi'] = i
 				else:
-					print("Error: Cannot have > 2 metadata fields in a stateful ALU.")
+					print("Error: Cannot have > 2 metadata fields in a stateful ALU. Component: ", str(self))
+					print(' problematic inputs: ', self.inputs)
 					assert(False)
 
 		print("salu_inputs", self.salu_inputs)
@@ -402,8 +416,9 @@ class StatefulComponent(object):
 		# update output array
 		f.write("\t{}[0] = {};\n".format(output_array, self.state_vars[0]))
 
-		assert(len(self.outputs) <= 2) # at most 2 outputs TODO: duplicate component if > 2 outputs
-		
+		if not(len(self.outputs) <= 2): # at most 2 outputs TODO: duplicate component if > 2 outputs
+			print('ERROR: outputs are ', self.outputs, ' which is more than 2.')
+			assert False
 		found_output2 = False
 		for o in self.outputs:
 			if o != self.state_vars[0]:
@@ -439,12 +454,17 @@ class StatefulComponent(object):
 		f.write("\tassert(impl[1] == spec[1]);\n") 
 		f.write("}\n")
 
-	def write_sketch_file(self, output_path, comp_name, var_types):
+	def write_sketch_file(self, output_path, comp_name, var_types, upper_bnd = 2, prefix=""): # TODO: remove bounds from stateful synthesis
 		bnd = 1 # start with bound 1, since SALU cannot be a wire (which is bnd 0)
 		while True:
 			# run Sketch
-			sketch_filename = os.path.join(output_path, f"{comp_name}_stateful_bnd_{bnd}.sk")
-			sketch_outfilename = os.path.join(output_path, f"{comp_name}_stateful_bnd_{bnd}.sk"+ ".out")
+			# if optionally, upper_bnd is specified, then 
+			# we check if bound exceeds upper bound, and perform synthesis
+			if upper_bnd != -1 and bnd >= upper_bnd: 
+				return None
+			
+			sketch_filename = os.path.join(output_path, prefix + f"{comp_name}_stateful_bnd_{bnd}.sk")
+			sketch_outfilename = os.path.join(output_path, prefix + f"{comp_name}_stateful_bnd_{bnd}.sk"+ ".out")
 			f = open(sketch_filename, 'w+')
 			self.set_alu_inputs()
 			self.write_grammar(f)
@@ -518,26 +538,158 @@ class Synthesizer:
 	# returns True iff merging a, b increases depth of DAG by 1.
 	# this is a symmetric condition.
 	def merging_increases_depth(self, a, b):
-		import graphutil 
-		return (graphutil.merge_increases_depth(a, b))
+		# import graphutil 
+		# return (graphutil.merge_increases_depth(a, b))
+		return False # XXX: Since we implement predecessor packing check, we skip this for now.
 	
-	def try_merge(self, a, b):
-		pass # TODO: calls sketch to determine if component A+B is synthesizeable.
+	# calls sketch to determine if component A+B is synthesizeable.
+	def try_merge(self, a, b, k=3):
+		print('try_merge: trying to merge components: ')
+		print(' | a: ', a)
+		print(' | b: ', b)
+		if a.isStateful: 
+			print(' | state_pkt_fields of component a: ', a.state_pkt_fields)
+		if b.isStateful:
+			print(' | state_pkt_fields of component b: ', b.state_pkt_fields)
+		if a.isStateful:
+			new_comp = copy.deepcopy(a)
+			new_comp.merge_component(b)
+		else: 
+			new_comp = copy.deepcopy(b)
+			new_comp.merge_component(a, True)
+		print('resultant component: ')
+		print(new_comp)
+		print('new component inputs: ', new_comp.inputs)
+		print('new component outputs: ', new_comp.outputs)
+		print('new component state_pkt_fields: ', new_comp.state_pkt_fields)
+
+		new_comp.update_outputs(self.comp_graph.neighbors(b))
+		print('-------------- Merging... -------------')
+		try:
+			result = new_comp.write_sketch_file(self.output_dir, new_comp.name, self.var_types,\
+				upper_bnd=k, prefix='try_merge_')
+			if result == None:
+				print('---------- Merge failure. ---------')
+				return False
+			else:
+				print('---------- Merge success. ---------')
+				return True
+		except: 
+			print('AssertionError? failed ')
+			print('---------- Merge failure. ---------')
+			return False
+	# def all_phv_outputs(self):
+	#	# PHV outputs are outputs that aren't branch variables (e.g. branch variables are of type bit)
+	#	# and not state variables
+	#	return list(filter(lambda x: not (x in self.state_vars) and not (self.var_types[x] == 'bit'), self.outputs))
+
+	def non_temporary_outputs(self, comp):
+		x= list(filter(lambda x: not self.var_types[x] == 'bit', comp.outputs))
+		print('                 * non_temp_outs(', str(comp), '): ', x)
+		return x
+
+	def exclude_read_write_flanks(self, comp, filter_temporaries=True):
+		successors = self.comp_graph.successors(comp)
+		succ_inputs = set() 
+		for succ in successors:
+			succ_inputs.update(succ.inputs)
+		print(' exclude_read_write_flanks: successor inputs: ', succ_inputs)
+		curr_outputs = set(comp.outputs) 
+		filtered_outputs = list(curr_outputs.intersection(succ_inputs))
+		if filter_temporaries: 
+			filtered_outputs = list(filter(lambda x: not self.var_types[x] == 'bit', filtered_outputs))
+			print(' exclude_read_write_flanks: filtered outputs (temp filtered): ', filtered_outputs)
+		else:
+			print(' exclude_read_write_flanks: filtered outputs (temp unfiltered): ', filtered_outputs)
+
+		return filtered_outputs 
 
 	def merge_candidate(self, a, b):
+		a.update_outputs(self.comp_graph.neighbors(a))
+		b.update_outputs(self.comp_graph.neighbors(b))
+		print(' ~ merge_candidate: a inputs : ', a.inputs)
+		print(' ~ merge_candidate: a outputs : ', a.outputs)
+		print(' ~ merge_candidate: b inputs : ', b.inputs)
+		print(' ~ merge_candidate: b outputs : ', b.outputs)
+		# PRECONDITION: a has to be predecesssor of b, 
+		# i.e. a-->b is an edge.
 		# returns True if components A and B are valid merge candidates.
+
+		# Two components are stateless. Return false.
 		if not (a.isStateful or b.isStateful): # if a and b are both stateless, return
+			print('    ~ merge_candidate: both components are stateless.')
 			return False
-		if a.isStateful and b.isStateful:
-			if ((len(a.state_vars) == 1) and (len(a.state_vars) == 1)): # TODO: ruijief: ask Kexin if this condition is right.
-				return not (self.merging_increases_depth(a, b))
-			else:
-				return False
-		return not (self.merging_increases_depth(a, b))
+		
+		# Check for predecessor packing condition.		
+		if len(list(self.comp_graph.successors(a))) != 1:
+			print('    ~ merge_candidate: predecessor packing condition not met.')
+			return False 
+		else:
+			assert list(self.comp_graph.successors(a))[0] == b
+
+		#
+		# check outputs 
+		#
+
+		if a.isStateful: 
+			if len(a.state_vars) != 1:
+				print('		~ merge_candidate: component a state_vars length != 1')
+		if b.isStateful:
+			if len(b.state_vars) != 1:
+				print('		~ merge_candidate: component b state_vars length != 1')
+		
+		merged_output_vars = set(a.outputs) # self.exclude_read_write_flanks(a, filter_temporaries=False)
+		merged_output_vars.update(b.outputs) # self.exclude_read_write_flanks(b, filter_temporaries=False)
+		# now merged_output_vars contains both a and b's outputs, deduplicated. 
+		# vars needed post-merge. Since succ(a) = {b}, only vars needed are b's out-neighbors' inputs.
+		b_succ_inputs = set()
+		for b_succ in self.comp_graph.successors(b):
+			b_succ_inputs.update(b_succ.inputs) 
+		
+		merged_output_vars = list(merged_output_vars.intersection(b_succ_inputs))
+		print('		| merge_candidate: a_output_vars : ', a.outputs)
+		print('		| merge_candidate: b_output_vars : ', b.outputs)
+		print('		| merge_candidate: merged output_vars : ', merged_output_vars)
+		
+		if len(merged_output_vars) > 2:
+			print('		~ merge_candidate: cannot merge a and b because too many output variables.')
+		#
+		#  check inputs size
+		#
+		print('     ~ merge_candidate: checking inputs size...')
+		print('     | a inputs: ', a.inputs)
+		print('     | b inputs: ', b.inputs)
+		# since a-->b, we filter inputs to b that are a's outputs. 
+		merged_inputs = set(a.inputs)
+		merged_inputs.update(b.inputs)
+		merged_inputs = list(merged_inputs)
+		merged_inputs = list(filter(lambda x: x not in a.outputs, merged_inputs))
+		print('     | merged inputs: ', merged_inputs)
+
+		merged_state_vars = set()
+		if a.isStateful:
+			merged_state_vars.update(a.state_vars)
+		if b.isStateful:
+			merged_state_vars.update(b.state_vars)
+		merged_stateless_vars = list(filter(lambda x: x not in merged_state_vars, merged_inputs))
+		print('		| merged state vars: ', merged_state_vars)
+		print('		| merged stateless vars: ', merged_stateless_vars)
+		if len(merged_state_vars) > 2 or len(merged_stateless_vars) > 2:
+			print(' 	| cannot merge: too many inputs.')
+			return False
+		else: 
+			return True
 
 	def perform_merge(self, a, b): 
 		# actually merge two components (a, b) into one. 
 		# a is pred. This is mainly to see which direction we do the merge.
+		print('perform_merge: merging components :')
+		print(' | component a: ', a)
+		print(' | component b: ', b)
+		if a.isStateful: 
+			print(' | state_pkt_fields of component a: ', a.state_pkt_fields)
+		if b.isStateful:
+			print(' | state_pkt_fields of component b: ', b.state_pkt_fields)
 		if a.isStateful:
 			new_comp = copy.deepcopy(a)
 			new_comp.merge_component(b)
@@ -552,6 +704,11 @@ class Synthesizer:
 		# remove two old components
 		self.comp_graph.remove_node(a)
 		self.comp_graph.remove_node(b)
+		new_comp.update_outputs(self.comp_graph.neighbors(new_comp))
+		print('		* new component : ', new_comp)
+		print('		* new component inputs : ', new_comp.inputs)
+		print('		* new component outputs : ', new_comp.outputs)
+		print('		* state_pkt_fields of new component: ', new_comp.state_pkt_fields)
 		return new_comp
 
 	def reverse_top_order(self):
@@ -561,46 +718,142 @@ class Synthesizer:
 
 	def recursive_merge(self):
 		nodes = self.reverse_top_order() 
+		print(' * recursive_merge strategy: nodes ordered ', list(map(lambda x: str(x), nodes)))
 		for node in nodes: 
 			if not (node in self.merge_processed):
 				halt = False 
 				merged_component = None 
+				print(' * recursive_merge: node :: ', node)
+				print(' node outputs: ', node.outputs)
+				print(' node inputs: ', node.inputs)
+				self.exclude_read_write_flanks(node)
 				for pred in self.comp_graph.predecessors(node):
+					print('  - recursive_merge: looking at preds of ', node)
+					print('     | ', pred)
 					if self.merge_candidate(pred, node):
 						# try calling sketch to synthesize new component. 
 						if self.try_merge(pred, node):
 							# merging successful. 
+							self.merge_processed.add(pred)
+							self.merge_processed.add(node)
 							merged_component = self.perform_merge(pred, node)
 							self.recursive_merge() 
 							halt = True 
+					else:
+						print('     | not a merge candidate.')
 					if halt: 
 						break 
-				self.merge_processed.add(merged_component) 
+				print(' * recursive_merge: finished processing ', node)
+				if merged_component != None:
+					self.merge_processed.add(merged_component) 
+				else: 
+					self.merge_processed.add(node)
 
 
 	def merge_components(self):
 		self.merge_processed = set() 
 		self.recursive_merge() 
 
+	def transfer_branch_vars(self):
+		#for comp in nx.topological_sort(self.comp_graph):
+		comps = list(nx.topological_sort(self.comp_graph))
+		comp_transform = {}
+		for comp in comps:
+			comp_transform[comp] = comp
+		modified_lhses = []
+
+		print('transfer_branch_vars: finding stateless branch variables to move to int...')
+		for comp_old in comps:
+			comp = comp_transform[comp_old]
+			if not comp.isStateful:
+				# is stateless component.
+				# XXX: quick check if the current component is a branch tmp var component of one.
+				if len(comp.outputs) == 1 and self.var_types[comp.outputs[0]] == 'bit' \
+					and 'tmp' in comp.outputs[0]:
+					print(' * transfer_branch_vars: found a stateless component to doctor: ', str(comp))
+					assert len(comp.codelets) == 1
+					assert len(comp.codelets[0].stmt_list) == 1
+					# change its type to int
+					self.var_types[comp.outputs[0]] = 'int'
+					stmt = comp.codelets[0].stmt_list[0]
+					print('    | statement: ', str(stmt))
+					# (self, lhs, rhs, line_no)
+					#	dependencyGraph.Statement(lhs, rhs, line_no)
+					modified_lhses.append(stmt.lhs)
+					new_stmt = Statement(stmt.lhs, '( ' + stmt.rhs + ") ? 1 : 0", stmt.line_no)
+					# new stmt init 
+					new_stmt.find_rhs_vars()
+					new_stmt.is_read_flank(self.state_vars)
+					new_stmt.is_write_flank(self.state_vars)
+
+					print('    | new statement: ', str(new_stmt))
+
+					new_codelet = Codelet([new_stmt]) 
+					assert new_codelet.is_stateful(self.state_vars) != False
+					new_comp = StatefulComponent(new_codelet)
+					
+					print('    | new component: ', str(new_comp))
+
+					# add in new_comp and delete current component.
+					comp_transform[comp] = new_comp
+					self.comp_graph.add_node(comp)
+					self.comp_graph.add_edges_from([(new_comp, succ) for succ in self.comp_graph.successors(comp)])
+					self.comp_graph.add_edges_from([(pred, new_comp) for pred in self.comp_graph.predecessors(comp)])
+					self.comp_graph.remove_node(comp)
+					new_comp.get_inputs_outputs()
+		print(' ***** transfer_branch_vars: finished creating new components. Now finding RHSes.')
+		comps = list(nx.topological_sort(self.comp_graph))
+		for comp in comps:
+			lexer = lex.lex(module=lexerRules)
+			def modify_stmt(stmt, lexer, branch_var):
+				rhs = stmt.rhs 
+				old_rhs = rhs
+				rhs = rhs.replace(branch_var, '(' + branch_var + '==1)')
+				stmt.rhs = rhs 
+				print('         - modify_stmt: previous rhs ', old_rhs, '; current rhs ', rhs)
+				return stmt
+			print(' | looking at component ', comp)
+			if comp.isStateful:
+				new_stmt_list = []
+				for stmt1 in comp.codelet.stmt_list:
+					stmt = stmt1
+					for branch_var in modified_lhses:
+						stmt = modify_stmt(stmt, lexer, branch_var)
+					new_stmt_list.append(stmt)					
+				comp.codelet.stmt_list = new_stmt_list 
+			
+			if not comp.isStateful:
+				new_codelets = []
+				for codelet in comp.codelets:
+					new_stmt_list = []
+					for stmt1 in codelet.stmt_list:
+						stmt = stmt1 
+						for branch_var in modified_lhses:
+							stmt = modify_stmt(stmt, lexer, branch_var)
+						new_stmt_list.append(stmt)
+					codelet.stmt_list = new_stmt_list 
+					new_codelets.append(codelet)
+				comp.codelets = new_codelets
+
 	def process_graph(self):
 		original_dep_edges = copy.deepcopy(self.dep_graph.edges())
-		print("original_dep_edges")
-		for u, v in original_dep_edges:
-			print("edge")
-			print("u")
-			u.print()
-			print("v")
-			v.print()
+		# print("original_dep_edges")
+		#for u, v in original_dep_edges:
+			#print("edge")
+			#print("u")
+			#u.print()
+			#print("v")
+			#v.print()
 
-		print("\n Dep graph nodes")
-		for codelet in self.dep_graph.nodes:
-			print()
-			codelet.print()
+		#print("\n Dep graph nodes")
+		#for codelet in self.dep_graph.nodes:
+		#	print()
+		#	codelet.print()
 
-		print("\n Dep graph stateful nodes")
-		for codelet in self.stateful_nodes:
-			print()
-			codelet.print()
+		#print("\n Dep graph stateful nodes")
+		#for codelet in self.stateful_nodes:
+		#	print()
+		#	codelet.print()
 
 		self.dep_graph.remove_nodes_from(self.stateful_nodes)
 		# remove incoming and outgoing edges
@@ -638,17 +891,17 @@ class Synthesizer:
 			i += 1
 
 		####
-		print("\n Original_dep_edges")
-		for u, v in original_dep_edges:
-			print("edge")
-			print("u")
-			u.print()
-			print("v")
-			v.print()
-		print()
+		#print("\n Original_dep_edges")
+		#for u, v in original_dep_edges:
+	#		print("edge")
+#			print("u")
+#			u.print()
+#			print("v")
+#			v.print()
+#		print()
 		######
 
-		print("codelet_component", codelet_component)
+#		print("codelet_component", codelet_component)
 
 		# create component graph
 		print("Add component graph edges")
@@ -665,72 +918,18 @@ class Synthesizer:
 		# Duplicate components to eliminate inputs of type bit (branch variables)
 		outputs_comp = {} # output -> component
 
-		for comp in nx.topological_sort(self.comp_graph):
-			for input in comp.inputs:
-					if self.var_types[input] == 'bit':
-						print("Found input of type bit")
-						print("Copy preceding component")
-						prec_comp = outputs_comp[input]
-						print(' | preceeding component: ', prec_comp)
-						if prec_comp.isStateful:
-							# new_codelet = Codelet(prec_comp.codelet.get_stmt_list())
-							# # TODO: restructure Codelet class so that this initialization is not needed
-							# new_codelet.stateful = True # it is a stateful codelet
-							# new_codelet.state_var = prec_comp.codelet.state_var
-							# #########
-							print(' | prec_comp is stateful...')
-							new_comp = copy.deepcopy(prec_comp)
-							new_comp.merge_component(comp)
-							self.comp_graph.add_node(new_comp)
-							self.comp_graph.add_edges_from([(x, new_comp) for x in 
-								self.comp_graph.predecessors(prec_comp)])
-							self.comp_graph.add_edges_from([(new_comp, y) for 
-								y in self.comp_graph.successors(comp)])
-							
-							# Delete prec_comp (new_comp subsumes it)
-							print(' *** deleting component ', prec_comp)
-							self.comp_graph.remove_node(prec_comp)
-							# NOTE: If merged component doesn't fit, throw an error
-							# TODO: Handle this case, maybe by splitting the merged component
-						else:
-							print(' | prec_comp is stateless.')
-							if not comp.isStateful:
-								new_comp = copy.deepcopy(prec_comp)
-								new_comp.merge_component(comp)
-							else:
-								new_comp = copy.deepcopy(comp)
-								new_comp.merge_component(comp, True)
-							
-							self.comp_graph.add_node(new_comp)
-							print('merge_components: added new node ', new_comp)
-							print('prec_comp is: ', prec_comp)
-							for x in self.comp_graph.predecessors(prec_comp):
-								print(' - predecessor of ', prec_comp, ': is ', x)
-							self.comp_graph.add_edges_from([(x, new_comp) for x in 
-								self.comp_graph.predecessors(prec_comp)])
-							self.comp_graph.add_edges_from([(new_comp, y) for 
-								y in self.comp_graph.successors(comp)])
-							print(' | removing node ', prec_comp, ' since merging finished.')
-							self.comp_graph.remove_node(prec_comp)
+		#self.write_comp_graph()
+		#exit(1)
 
-						self.comp_graph.remove_node(comp)
-						comp = new_comp
+		#print("------------------------------------------------- transferring components... ------------------------------------")
+		#self.transfer_branch_vars()
+		#print("------------------------------------------------- transfer components end. ------------------------------------")
+		#exit(1)
 
-					comp.update_outputs(self.comp_graph.neighbors(comp))
-					comp.print()
-					print("inputs", comp.inputs)
-					print("outputs", comp.outputs)
-
-					# update outputs_comp map
-					for o in comp.outputs:
-						outputs_comp[o] = comp
-
-			# if comp.isStateful:
-			# 	self.synthesize_stateful_tofino(comp, comp_name)
-			# else:
-			# 	self.synthesize_stateless_tofino(comp, comp_name)
-
-		#self.merge_branches()
+		#print("------------------------------------------------- Merging components... ------------------------------------")
+		#self.merge_components() 
+		#print("------------------------------------------------- Merge components end. ------------------------------------")
+		#exit(1)
 		self.comp_index = {} # component -> index
 		print("comp index", self.comp_index)
 		# check for redundant outputs

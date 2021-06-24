@@ -101,6 +101,13 @@ class ILP_TableInfo(object):
             {self.table_name: self.get_dependency_list()}, [self.table_name] )
 
 
+def ILP_MultiTable(ILP_Table):
+    def __init__(self, table_dependencies : ILP_TableDeps, table_action_map : dict[str, list[str]], action_infos : dict[str, list[ILP_ActionInfo]]):
+        self.action_infos = action_infos 
+        self.multi_table_mode = True 
+        self.table_dependencies = table_dependencies 
+        self.table_action_map = table_action_map
+
 class ILP_Output(object):
     """
         ILP_Output: represents the output of an ILP program.

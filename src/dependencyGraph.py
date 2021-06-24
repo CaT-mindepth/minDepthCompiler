@@ -19,6 +19,9 @@ class Statement:
 		self.write_flank = False
 		self.state_var = ""
 
+	def __str__(self):
+		return self.lhs + ' = ' + self.rhs
+
 	def find_rhs_vars(self):
 		self.rhs_vars = []
 		lexer = lex.lex(module=lexerRules)
@@ -42,7 +45,8 @@ class Statement:
 		# if len(self.rhs_vars) == 1:
 
 		print(' is_read_flank: processing rhs_vars = ', self.rhs_vars)
-		if len(self.rhs_vars) > 0:
+		# if len(self.rhs_vars) > 0: # TODO: ruijief: we changed it to below
+		if len(self.rhs_vars) == 1:
 			r = self.rhs_vars[0]
 			if is_array_var(r):
 				r = r[:r.find("[")] # array name
@@ -100,8 +104,6 @@ class Statement:
 
 		return state_var
 
-
-
 class Codelet:
 	def __init__(self, stmts=[]):
 		self.stmt_list = stmts
@@ -135,13 +137,15 @@ class Codelet:
 
 	def get_state_pkt_field(self):
 		# print("get_state_pkt_field")
+		all_flanks = set()
 		for stmt in self.stmt_list:
 			# stmt.print()
 			if stmt.write_flank:
 				# print("write flank")
-				return stmt.state_pkt_field_final # read or write flank should have been called for stmt before this
-
-		assert(False)
+				all_flanks.add(stmt.state_pkt_field_final) # read or write flank should have been called for stmt before this
+			if stmt.read_flank: 
+				all_flanks.add(stmt.state_pkt_field_init)
+		return list(all_flanks) # we're guaranteed to have one read/write flank.
 
 	def get_inputs(self): # Make inputs and outputs class variables?
 		defines = [stmt.lhs for stmt in self.stmt_list]
@@ -157,7 +161,7 @@ class Codelet:
 
 	def get_state_var(self):
 		assert(self.stateful)
-		return [self.get_state_pkt_field()]
+		return self.get_state_pkt_field()
 
 	def get_outputs(self):
 		# all defines are outputs (may or may not be used by subsequent codelets)
@@ -288,7 +292,9 @@ class DependencyGraph:
 		for state_var, read_write in self.read_write_flanks.items():
 			read_flank = read_write["read"]
 			write_flank = read_write["write"]
-			print("read_flank", read_flank, "write_flank", write_flank)
+			print('state_var ', state_var)
+			print("read_flank", read_flank)
+			print("write_flank", write_flank)
 			self.depends[read_flank].append(write_flank)
 			self.depends[write_flank].append(read_flank)
 

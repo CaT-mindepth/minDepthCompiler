@@ -611,6 +611,16 @@ class SketchOutputProcessor(object):
                 alu_adjacency_list[nbor.id].append(alu)
         return ILP_Gurobi.ILP_TableInfo(table_name, num_alus, self.alus, alu_adjacency_list)
 
+    def to_ILP_ActionInfo(self, table_name, action_name):
+        import ILP_Gurobi
+        num_alus = len(self.alus)
+        alu_adjacency_list = [[] for i in range(num_alus)]
+        for alu in self.alus:
+            print('+---> dependencies of ALU ', alu.id, ': ', self.dependencies[alu])
+            for nbor in self.dependencies[alu]:
+                alu_adjacency_list[nbor.id].append(alu)
+        return ILP_Gurobi.ILP_ActionInfo(table_name, action_name, num_alus, self.alus, alu_adjacency_list)
+
     # return part of ILP solver configuration,
     # more specifically the part that specifies the
     # ALU dependencies inside a table in Action Info.
