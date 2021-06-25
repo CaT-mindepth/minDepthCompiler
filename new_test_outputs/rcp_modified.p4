@@ -193,7 +193,7 @@ blackbox stateful_alu test_stateful_alu_1_1_blackbox {
     
     
     reg                       : reg_1;
-    condition_lo              : ((0-ipv4.branch)+1) not =0;
+    condition_lo              : ((0-ipv4.branch)+1) !=0;
     condition_hi              : (((0-ipv4.branch)-alu_lo)+2)==0;
     update_lo_1_predicate     : (condition_hi) and ( not (condition_lo));
     update_lo_1_value         : (ipv4.branch)+(alu_lo);
