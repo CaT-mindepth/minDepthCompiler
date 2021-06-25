@@ -62,7 +62,7 @@ if __name__ == "__main__":
   args = arg_parser.parse_args()
   out_folder = args.out_folder 
   log_file = args.out_file
-  tests = ['blue_decrease', 'blue_increase', 'flowlets', 'marple_tcp_nmo', 'marple_new_flow', 'sampling', 'rcp_modified']
+  tests = ['blue_decrease', 'blue_increase', 'flowlets', 'marple_tcp_nmo', 'marple_new_flow', 'sampling', 'rcp_modified', 'conga', 'snap_heavy_hitter_20', 'dns_ttl_change_modified']
   log_fd = open(out_folder + '/' + log_file, 'w')
   for test_name in tests: 
     print('-------------------------- running test ', test_name, ' -----------------------------------')
