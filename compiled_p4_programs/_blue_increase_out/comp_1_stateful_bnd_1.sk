@@ -227,14 +227,14 @@ int[2] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) 
     return result;
 }
 
-int[2] comp_1(int p_now_plus_free1, int p_now0, int last_update, int p_mark){
+int[2] comp_1(int last_update, int p_now0, int p_now_plus_free1, int p_mark){
 	int[2] _out;
-	int p_last_update0;
-	int p_p_mark2;
-	int p_p_mark0;
 	int p_last_update2;
-	bit p_br_tmp0;
+	int p_p_mark0;
 	int p_p_mark1;
+	bit p_br_tmp0;
+	int p_p_mark2;
+	int p_last_update0;
 	p_last_update0 = last_update;
 	p_br_tmp0 = (p_now_plus_free1 > p_last_update0);
 	p_last_update2 = p_br_tmp0 ? p_now0 : p_last_update0;
@@ -248,9 +248,9 @@ int[2] comp_1(int p_now_plus_free1, int p_now0, int last_update, int p_mark){
 	return _out;
 }
 
-harness void sketch(int p_now_plus_free1, int p_now0, int last_update, int p_mark) {
-	int[2] impl = salu(p_now_plus_free1, p_now0, last_update, p_mark);
-	int [2] spec = comp_1(p_now_plus_free1, p_now0, last_update, p_mark);
+harness void sketch(int last_update, int p_now0, int p_now_plus_free1, int p_mark) {
+	int[2] impl = salu(p_now0, p_now_plus_free1, last_update, p_mark);
+	int [2] spec = comp_1(last_update, p_now0, p_now_plus_free1, p_mark);
 	assert(impl[0] == spec[0]);
 	assert(impl[1] == spec[1]);
 }

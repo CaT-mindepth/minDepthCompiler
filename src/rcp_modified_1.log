@@ -1,0 +1,1298 @@
+ *** Done find_stateful_dependencies ***
+p_input_traffic_Bytes0 = input_traffic_Bytes;
+
+lhs p_input_traffic_Bytes0 rhs input_traffic_Bytes
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  p_input_traffic_Bytes0 = input_traffic_Bytes;
+
+ is_read_flank: processing rhs_vars =  ['input_traffic_Bytes']
+read flank
+p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0;
+
+lhs p_input_traffic_Bytes1 rhs p_input_traffic_Bytes0 + p_size_bytes0
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0;
+
+ is_read_flank: processing rhs_vars =  ['p_input_traffic_Bytes0', 'p_size_bytes0']
+p_branch0 = branch;
+
+lhs p_branch0 rhs branch
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  p_branch0 = branch;
+
+ is_read_flank: processing rhs_vars =  ['branch']
+read flank
+branch = (p_rtt0 < 30) ? 1 : 0;
+
+lhs branch rhs (p_rtt0 < 30) ? 1 : 0
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  branch = (p_rtt0 < 30) ? 1 : 0;
+
+ is_read_flank: processing rhs_vars =  ['p_rtt0']
+write flank
+p_sum_rtt_Tr0 = sum_rtt_Tr;
+
+lhs p_sum_rtt_Tr0 rhs sum_rtt_Tr
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  p_sum_rtt_Tr0 = sum_rtt_Tr;
+
+ is_read_flank: processing rhs_vars =  ['sum_rtt_Tr']
+read flank
+p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0;
+
+lhs p_sum_rtt_Tr1 rhs p_sum_rtt_Tr0 + p_rtt0
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0;
+
+ is_read_flank: processing rhs_vars =  ['p_sum_rtt_Tr0', 'p_rtt0']
+p_num_pkts_with_rtt0 = num_pkts_with_rtt;
+
+lhs p_num_pkts_with_rtt0 rhs num_pkts_with_rtt
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  p_num_pkts_with_rtt0 = num_pkts_with_rtt;
+
+ is_read_flank: processing rhs_vars =  ['num_pkts_with_rtt']
+read flank
+p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1;
+
+lhs p_num_pkts_with_rtt1 rhs p_num_pkts_with_rtt0 + 1
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1;
+
+ is_read_flank: processing rhs_vars =  ['p_num_pkts_with_rtt0']
+p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0;
+
+lhs p_sum_rtt_Tr2 rhs (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0;
+
+ is_read_flank: processing rhs_vars =  ['branch', 'p_sum_rtt_Tr1', 'p_sum_rtt_Tr0']
+p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0;
+
+lhs p_num_pkts_with_rtt2 rhs (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0;
+
+ is_read_flank: processing rhs_vars =  ['branch', 'p_num_pkts_with_rtt1', 'p_num_pkts_with_rtt0']
+input_traffic_Bytes = p_input_traffic_Bytes1;
+
+lhs input_traffic_Bytes rhs p_input_traffic_Bytes1
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  input_traffic_Bytes = p_input_traffic_Bytes1;
+
+ is_read_flank: processing rhs_vars =  ['p_input_traffic_Bytes1']
+write flank
+sum_rtt_Tr = p_sum_rtt_Tr2;
+
+lhs sum_rtt_Tr rhs p_sum_rtt_Tr2
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  sum_rtt_Tr = p_sum_rtt_Tr2;
+
+ is_read_flank: processing rhs_vars =  ['p_sum_rtt_Tr2']
+write flank
+num_pkts_with_rtt = p_num_pkts_with_rtt2;
+
+lhs num_pkts_with_rtt rhs p_num_pkts_with_rtt2
+state_vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+read/write flanks: processing line  num_pkts_with_rtt = p_num_pkts_with_rtt2;
+
+ is_read_flank: processing rhs_vars =  ['p_num_pkts_with_rtt2']
+write flank
+finding dependencies
+RAW p_input_traffic_Bytes0 = input_traffic_Bytes; p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0;
+RAW p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0; input_traffic_Bytes = p_input_traffic_Bytes1;
+RAW branch = (p_rtt0 < 30) ? 1 : 0; p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0;
+RAW branch = (p_rtt0 < 30) ? 1 : 0; p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0;
+RAW p_sum_rtt_Tr0 = sum_rtt_Tr; p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0;
+RAW p_sum_rtt_Tr0 = sum_rtt_Tr; p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0;
+RAW p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0; p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0;
+RAW p_num_pkts_with_rtt0 = num_pkts_with_rtt; p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1;
+RAW p_num_pkts_with_rtt0 = num_pkts_with_rtt; p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0;
+RAW p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1; p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0;
+RAW p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0; sum_rtt_Tr = p_sum_rtt_Tr2;
+RAW p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0; num_pkts_with_rtt = p_num_pkts_with_rtt2;
+read_write_flanks {'branch': {'read': <dependencyGraph.Statement object at 0x103446dc0>, 'write': <dependencyGraph.Statement object at 0x103446e50>}, 'input_traffic_Bytes': {'read': <dependencyGraph.Statement object at 0x10345a070>, 'write': <dependencyGraph.Statement object at 0x103446df0>}, 'sum_rtt_Tr': {'read': <dependencyGraph.Statement object at 0x103446e20>, 'write': <dependencyGraph.Statement object at 0x103446d30>}, 'num_pkts_with_rtt': {'read': <dependencyGraph.Statement object at 0x103446d00>, 'write': <dependencyGraph.Statement object at 0x103446ee0>}}
+state_var  branch
+read_flank p_branch0 = branch
+write_flank branch = (p_rtt0 < 30) ? 1 : 0
+state_var  input_traffic_Bytes
+read_flank p_input_traffic_Bytes0 = input_traffic_Bytes
+write_flank input_traffic_Bytes = p_input_traffic_Bytes1
+state_var  sum_rtt_Tr
+read_flank p_sum_rtt_Tr0 = sum_rtt_Tr
+write_flank sum_rtt_Tr = p_sum_rtt_Tr2
+state_var  num_pkts_with_rtt
+read_flank p_num_pkts_with_rtt0 = num_pkts_with_rtt
+write_flank num_pkts_with_rtt = p_num_pkts_with_rtt2
+SCC 0
+v p_input_traffic_Bytes0 = input_traffic_Bytes; stmts len 1
+p_input_traffic_Bytes0 = input_traffic_Bytes;
+v p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0; stmts len 1
+p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0;
+v input_traffic_Bytes = p_input_traffic_Bytes1; stmts len 1
+input_traffic_Bytes = p_input_traffic_Bytes1;
+ is_read_flank: processing rhs_vars =  ['input_traffic_Bytes']
+SCC 1
+v p_sum_rtt_Tr0 = sum_rtt_Tr; stmts len 1
+p_sum_rtt_Tr0 = sum_rtt_Tr;
+v p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0; stmts len 1
+p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0;
+v p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0; stmts len 1
+p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0;
+v sum_rtt_Tr = p_sum_rtt_Tr2; stmts len 1
+sum_rtt_Tr = p_sum_rtt_Tr2;
+ is_read_flank: processing rhs_vars =  ['sum_rtt_Tr']
+SCC 2
+v p_num_pkts_with_rtt0 = num_pkts_with_rtt; stmts len 1
+p_num_pkts_with_rtt0 = num_pkts_with_rtt;
+v p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1; stmts len 1
+p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1;
+v p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0; stmts len 1
+p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0;
+v num_pkts_with_rtt = p_num_pkts_with_rtt2; stmts len 1
+num_pkts_with_rtt = p_num_pkts_with_rtt2;
+ is_read_flank: processing rhs_vars =  ['num_pkts_with_rtt']
+SCC 3
+v branch = (p_rtt0 < 30) ? 1 : 0; stmts len 1
+branch = (p_rtt0 < 30) ? 1 : 0;
+v p_branch0 = branch; stmts len 1
+p_branch0 = branch;
+ is_read_flank: processing rhs_vars =  ['p_rtt0']
+SCC graph nodes
+[<dependencyGraph.Codelet object at 0x10345a6d0>, <dependencyGraph.Codelet object at 0x10345a310>, <dependencyGraph.Codelet object at 0x10345a400>, <dependencyGraph.Codelet object at 0x10345a8e0>]
+p_input_traffic_Bytes0 = input_traffic_Bytes;
+p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0;
+input_traffic_Bytes = p_input_traffic_Bytes1;
+ is_read_flank: processing rhs_vars =  ['input_traffic_Bytes']
+stateful
+p_sum_rtt_Tr0 = sum_rtt_Tr;
+p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0;
+p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0;
+sum_rtt_Tr = p_sum_rtt_Tr2;
+ is_read_flank: processing rhs_vars =  ['sum_rtt_Tr']
+stateful
+p_num_pkts_with_rtt0 = num_pkts_with_rtt;
+p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1;
+p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0;
+num_pkts_with_rtt = p_num_pkts_with_rtt2;
+ is_read_flank: processing rhs_vars =  ['num_pkts_with_rtt']
+stateful
+branch = (p_rtt0 < 30) ? 1 : 0;
+p_branch0 = branch;
+ is_read_flank: processing rhs_vars =  ['p_rtt0']
+stateful
+SCC graph stateful nodes {<dependencyGraph.Codelet object at 0x10345a400>, <dependencyGraph.Codelet object at 0x10345a310>, <dependencyGraph.Codelet object at 0x10345a6d0>, <dependencyGraph.Codelet object at 0x10345a8e0>}
+state vars {'branch', 'input_traffic_Bytes', 'sum_rtt_Tr', 'num_pkts_with_rtt'}
+Output directory _rcp_modified_out_1 could not be created
+Synthesizer
+output dir _rcp_modified_out_1
+stateful codelet  0
+stateful codelet  1
+stateful codelet  2
+stateful codelet  3
+Add component graph edges
+branch = (p_rtt0 < 30) ? 1 : 0; p_branch0 = branch;
+->
+p_sum_rtt_Tr0 = sum_rtt_Tr; p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0; p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0; sum_rtt_Tr = p_sum_rtt_Tr2;
+
+branch = (p_rtt0 < 30) ? 1 : 0; p_branch0 = branch;
+->
+p_num_pkts_with_rtt0 = num_pkts_with_rtt; p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1; p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0; num_pkts_with_rtt = p_num_pkts_with_rtt2;
+
+------------------------------------------------- Merging components... ------------------------------------
+ * recursive_merge strategy: nodes ordered  ['p_input_traffic_Bytes0 = input_traffic_Bytes; p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0; input_traffic_Bytes = p_input_traffic_Bytes1;', 'p_sum_rtt_Tr0 = sum_rtt_Tr; p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0; p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0; sum_rtt_Tr = p_sum_rtt_Tr2;', 'p_num_pkts_with_rtt0 = num_pkts_with_rtt; p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1; p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0; num_pkts_with_rtt = p_num_pkts_with_rtt2;', 'branch = (p_rtt0 < 30) ? 1 : 0; p_branch0 = branch;']
+ * recursive_merge: node ::  p_input_traffic_Bytes0 = input_traffic_Bytes; p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0; input_traffic_Bytes = p_input_traffic_Bytes1;
+ node outputs:  ['p_input_traffic_Bytes0', 'input_traffic_Bytes', 'p_input_traffic_Bytes1']
+ node inputs:  ['p_size_bytes0', 'input_traffic_Bytes']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_input_traffic_Bytes0 = input_traffic_Bytes; p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0; input_traffic_Bytes = p_input_traffic_Bytes1;
+ * recursive_merge: node ::  p_sum_rtt_Tr0 = sum_rtt_Tr; p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0; p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0; sum_rtt_Tr = p_sum_rtt_Tr2;
+ node outputs:  ['sum_rtt_Tr', 'p_sum_rtt_Tr2', 'p_sum_rtt_Tr0', 'p_sum_rtt_Tr1']
+ node inputs:  ['branch', 'sum_rtt_Tr', 'p_rtt0']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+  - recursive_merge: looking at preds of  p_sum_rtt_Tr0 = sum_rtt_Tr; p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0; p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0; sum_rtt_Tr = p_sum_rtt_Tr2;
+     |  branch = (p_rtt0 < 30) ? 1 : 0; p_branch0 = branch;
+adj_inputs ['branch', 'sum_rtt_Tr', 'p_rtt0', 'branch', 'num_pkts_with_rtt']
+redundant outputs ['p_branch0']
+state_var ['branch']
+adj_inputs []
+redundant outputs ['p_sum_rtt_Tr2', 'p_sum_rtt_Tr0', 'p_sum_rtt_Tr1']
+state_var ['sum_rtt_Tr']
+ ~ merge_candidate: a inputs :  ['branch', 'p_rtt0']
+ ~ merge_candidate: a outputs :  ['branch']
+ ~ merge_candidate: b inputs :  ['branch', 'sum_rtt_Tr', 'p_rtt0']
+ ~ merge_candidate: b outputs :  ['sum_rtt_Tr']
+    ~ merge_candidate: predecessor packing condition not met.
+     | not a merge candidate.
+ * recursive_merge: finished processing  p_sum_rtt_Tr0 = sum_rtt_Tr; p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0; p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0; sum_rtt_Tr = p_sum_rtt_Tr2;
+ * recursive_merge: node ::  p_num_pkts_with_rtt0 = num_pkts_with_rtt; p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1; p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0; num_pkts_with_rtt = p_num_pkts_with_rtt2;
+ node outputs:  ['p_num_pkts_with_rtt0', 'p_num_pkts_with_rtt1', 'num_pkts_with_rtt', 'p_num_pkts_with_rtt2']
+ node inputs:  ['branch', 'num_pkts_with_rtt']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+  - recursive_merge: looking at preds of  p_num_pkts_with_rtt0 = num_pkts_with_rtt; p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1; p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0; num_pkts_with_rtt = p_num_pkts_with_rtt2;
+     |  branch = (p_rtt0 < 30) ? 1 : 0; p_branch0 = branch;
+adj_inputs ['branch', 'sum_rtt_Tr', 'p_rtt0', 'branch', 'num_pkts_with_rtt']
+redundant outputs []
+state_var ['branch']
+adj_inputs []
+redundant outputs ['p_num_pkts_with_rtt0', 'p_num_pkts_with_rtt1', 'p_num_pkts_with_rtt2']
+state_var ['num_pkts_with_rtt']
+ ~ merge_candidate: a inputs :  ['branch', 'p_rtt0']
+ ~ merge_candidate: a outputs :  ['branch']
+ ~ merge_candidate: b inputs :  ['branch', 'num_pkts_with_rtt']
+ ~ merge_candidate: b outputs :  ['num_pkts_with_rtt']
+    ~ merge_candidate: predecessor packing condition not met.
+     | not a merge candidate.
+ * recursive_merge: finished processing  p_num_pkts_with_rtt0 = num_pkts_with_rtt; p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1; p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0; num_pkts_with_rtt = p_num_pkts_with_rtt2;
+ * recursive_merge: node ::  branch = (p_rtt0 < 30) ? 1 : 0; p_branch0 = branch;
+ node outputs:  ['branch']
+ node inputs:  ['branch', 'p_rtt0']
+ exclude_read_write_flanks: successor inputs:  {'num_pkts_with_rtt', 'branch', 'sum_rtt_Tr', 'p_rtt0'}
+ exclude_read_write_flanks: filtered outputs (temp filtered):  ['branch']
+ * recursive_merge: finished processing  branch = (p_rtt0 < 30) ? 1 : 0; p_branch0 = branch;
+------------------------------------------------- Merge components end. ------------------------------------
+ * number of components in current graph:  4
+----------------------------------
+comp index {}
+Eliminate redundant outputs after merging
+ -------- component  0  is this:  branch = (p_rtt0 < 30) ? 1 : 0; p_branch0 = branch;
+0
+branch = (p_rtt0 < 30) ? 1 : 0;
+p_branch0 = branch;
+adj_inputs ['branch', 'sum_rtt_Tr', 'p_rtt0', 'branch', 'num_pkts_with_rtt']
+redundant outputs []
+state_var ['branch']
+inputs ['branch', 'p_rtt0']
+outputs ['branch']
+ -------- component  1  is this:  p_num_pkts_with_rtt0 = num_pkts_with_rtt; p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1; p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0; num_pkts_with_rtt = p_num_pkts_with_rtt2;
+1
+p_num_pkts_with_rtt0 = num_pkts_with_rtt;
+p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1;
+p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0;
+num_pkts_with_rtt = p_num_pkts_with_rtt2;
+adj_inputs []
+redundant outputs []
+state_var ['num_pkts_with_rtt']
+inputs ['branch', 'num_pkts_with_rtt']
+outputs ['num_pkts_with_rtt']
+ -------- component  2  is this:  p_sum_rtt_Tr0 = sum_rtt_Tr; p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0; p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0; sum_rtt_Tr = p_sum_rtt_Tr2;
+2
+p_sum_rtt_Tr0 = sum_rtt_Tr;
+p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0;
+p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0;
+sum_rtt_Tr = p_sum_rtt_Tr2;
+adj_inputs []
+redundant outputs []
+state_var ['sum_rtt_Tr']
+inputs ['branch', 'sum_rtt_Tr', 'p_rtt0']
+outputs ['sum_rtt_Tr']
+ -------- component  3  is this:  p_input_traffic_Bytes0 = input_traffic_Bytes; p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0; input_traffic_Bytes = p_input_traffic_Bytes1;
+3
+p_input_traffic_Bytes0 = input_traffic_Bytes;
+p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0;
+input_traffic_Bytes = p_input_traffic_Bytes1;
+adj_inputs []
+redundant outputs ['p_input_traffic_Bytes0', 'p_input_traffic_Bytes1']
+state_var ['input_traffic_Bytes']
+inputs ['p_size_bytes0', 'input_traffic_Bytes']
+outputs ['input_traffic_Bytes']
+Synthesize each codelet
+0
+branch = (p_rtt0 < 30) ? 1 : 0;
+p_branch0 = branch;
+inputs ['branch', 'p_rtt0']
+outputs ['branch']
+ > codelet output directory: _rcp_modified_out_1
+~~~~~~~~~~set_alu_inputs:  ['branch', 'p_rtt0']
+ ~~~| state var:  ['branch']
+salu_inputs {'metadata_lo': 'p_rtt0', 'metadata_hi': 0, 'register_lo': 'branch', 'register_hi': 0}
+sketch _rcp_modified_out_1/comp_0_stateful_bnd_1.sk > _rcp_modified_out_1/comp_0_stateful_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename _rcp_modified_out_1/comp_0_stateful_bnd_1.sk
+return code 0
+solved
+output is in _rcp_modified_out_1/comp_0_stateful_bnd_1.sk.out
+processing sketch output...
+processing: output is stateful.
+ find_output_dst: reading from sketch file  _rcp_modified_out_1/comp_0_stateful_bnd_1.sk
+find_output_dst: trying to find `void comp_0`
+done
+curr line: 	int[2] _out;
+
+curr line: 	int p_branch0;
+
+curr line: 	branch = (p_rtt0 < 30) ? 1 : 0;
+
+curr line: 	p_branch0 = branch;
+
+curr line: 	_out[0] = branch;
+
+ > FOUND OUT LINE : 	_out[0] = branch;
+
+curr line: 	_out[1] = branch;
+
+ > FOUND OUT LINE : 	_out[1] = branch;
+
+> found out variable:  branch
+curr line: 	return _out;
+
+curr line: }
+
+done ---- outs[-1] is  branch
+Constructing new SALU: id= 0  metadata_lo= p_rtt0  metadata_hi= 0  register_lo= branch  register_hi= 0  output_dst= branch
+demangled line:  _out0 = ( ( int [ 2 ] ) 0 )
+demangled line:  int register_lo = register_lo
+demangled line:  int update_hi_1_value = 0
+demangled line:  compute_alu ( 1 0 5 update_hi_1_value )
+process_salu_function: parsing compute_alu   compute_alu(1, 0, 5, update_hi_1_value_s13)//{};
+
+demangled line:  int update_hi_2_value = 0
+demangled line:  compute_alu ( 2 4 3 update_hi_2_value )
+process_salu_function: parsing compute_alu   compute_alu(2, 4, 3, update_hi_2_value_s23)//{};
+
+demangled line:  int update_lo_1_value = 0
+demangled line:  compute_alu ( 6 metadata_hi register_lo update_lo_1_value )
+process_salu_function: parsing compute_alu   compute_alu(6, metadata_hi, register_lo_0, update_lo_1_value_s33)//{};
+
+demangled line:  int update_lo_2_value = 0
+demangled line:  compute_alu ( 5 1 register_lo update_lo_2_value )
+process_salu_function: parsing compute_alu   compute_alu(5, 1, register_lo_0, update_lo_2_value_s43)//{};
+
+demangled line:  bit condition_hi = ( ( ( 0 - metadata_lo ) - register_lo ) + 30 ) < 0
+process_salu_function: parsing  condition_hi ; rhs =  (((0-metadata_lo)-register_lo)+30)<0
+    ( line =    bit condition_hi_s55 = (((0 - metadata_lo) - register_lo_0) + 30) < 0;
+  )
+demangled line:  bit condition_lo = ( ( ( 0 - metadata_lo ) - register_hi ) + 29 ) < 0
+process_salu_function: parsing  condition_lo ; rhs =  (((0-metadata_lo)-register_hi)+29)<0
+    ( line =    bit condition_lo_s67 = (((0 - metadata_lo) - register_hi_1) + 29) < 0;
+  )
+demangled line:  bit update_hi_1_predicate = 0
+demangled line:  bool_op ( 2 condition_hi condition_lo update_hi_1_predicate )
+process_salu_function: parsing bool_op   bool_op(2, condition_hi_s55, condition_lo_s67, update_hi_1_predicate_s69);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  2
+PARSING BOOL_OP <---------------------- LHS:  update_hi_1_predicate  | RHS:  (!(condition_hi)) && (condition_lo)
+demangled line:  bit update_hi_2_predicate = 0
+demangled line:  bool_op ( 0 condition_hi condition_lo update_hi_2_predicate )
+process_salu_function: parsing bool_op   bool_op(0, condition_hi_s55, condition_lo_s67, update_hi_2_predicate_s71);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  0
+PARSING BOOL_OP <---------------------- LHS:  update_hi_2_predicate  | RHS:  false
+demangled line:  bit update_lo_1_predicate = 0
+demangled line:  bool_op ( 5 condition_hi condition_lo update_lo_1_predicate )
+process_salu_function: parsing bool_op   bool_op(5, condition_hi_s55, condition_lo_s67, update_lo_1_predicate_s73);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  5
+PARSING BOOL_OP <---------------------- LHS:  update_lo_1_predicate  | RHS:  !(condition_lo)
+demangled line:  bit update_lo_2_predicate = 0
+demangled line:  bool_op ( 8 condition_hi condition_lo update_lo_2_predicate )
+process_salu_function: parsing bool_op   bool_op(8, condition_hi_s55, condition_lo_s67, update_lo_2_predicate_s75);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  8
+PARSING BOOL_OP <---------------------- LHS:  update_lo_2_predicate  | RHS:  (condition_hi) && (condition_lo)
+demangled line:  assert ( ! ( update_hi_1_predicate && update_hi_2_predicate ) )
+demangled line:  assert ( ! ( update_lo_1_predicate && update_lo_2_predicate ) )
+Illegal character '/'
+Illegal character '/'
+demangled line:  if ( update_lo_1_predicate && ( ! ( update_lo_2_predicate ) ) ) * comp_0_.._bnd_1.sk : 206 *
+demangled line:  {
+demangled line:  register_lo = update_lo_1_value
+demangled line:  }
+demangled line:  else
+demangled line:  {
+Illegal character '/'
+Illegal character '/'
+demangled line:  if ( ( ! ( update_lo_1_predicate ) ) && update_lo_2_predicate ) * comp_0_.._bnd_1.sk : 208 *
+demangled line:  {
+demangled line:  register_lo = update_lo_2_value
+demangled line:  }
+demangled line:  else
+demangled line:  {
+demangled line:  register_lo = register_lo
+demangled line:  }
+demangled line:  }
+demangled line:  _out0 [ 0 ] = register_lo
+demangled line:  _out0 [ 1 ] = register_lo
+output_value found, is  register_lo
+demangled line:  return
+filename_to_compname: filename =  comp_0_stateful_bnd_1.sk.out
+['comp_0']
+>>>>>>>>>> add_new_alu: adding ALU with id  0  and component  comp_0 , type?  STATEFUL
+filename_to_compname: filename =  comp_0_stateful_bnd_1.sk.out
+['comp_0']
+1
+p_num_pkts_with_rtt0 = num_pkts_with_rtt;
+p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1;
+p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0;
+num_pkts_with_rtt = p_num_pkts_with_rtt2;
+inputs ['branch', 'num_pkts_with_rtt']
+outputs ['num_pkts_with_rtt']
+ > codelet output directory: _rcp_modified_out_1
+~~~~~~~~~~set_alu_inputs:  ['branch', 'num_pkts_with_rtt']
+ ~~~| state var:  ['num_pkts_with_rtt']
+salu_inputs {'metadata_lo': 'branch', 'metadata_hi': 0, 'register_lo': 'num_pkts_with_rtt', 'register_hi': 0}
+sketch _rcp_modified_out_1/comp_1_stateful_bnd_1.sk > _rcp_modified_out_1/comp_1_stateful_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename _rcp_modified_out_1/comp_1_stateful_bnd_1.sk
+return code 0
+solved
+output is in _rcp_modified_out_1/comp_1_stateful_bnd_1.sk.out
+processing sketch output...
+processing: output is stateful.
+ find_output_dst: reading from sketch file  _rcp_modified_out_1/comp_1_stateful_bnd_1.sk
+find_output_dst: trying to find `void comp_1`
+done
+curr line: 	int[2] _out;
+
+curr line: 	int p_num_pkts_with_rtt0;
+
+curr line: 	int p_num_pkts_with_rtt1;
+
+curr line: 	int p_num_pkts_with_rtt2;
+
+curr line: 	p_num_pkts_with_rtt0 = num_pkts_with_rtt;
+
+curr line: 	p_num_pkts_with_rtt1 = p_num_pkts_with_rtt0 + 1;
+
+curr line: 	p_num_pkts_with_rtt2 = (branch==1) ? p_num_pkts_with_rtt1 : p_num_pkts_with_rtt0;
+
+curr line: 	num_pkts_with_rtt = p_num_pkts_with_rtt2;
+
+curr line: 	_out[0] = num_pkts_with_rtt;
+
+ > FOUND OUT LINE : 	_out[0] = num_pkts_with_rtt;
+
+curr line: 	_out[1] = num_pkts_with_rtt;
+
+ > FOUND OUT LINE : 	_out[1] = num_pkts_with_rtt;
+
+> found out variable:  num_pkts_with_rtt
+curr line: 	return _out;
+
+curr line: }
+
+done ---- outs[-1] is  num_pkts_with_rtt
+Constructing new SALU: id= 1  metadata_lo= branch  metadata_hi= 0  register_lo= num_pkts_with_rtt  register_hi= 0  output_dst= num_pkts_with_rtt
+demangled line:  _out0 = ( ( int [ 2 ] ) 0 )
+demangled line:  int register_lo = register_lo
+demangled line:  int update_hi_1_value = 0
+demangled line:  compute_alu ( 2 0 0 update_hi_1_value )
+process_salu_function: parsing compute_alu   compute_alu(2, 0, 0, update_hi_1_value_s13)//{};
+
+demangled line:  int update_hi_2_value = 0
+demangled line:  compute_alu ( 2 31 23 update_hi_2_value )
+process_salu_function: parsing compute_alu   compute_alu(2, 31, 23, update_hi_2_value_s23)//{};
+
+demangled line:  int update_lo_1_value = 0
+demangled line:  compute_alu ( 2 metadata_lo register_hi update_lo_1_value )
+process_salu_function: parsing compute_alu   compute_alu(2, metadata_lo, register_hi_1, update_lo_1_value_s33)//{};
+
+demangled line:  int update_lo_2_value = 0
+demangled line:  compute_alu ( 0 metadata_lo register_lo update_lo_2_value )
+process_salu_function: parsing compute_alu   compute_alu(0, metadata_lo, register_lo_0, update_lo_2_value_s43)//{};
+
+demangled line:  bit condition_hi = ( metadata_hi + 1 ) < 0
+process_salu_function: parsing  condition_hi ; rhs =  (metadata_hi+1)<0
+    ( line =    bit condition_hi_s55 = (metadata_hi + 1) < 0;
+  )
+demangled line:  bit condition_lo = ( ( ( 0 - metadata_lo ) + register_hi ) + 1 ) == 0
+process_salu_function: parsing  condition_lo ; rhs =  (((0-metadata_lo)+register_hi)+1)==0
+    ( line =    bit condition_lo_s67 = (((0 - metadata_lo) + register_hi_1) + 1) == 0;
+  )
+demangled line:  bit update_hi_1_predicate = 0
+demangled line:  bool_op ( 8 condition_hi condition_lo update_hi_1_predicate )
+process_salu_function: parsing bool_op   bool_op(8, condition_hi_s55, condition_lo_s67, update_hi_1_predicate_s69);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  8
+PARSING BOOL_OP <---------------------- LHS:  update_hi_1_predicate  | RHS:  (condition_hi) && (condition_lo)
+demangled line:  bit update_hi_2_predicate = 0
+demangled line:  bool_op ( 0 condition_hi condition_lo update_hi_2_predicate )
+process_salu_function: parsing bool_op   bool_op(0, condition_hi_s55, condition_lo_s67, update_hi_2_predicate_s71);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  0
+PARSING BOOL_OP <---------------------- LHS:  update_hi_2_predicate  | RHS:  false
+demangled line:  bit update_lo_1_predicate = 0
+demangled line:  bool_op ( 0 condition_hi condition_lo update_lo_1_predicate )
+process_salu_function: parsing bool_op   bool_op(0, condition_hi_s55, condition_lo_s67, update_lo_1_predicate_s73);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  0
+PARSING BOOL_OP <---------------------- LHS:  update_lo_1_predicate  | RHS:  false
+demangled line:  bit update_lo_2_predicate = 0
+demangled line:  bool_op ( 2 condition_hi condition_lo update_lo_2_predicate )
+process_salu_function: parsing bool_op   bool_op(2, condition_hi_s55, condition_lo_s67, update_lo_2_predicate_s75);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  2
+PARSING BOOL_OP <---------------------- LHS:  update_lo_2_predicate  | RHS:  (!(condition_hi)) && (condition_lo)
+demangled line:  assert ( ! ( update_hi_1_predicate && update_hi_2_predicate ) )
+demangled line:  assert ( ! ( update_lo_1_predicate && update_lo_2_predicate ) )
+Illegal character '/'
+Illegal character '/'
+demangled line:  if ( update_lo_1_predicate && ( ! ( update_lo_2_predicate ) ) ) * comp_1_.._bnd_1.sk : 206 *
+demangled line:  {
+demangled line:  register_lo = update_lo_1_value
+demangled line:  }
+demangled line:  else
+demangled line:  {
+Illegal character '/'
+Illegal character '/'
+demangled line:  if ( ( ! ( update_lo_1_predicate ) ) && update_lo_2_predicate ) * comp_1_.._bnd_1.sk : 208 *
+demangled line:  {
+demangled line:  register_lo = update_lo_2_value
+demangled line:  }
+demangled line:  else
+demangled line:  {
+demangled line:  register_lo = register_lo
+demangled line:  }
+demangled line:  }
+demangled line:  _out0 [ 0 ] = register_lo
+demangled line:  _out0 [ 1 ] = register_lo
+output_value found, is  register_lo
+demangled line:  return
+filename_to_compname: filename =  comp_1_stateful_bnd_1.sk.out
+['comp_1']
+>>>>>>>>>> add_new_alu: adding ALU with id  1  and component  comp_1 , type?  STATEFUL
+filename_to_compname: filename =  comp_1_stateful_bnd_1.sk.out
+['comp_1']
+2
+p_sum_rtt_Tr0 = sum_rtt_Tr;
+p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0;
+p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0;
+sum_rtt_Tr = p_sum_rtt_Tr2;
+inputs ['branch', 'sum_rtt_Tr', 'p_rtt0']
+outputs ['sum_rtt_Tr']
+ > codelet output directory: _rcp_modified_out_1
+~~~~~~~~~~set_alu_inputs:  ['branch', 'sum_rtt_Tr', 'p_rtt0']
+ ~~~| state var:  ['sum_rtt_Tr']
+salu_inputs {'metadata_lo': 'branch', 'metadata_hi': 'p_rtt0', 'register_lo': 'sum_rtt_Tr', 'register_hi': 0}
+sketch _rcp_modified_out_1/comp_2_stateful_bnd_1.sk > _rcp_modified_out_1/comp_2_stateful_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename _rcp_modified_out_1/comp_2_stateful_bnd_1.sk
+return code 0
+solved
+output is in _rcp_modified_out_1/comp_2_stateful_bnd_1.sk.out
+processing sketch output...
+processing: output is stateful.
+ find_output_dst: reading from sketch file  _rcp_modified_out_1/comp_2_stateful_bnd_1.sk
+find_output_dst: trying to find `void comp_2`
+done
+curr line: 	int[2] _out;
+
+curr line: 	int p_sum_rtt_Tr2;
+
+curr line: 	int p_sum_rtt_Tr0;
+
+curr line: 	int p_sum_rtt_Tr1;
+
+curr line: 	p_sum_rtt_Tr0 = sum_rtt_Tr;
+
+curr line: 	p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0;
+
+curr line: 	p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0;
+
+curr line: 	sum_rtt_Tr = p_sum_rtt_Tr2;
+
+curr line: 	_out[0] = sum_rtt_Tr;
+
+ > FOUND OUT LINE : 	_out[0] = sum_rtt_Tr;
+
+curr line: 	_out[1] = sum_rtt_Tr;
+
+ > FOUND OUT LINE : 	_out[1] = sum_rtt_Tr;
+
+> found out variable:  sum_rtt_Tr
+curr line: 	return _out;
+
+curr line: }
+
+done ---- outs[-1] is  sum_rtt_Tr
+Constructing new SALU: id= 2  metadata_lo= branch  metadata_hi= p_rtt0  register_lo= sum_rtt_Tr  register_hi= 0  output_dst= sum_rtt_Tr
+demangled line:  _out0 = ( ( int [ 2 ] ) 0 )
+demangled line:  int register_lo = register_lo
+demangled line:  int update_hi_1_value = 0
+demangled line:  compute_alu ( 3 0 22 update_hi_1_value )
+process_salu_function: parsing compute_alu   compute_alu(3, 0, 22, update_hi_1_value_s13)//{};
+
+demangled line:  int update_hi_2_value = 0
+demangled line:  compute_alu ( 2 30 14 update_hi_2_value )
+process_salu_function: parsing compute_alu   compute_alu(2, 30, 14, update_hi_2_value_s23)//{};
+
+demangled line:  int update_lo_1_value = 0
+demangled line:  compute_alu ( 0 metadata_hi register_lo update_lo_1_value )
+process_salu_function: parsing compute_alu   compute_alu(0, metadata_hi, register_lo_0, update_lo_1_value_s33)//{};
+
+demangled line:  int update_lo_2_value = 0
+demangled line:  compute_alu ( 0 metadata_hi register_lo update_lo_2_value )
+process_salu_function: parsing compute_alu   compute_alu(0, metadata_hi, register_lo_0, update_lo_2_value_s43)//{};
+
+demangled line:  bit condition_hi = ( ( ( 0 - metadata_lo ) - 0 ) + 1 ) != 0
+process_salu_function: parsing  condition_hi ; rhs =  (((0-metadata_lo)-0)+1)!=0
+    ( line =    bit condition_hi_s55 = (((0 - metadata_lo) - 0) + 1) != 0;
+  )
+demangled line:  bit condition_lo = ( ( ( 0 - metadata_hi ) + register_lo ) + 1 ) == 0
+process_salu_function: parsing  condition_lo ; rhs =  (((0-metadata_hi)+register_lo)+1)==0
+    ( line =    bit condition_lo_s67 = (((0 - metadata_hi) + register_lo_0) + 1) == 0;
+  )
+demangled line:  bit update_hi_1_predicate = 0
+demangled line:  bool_op ( 0 condition_hi condition_lo update_hi_1_predicate )
+process_salu_function: parsing bool_op   bool_op(0, condition_hi_s55, condition_lo_s67, update_hi_1_predicate_s69);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  0
+PARSING BOOL_OP <---------------------- LHS:  update_hi_1_predicate  | RHS:  false
+demangled line:  bit update_hi_2_predicate = 0
+demangled line:  bool_op ( 14 condition_hi condition_lo update_hi_2_predicate )
+process_salu_function: parsing bool_op   bool_op(14, condition_hi_s55, condition_lo_s67, update_hi_2_predicate_s71);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  14
+PARSING BOOL_OP <---------------------- LHS:  update_hi_2_predicate  | RHS:  (condition_hi) || (condition_lo)
+demangled line:  bit update_lo_1_predicate = 0
+demangled line:  bool_op ( 1 condition_hi condition_lo update_lo_1_predicate )
+process_salu_function: parsing bool_op   bool_op(1, condition_hi_s55, condition_lo_s67, update_lo_1_predicate_s73);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  1
+PARSING BOOL_OP <---------------------- LHS:  update_lo_1_predicate  | RHS:  !((condition_hi) || (condition_lo))
+demangled line:  bit update_lo_2_predicate = 0
+demangled line:  bool_op ( 2 condition_hi condition_lo update_lo_2_predicate )
+process_salu_function: parsing bool_op   bool_op(2, condition_hi_s55, condition_lo_s67, update_lo_2_predicate_s75);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  2
+PARSING BOOL_OP <---------------------- LHS:  update_lo_2_predicate  | RHS:  (!(condition_hi)) && (condition_lo)
+demangled line:  assert ( ! ( update_hi_1_predicate && update_hi_2_predicate ) )
+demangled line:  assert ( ! ( update_lo_1_predicate && update_lo_2_predicate ) )
+Illegal character '/'
+Illegal character '/'
+demangled line:  if ( update_lo_1_predicate && ( ! ( update_lo_2_predicate ) ) ) * comp_2_.._bnd_1.sk : 206 *
+demangled line:  {
+demangled line:  register_lo = update_lo_1_value
+demangled line:  }
+demangled line:  else
+demangled line:  {
+Illegal character '/'
+Illegal character '/'
+demangled line:  if ( ( ! ( update_lo_1_predicate ) ) && update_lo_2_predicate ) * comp_2_.._bnd_1.sk : 208 *
+demangled line:  {
+demangled line:  register_lo = update_lo_2_value
+demangled line:  }
+demangled line:  else
+demangled line:  {
+demangled line:  register_lo = register_lo
+demangled line:  }
+demangled line:  }
+demangled line:  _out0 [ 0 ] = register_lo
+demangled line:  _out0 [ 1 ] = register_lo
+output_value found, is  register_lo
+demangled line:  return
+filename_to_compname: filename =  comp_2_stateful_bnd_1.sk.out
+['comp_2']
+>>>>>>>>>> add_new_alu: adding ALU with id  2  and component  comp_2 , type?  STATEFUL
+filename_to_compname: filename =  comp_2_stateful_bnd_1.sk.out
+['comp_2']
+3
+p_input_traffic_Bytes0 = input_traffic_Bytes;
+p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0;
+input_traffic_Bytes = p_input_traffic_Bytes1;
+inputs ['p_size_bytes0', 'input_traffic_Bytes']
+outputs ['input_traffic_Bytes']
+ > codelet output directory: _rcp_modified_out_1
+~~~~~~~~~~set_alu_inputs:  ['p_size_bytes0', 'input_traffic_Bytes']
+ ~~~| state var:  ['input_traffic_Bytes']
+salu_inputs {'metadata_lo': 'p_size_bytes0', 'metadata_hi': 0, 'register_lo': 'input_traffic_Bytes', 'register_hi': 0}
+sketch _rcp_modified_out_1/comp_3_stateful_bnd_1.sk > _rcp_modified_out_1/comp_3_stateful_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename _rcp_modified_out_1/comp_3_stateful_bnd_1.sk
+return code 0
+solved
+output is in _rcp_modified_out_1/comp_3_stateful_bnd_1.sk.out
+processing sketch output...
+processing: output is stateful.
+ find_output_dst: reading from sketch file  _rcp_modified_out_1/comp_3_stateful_bnd_1.sk
+find_output_dst: trying to find `void comp_3`
+done
+curr line: 	int[2] _out;
+
+curr line: 	int p_input_traffic_Bytes0;
+
+curr line: 	int p_input_traffic_Bytes1;
+
+curr line: 	p_input_traffic_Bytes0 = input_traffic_Bytes;
+
+curr line: 	p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0;
+
+curr line: 	input_traffic_Bytes = p_input_traffic_Bytes1;
+
+curr line: 	_out[0] = input_traffic_Bytes;
+
+ > FOUND OUT LINE : 	_out[0] = input_traffic_Bytes;
+
+curr line: 	_out[1] = input_traffic_Bytes;
+
+ > FOUND OUT LINE : 	_out[1] = input_traffic_Bytes;
+
+> found out variable:  input_traffic_Bytes
+curr line: 	return _out;
+
+curr line: }
+
+done ---- outs[-1] is  input_traffic_Bytes
+Constructing new SALU: id= 3  metadata_lo= p_size_bytes0  metadata_hi= 0  register_lo= input_traffic_Bytes  register_hi= 0  output_dst= input_traffic_Bytes
+demangled line:  _out0 = ( ( int [ 2 ] ) 0 )
+demangled line:  int register_lo = register_lo
+demangled line:  int update_hi_1_value = 0
+demangled line:  compute_alu ( 0 26 28 update_hi_1_value )
+process_salu_function: parsing compute_alu   compute_alu(0, 26, 28, update_hi_1_value_s13)//{};
+
+demangled line:  int update_hi_2_value = 0
+demangled line:  compute_alu ( 2 metadata_hi 10 update_hi_2_value )
+process_salu_function: parsing compute_alu   compute_alu(2, metadata_hi, 10, update_hi_2_value_s23)//{};
+
+demangled line:  int update_lo_1_value = 0
+demangled line:  compute_alu ( 0 metadata_lo register_lo update_lo_1_value )
+process_salu_function: parsing compute_alu   compute_alu(0, metadata_lo, register_lo_0, update_lo_1_value_s33)//{};
+
+demangled line:  int update_lo_2_value = 0
+demangled line:  compute_alu ( 4 metadata_lo 2 update_lo_2_value )
+process_salu_function: parsing compute_alu   compute_alu(4, metadata_lo, 2, update_lo_2_value_s43)//{};
+
+demangled line:  bit condition_hi = ( ( ( 0 - metadata_lo ) - register_lo ) + 2 ) > 0
+process_salu_function: parsing  condition_hi ; rhs =  (((0-metadata_lo)-register_lo)+2)>0
+    ( line =    bit condition_hi_s55 = (((0 - metadata_lo) - register_lo_0) + 2) > 0;
+  )
+demangled line:  bit condition_lo = ( register_lo + 3 ) == 0
+process_salu_function: parsing  condition_lo ; rhs =  (register_lo+3)==0
+    ( line =    bit condition_lo_s67 = (register_lo_0 + 3) == 0;
+  )
+demangled line:  bit update_hi_1_predicate = 0
+demangled line:  bool_op ( 8 condition_hi condition_lo update_hi_1_predicate )
+process_salu_function: parsing bool_op   bool_op(8, condition_hi_s55, condition_lo_s67, update_hi_1_predicate_s69);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  8
+PARSING BOOL_OP <---------------------- LHS:  update_hi_1_predicate  | RHS:  (condition_hi) && (condition_lo)
+demangled line:  bit update_hi_2_predicate = 0
+demangled line:  bool_op ( 3 condition_hi condition_lo update_hi_2_predicate )
+process_salu_function: parsing bool_op   bool_op(3, condition_hi_s55, condition_lo_s67, update_hi_2_predicate_s71);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  3
+PARSING BOOL_OP <---------------------- LHS:  update_hi_2_predicate  | RHS:  !(condition_hi)
+demangled line:  bit update_lo_1_predicate = 0
+demangled line:  bool_op ( 13 condition_hi condition_lo update_lo_1_predicate )
+process_salu_function: parsing bool_op   bool_op(13, condition_hi_s55, condition_lo_s67, update_lo_1_predicate_s73);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  13
+PARSING BOOL_OP <---------------------- LHS:  update_lo_1_predicate  | RHS:  (condition_hi) || (!(condition_lo))
+demangled line:  bit update_lo_2_predicate = 0
+demangled line:  bool_op ( 0 condition_hi condition_lo update_lo_2_predicate )
+process_salu_function: parsing bool_op   bool_op(0, condition_hi_s55, condition_lo_s67, update_lo_2_predicate_s75);
+
+ | -> eval_bool_op: op1  condition_hi  ; op2  condition_lo  ; opcode:  0
+PARSING BOOL_OP <---------------------- LHS:  update_lo_2_predicate  | RHS:  false
+demangled line:  assert ( ! ( update_hi_1_predicate && update_hi_2_predicate ) )
+demangled line:  assert ( ! ( update_lo_1_predicate && update_lo_2_predicate ) )
+Illegal character '/'
+Illegal character '/'
+demangled line:  if ( update_lo_1_predicate && ( ! ( update_lo_2_predicate ) ) ) * comp_3_.._bnd_1.sk : 206 *
+demangled line:  {
+demangled line:  register_lo = update_lo_1_value
+demangled line:  }
+demangled line:  else
+demangled line:  {
+Illegal character '/'
+Illegal character '/'
+demangled line:  if ( ( ! ( update_lo_1_predicate ) ) && update_lo_2_predicate ) * comp_3_.._bnd_1.sk : 208 *
+demangled line:  {
+demangled line:  register_lo = update_lo_2_value
+demangled line:  }
+demangled line:  else
+demangled line:  {
+demangled line:  register_lo = register_lo
+demangled line:  }
+demangled line:  }
+demangled line:  _out0 [ 0 ] = register_lo
+demangled line:  _out0 [ 1 ] = register_lo
+output_value found, is  register_lo
+demangled line:  return
+filename_to_compname: filename =  comp_3_stateful_bnd_1.sk.out
+['comp_3']
+>>>>>>>>>> add_new_alu: adding ALU with id  3  and component  comp_3 , type?  STATEFUL
+filename_to_compname: filename =  comp_3_stateful_bnd_1.sk.out
+['comp_3']
+postprocessing sketch output: finding stateful dependencies
+ *** find_stateful_dependencies ***
+type of component in graph:  <class 'synthesis.StatefulComponent'>
+||| alus_in_a_component  comp_0 : self.alu_compnames is  {0: 'comp_0', 1: 'comp_1', 2: 'comp_2', 3: 'comp_3'}
+ *** found stateful dependencies between  comp_1  and  comp_0
+type of component in graph:  <class 'synthesis.StatefulComponent'>
+||| alus_in_a_component  comp_0 : self.alu_compnames is  {0: 'comp_0', 1: 'comp_1', 2: 'comp_2', 3: 'comp_3'}
+ *** found stateful dependencies between  comp_2  and  comp_0
+postprocessing sketch output: finding stateless dependencies in each component
+ *** finding dependencies between stateless ALUs ***
+ *** done finding dependencies between stateless ALUs ***
+postprocessing sketch output: finding stateless dependencies between components
+ *** find stateless dependencies between components *** 
+postprocessing done!
+NewTable:4;(1,0);(2,0)
+----- starting ILP Gurobi -----
++---> dependencies of ALU  0 :  []
++---> dependencies of ALU  1 :  [<sketch_output_processor.SALU object at 0x10345acd0>]
++---> dependencies of ALU  2 :  [<sketch_output_processor.SALU object at 0x10345acd0>]
++---> dependencies of ALU  3 :  []
+# alus: =  4
+ * gen_dependency_list: dependency between  0  and  1
+ * gen_dependency_list: dependency between  0  and  2
+Academic license - for non-commercial use only - expires 2021-07-29
+Using license file /Users/rjf/Gurobi_license/gurobi.lic
+ILP_Gurobi: alu_dic =  {'T0': 4}
+ILP_Gurobi: Adding var  T0_A_0
+ILP_Gurobi: Adding var  T0_A_1
+ILP_Gurobi: Adding var  T0_A_2
+ILP_Gurobi: Adding var  T0_A_3
+ILP_Gurobi: alu_dep_dic:  {'T0': [(0, 1), (0, 2)]}
+Come here------------------------
+Gurobi Optimizer version 9.1.2 build v9.1.2rc0 (mac64[arm])
+Thread count: 8 physical cores, 8 logical processors, using up to 8 threads
+Optimize a model with 81 rows, 54 columns and 168 nonzeros
+Model fingerprint: 0x96855eff
+Model has 48 general constraints
+Variable types: 0 continuous, 54 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+01]
+Presolve removed 63 rows and 4 columns
+Presolve time: 0.00s
+Presolved: 18 rows, 50 columns, 147 nonzeros
+Variable types: 0 continuous, 50 integer (45 binary)
+Found heuristic solution: objective 11.0000000
+Found heuristic solution: objective 10.0000000
+Found heuristic solution: objective 6.0000000
+Found heuristic solution: objective 1.0000000
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds
+Thread count was 8 (of 8 available processors)
+
+Solution count 4: 1 6 10 11 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 1.000000000000e+00, best bound 1.000000000000e+00, gap 0.0000%
+Optimal objective: 1
+Following is the result we want:*****************
+T0_A_0 0
+T0_A_1 1
+T0_A_2 1
+T0_A_3 0
+************************************************
+Obj: 1
+number of stages:  2
+stage:  0.0
+action:  0
+num stages:  2
+stage:  1.0
+action:  1
+num stages:  2
+stage:  1.0
+action:  2
+num stages:  2
+stage:  0.0
+action:  3
+num stages:  2
+================P4Codegen
+[<sketch_output_processor.SALU object at 0x10345acd0>, <sketch_output_processor.SALU object at 0x10345a9a0>, <sketch_output_processor.SALU object at 0x10345ac10>, <sketch_output_processor.SALU object at 0x10345ae20>]
+ > get_alu_stage: table  0 , alu_id =  0 :  0.0
+ > get_alu_stage: table  0 , alu_id =  0 :  0.0
+alu  0  is of type  STATEFUL ; scheduled to stage  0
+ > get_alu_stage: table  0 , alu_id =  1 :  1.0
+ > get_alu_stage: table  0 , alu_id =  1 :  1.0
+alu  1  is of type  STATEFUL ; scheduled to stage  1
+ > get_alu_stage: table  0 , alu_id =  2 :  1.0
+ > get_alu_stage: table  0 , alu_id =  2 :  1.0
+alu  2  is of type  STATEFUL ; scheduled to stage  1
+ > get_alu_stage: table  0 , alu_id =  3 :  0.0
+ > get_alu_stage: table  0 , alu_id =  3 :  0.0
+alu  3  is of type  STATEFUL ; scheduled to stage  0
+Codegen processed ALUs:  0  ;  []
+Codegen processed SALUs:  4  ;  [(<sketch_output_processor.SALU object at 0x10345acd0>, 0), (<sketch_output_processor.SALU object at 0x10345a9a0>, 1), (<sketch_output_processor.SALU object at 0x10345ac10>, 2), (<sketch_output_processor.SALU object at 0x10345ae20>, 3)]
+p4_codegen: PHV var found for stateful ALU, it is  branch
+p4_codegen: PHV var found for stateful ALU, it is  p_rtt0
+p4_codegen: PHV var found for stateful ALU, it is  p_rtt0
+p4_codegen: PHV var found for stateful ALU, it is  num_pkts_with_rtt
+p4_codegen: PHV var found for stateful ALU, it is  branch
+p4_codegen: PHV var found for stateful ALU, it is  branch
+p4_codegen: PHV var found for stateful ALU, it is  branch
+p4_codegen: PHV var found for stateful ALU, it is  sum_rtt_Tr
+p4_codegen: PHV var found for stateful ALU, it is  p_rtt0
+p4_codegen: PHV var found for stateful ALU, it is  p_rtt0
+p4_codegen: PHV var found for stateful ALU, it is  branch
+p4_codegen: PHV var found for stateful ALU, it is  p_rtt0
+p4_codegen: PHV var found for stateful ALU, it is  input_traffic_Bytes
+p4_codegen: PHV var found for stateful ALU, it is  p_size_bytes0
+p4_codegen: PHV var found for stateful ALU, it is  p_size_bytes0
+p4_codegen: PHV var found for stateful ALU, it is  p_size_bytes0
+generate_stateless_alu_matrix: stage  0 , with ALUs  []
+generate_stateless_alu_matrix: stage  1 , with ALUs  []
+* generating stateful ALU matrix. num pipeline stages:  2
+ - curr_stage:  0
+ -* this SALU:  <sketch_output_processor.SALU object at 0x10345acd0>
+ -* this SALU:  <sketch_output_processor.SALU object at 0x10345a9a0>
+ -* this SALU:  <sketch_output_processor.SALU object at 0x10345ac10>
+ -* this SALU:  <sketch_output_processor.SALU object at 0x10345ae20>
+ - curr_stage:  1
+ -* this SALU:  <sketch_output_processor.SALU object at 0x10345acd0>
+ -* this SALU:  <sketch_output_processor.SALU object at 0x10345a9a0>
+ -* this SALU:  <sketch_output_processor.SALU object at 0x10345ac10>
+ -* this SALU:  <sketch_output_processor.SALU object at 0x10345ae20>
+salu_configs:  [[1, 0, 0, 1], [0, 1, 1, 0]]
+TofinoP4 J2 template codegen: --------------------
+[[{'output_dst': 'ipv4.branch', 'update_hi_1_value': '(0)-(5)', 'update_hi_2_value': '(3)-(4)', 'update_lo_1_value': '1', 'update_lo_2_value': '0', 'condition_hi': '(((0-ipv4.p_rtt0)-alu_lo)+30)<0', 'condition_lo': '(((0-ipv4.p_rtt0)-alu_hi)+29)<0', 'update_hi_1_predicate': '( not (condition_hi)) and (condition_lo)', 'update_hi_2_predicate': 'false', 'update_lo_1_predicate': ' not (condition_lo)', 'update_lo_2_predicate': '(condition_hi) and (condition_lo)', 'output_value': 'alu_lo'}, {'output_dst': 'ipv4.num_pkts_with_rtt', 'update_hi_1_value': '(0)-(0)', 'update_hi_2_value': '(23)-(31)', 'update_lo_1_value': '(alu_hi)-(ipv4.branch)', 'update_lo_2_value': '(ipv4.branch)+(alu_lo)', 'condition_hi': '(0+1)<0', 'condition_lo': '(((0-ipv4.branch)+alu_hi)+1)==0', 'update_hi_1_predicate': '(condition_hi) and (condition_lo)', 'update_hi_2_predicate': 'false', 'update_lo_1_predicate': 'false', 'update_lo_2_predicate': '( not (condition_hi)) and (condition_lo)', 'output_value': 'alu_lo'}, {'output_dst': 'ipv4.sum_rtt_Tr', 'update_hi_1_value': '(22)', 'update_hi_2_value': '(14)-(30)', 'update_lo_1_value': '(ipv4.p_rtt0)+(alu_lo)', 'update_lo_2_value': '(ipv4.p_rtt0)+(alu_lo)', 'condition_hi': '(((0-ipv4.branch)-0)+1) not =0', 'condition_lo': '(((0-ipv4.p_rtt0)+alu_lo)+1)==0', 'update_hi_1_predicate': 'false', 'update_hi_2_predicate': '(condition_hi) or (condition_lo)', 'update_lo_1_predicate': ' not ((condition_hi) or (condition_lo))', 'update_lo_2_predicate': '( not (condition_hi)) and (condition_lo)', 'output_value': 'alu_lo'}, {'output_dst': 'ipv4.input_traffic_Bytes', 'update_hi_1_value': '(26)+(28)', 'update_hi_2_value': '(10)-(0)', 'update_lo_1_value': '(ipv4.p_size_bytes0)+(alu_lo)', 'update_lo_2_value': '(ipv4.p_size_bytes0)', 'condition_hi': '(((0-ipv4.p_size_bytes0)-alu_lo)+2)>0', 'condition_lo': '(alu_lo+3)==0', 'update_hi_1_predicate': '(condition_hi) and (condition_lo)', 'update_hi_2_predicate': ' not (condition_hi)', 'update_lo_1_predicate': '(condition_hi) or ( not (condition_lo))', 'update_lo_2_predicate': 'false', 'output_value': 'alu_lo'}], [{'output_dst': 'ipv4.branch', 'update_hi_1_value': '(0)-(5)', 'update_hi_2_value': '(3)-(4)', 'update_lo_1_value': '1', 'update_lo_2_value': '0', 'condition_hi': '(((0-ipv4.p_rtt0)-alu_lo)+30)<0', 'condition_lo': '(((0-ipv4.p_rtt0)-alu_hi)+29)<0', 'update_hi_1_predicate': '( not (condition_hi)) and (condition_lo)', 'update_hi_2_predicate': 'false', 'update_lo_1_predicate': ' not (condition_lo)', 'update_lo_2_predicate': '(condition_hi) and (condition_lo)', 'output_value': 'alu_lo'}, {'output_dst': 'ipv4.num_pkts_with_rtt', 'update_hi_1_value': '(0)-(0)', 'update_hi_2_value': '(23)-(31)', 'update_lo_1_value': '(alu_hi)-(ipv4.branch)', 'update_lo_2_value': '(ipv4.branch)+(alu_lo)', 'condition_hi': '(0+1)<0', 'condition_lo': '(((0-ipv4.branch)+alu_hi)+1)==0', 'update_hi_1_predicate': '(condition_hi) and (condition_lo)', 'update_hi_2_predicate': 'false', 'update_lo_1_predicate': 'false', 'update_lo_2_predicate': '( not (condition_hi)) and (condition_lo)', 'output_value': 'alu_lo'}, {'output_dst': 'ipv4.sum_rtt_Tr', 'update_hi_1_value': '(22)', 'update_hi_2_value': '(14)-(30)', 'update_lo_1_value': '(ipv4.p_rtt0)+(alu_lo)', 'update_lo_2_value': '(ipv4.p_rtt0)+(alu_lo)', 'condition_hi': '(((0-ipv4.branch)-0)+1) not =0', 'condition_lo': '(((0-ipv4.p_rtt0)+alu_lo)+1)==0', 'update_hi_1_predicate': 'false', 'update_hi_2_predicate': '(condition_hi) or (condition_lo)', 'update_lo_1_predicate': ' not ((condition_hi) or (condition_lo))', 'update_lo_2_predicate': '( not (condition_hi)) and (condition_lo)', 'output_value': 'alu_lo'}, {'output_dst': 'ipv4.input_traffic_Bytes', 'update_hi_1_value': '(26)+(28)', 'update_hi_2_value': '(10)-(0)', 'update_lo_1_value': '(ipv4.p_size_bytes0)+(alu_lo)', 'update_lo_2_value': '(ipv4.p_size_bytes0)', 'condition_hi': '(((0-ipv4.p_size_bytes0)-alu_lo)+2)>0', 'condition_lo': '(alu_lo+3)==0', 'update_hi_1_predicate': '(condition_hi) and (condition_lo)', 'update_hi_2_predicate': ' not (condition_hi)', 'update_lo_1_predicate': '(condition_hi) or ( not (condition_lo))', 'update_lo_2_predicate': 'false', 'output_value': 'alu_lo'}]]
+[[], []]
+[[1, 0, 0, 1], [0, 1, 1, 0]]
+num pipeline stages:  2
+num_state_groups:  4
+num alus per stage:  0
+--------------------------------------------------
+----------------------------------------------------
+#include <tofino/intrinsic_metadata.p4>
+#include "tofino/stateful_alu_blackbox.p4"
+
+/* Declare Header */
+header_type ethernet_t {
+    fields {
+        dstAddr : 48;
+        srcAddr : 48;
+        etherType : 16;
+    }
+}
+
+header ethernet_t ethernet;
+
+/* // XXX: legacy code below
+header_type ipv4_t {
+    fields {
+        // TODO: Have a hard limit on 5 fields for now. Ensure this in the tofino code generator.
+        pkt_0 : 32 (signed);
+        pkt_1 : 32 (signed);
+        pkt_2 : 32 (signed);
+        pkt_3 : 32 (signed);
+        pkt_4 : 32 (signed);
+    }
+}*/
+
+/* ruijief: added support for customized PHV container fields. */
+header_type ipv4_t {
+    fields {
+ 
+        p_size_bytes0 : 32 (signed);   
+        sum_rtt_Tr : 32 (signed);   
+        branch : 32 (signed);   
+        input_traffic_Bytes : 32 (signed);   
+        num_pkts_with_rtt : 32 (signed);   
+        p_rtt0 : 32 (signed);  
+    }
+}
+
+header ipv4_t ipv4;
+
+/* Declare Parser */
+parser start {
+	return select(current(96,16)){
+		0x0800: parse_ethernet;
+	}
+}
+
+parser parse_ethernet {
+    extract(ethernet);
+    return select(latest.etherType) {
+        /** Fill Whatever ***/
+        0x0800     : parse_ipv4;
+        default: ingress;
+    }
+}
+parser parse_ipv4 {
+    extract(ipv4);
+    return ingress;
+}
+
+// TODO: Derive MAX_SIZE from Domino program.
+#define MAX_SIZE 10
+
+register reg_0 {
+    width : 64;
+    instance_count : MAX_SIZE;
+    attributes : signed;
+}
+
+register reg_1 {
+    width : 64;
+    instance_count : MAX_SIZE;
+    attributes : signed;
+}
+
+register reg_2 {
+    width : 64;
+    instance_count : MAX_SIZE;
+    attributes : signed;
+}
+
+register reg_3 {
+    width : 64;
+    instance_count : MAX_SIZE;
+    attributes : signed;
+}
+
+
+
+  
+    
+// Stateful ALU blackbox
+blackbox stateful_alu test_stateful_alu_0_0_blackbox {
+    
+    
+    reg                       : reg_0;
+    condition_lo              : (((0-ipv4.p_rtt0)-alu_hi)+29)<0;
+    condition_hi              : (((0-ipv4.p_rtt0)-alu_lo)+30)<0;
+    update_lo_1_predicate     :  not (condition_lo);
+    update_lo_1_value         : 1;
+    update_lo_2_predicate     : (condition_hi) and (condition_lo);
+    update_lo_2_value         : 0;
+    update_hi_1_predicate     : ( not (condition_hi)) and (condition_lo);
+    update_hi_1_value         : (0)-(5);
+    update_hi_2_predicate     : false;
+    update_hi_2_value         : (3)-(4);
+    output_predicate          : 1;
+    output_value              : alu_lo;
+    output_dst                : ipv4.branch;
+    
+    initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
+    initial_register_hi_value : 0;
+
+    
+}
+
+// Stateful ALU Action
+action test_stateful_alu_0_0_action () {
+    test_stateful_alu_0_0_blackbox.execute_stateful_alu(0);
+    // TODO: Replace 0 with appropriate value for array-based registers. The
+    // appropriate value can be determined by parsing the .c file using the
+    // Domino compiler.
+}
+
+// Stateful ALU table
+@pragma ignore_table_dependency test_stateful_alu_1_0_table
+@pragma stage 0
+table test_stateful_alu_0_0_table {
+    actions {
+        test_stateful_alu_0_0_action;
+    }
+    default_action: test_stateful_alu_0_0_action;
+}
+
+  
+    
+  
+    
+  
+    
+// Stateful ALU blackbox
+blackbox stateful_alu test_stateful_alu_0_3_blackbox {
+    
+    
+    reg                       : reg_3;
+    condition_lo              : (alu_lo+3)==0;
+    condition_hi              : (((0-ipv4.p_size_bytes0)-alu_lo)+2)>0;
+    update_lo_1_predicate     : (condition_hi) or ( not (condition_lo));
+    update_lo_1_value         : (ipv4.p_size_bytes0)+(alu_lo);
+    update_lo_2_predicate     : false;
+    update_lo_2_value         : (ipv4.p_size_bytes0);
+    update_hi_1_predicate     : (condition_hi) and (condition_lo);
+    update_hi_1_value         : (26)+(28);
+    update_hi_2_predicate     :  not (condition_hi);
+    update_hi_2_value         : (10)-(0);
+    output_predicate          : 1;
+    output_value              : alu_lo;
+    output_dst                : ipv4.input_traffic_Bytes;
+    
+    initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
+    initial_register_hi_value : 0;
+
+    
+}
+
+// Stateful ALU Action
+action test_stateful_alu_0_3_action () {
+    test_stateful_alu_0_3_blackbox.execute_stateful_alu(0);
+    // TODO: Replace 0 with appropriate value for array-based registers. The
+    // appropriate value can be determined by parsing the .c file using the
+    // Domino compiler.
+}
+
+// Stateful ALU table
+@pragma ignore_table_dependency test_stateful_alu_1_3_table
+@pragma stage 0
+table test_stateful_alu_0_3_table {
+    actions {
+        test_stateful_alu_0_3_action;
+    }
+    default_action: test_stateful_alu_0_3_action;
+}
+
+  
+
+  
+    
+  
+    
+// Stateful ALU blackbox
+blackbox stateful_alu test_stateful_alu_1_1_blackbox {
+    
+    
+    reg                       : reg_1;
+    condition_lo              : (((0-ipv4.branch)+alu_hi)+1)==0;
+    condition_hi              : (0+1)<0;
+    update_lo_1_predicate     : false;
+    update_lo_1_value         : (alu_hi)-(ipv4.branch);
+    update_lo_2_predicate     : ( not (condition_hi)) and (condition_lo);
+    update_lo_2_value         : (ipv4.branch)+(alu_lo);
+    update_hi_1_predicate     : (condition_hi) and (condition_lo);
+    update_hi_1_value         : (0)-(0);
+    update_hi_2_predicate     : false;
+    update_hi_2_value         : (23)-(31);
+    output_predicate          : 1;
+    output_value              : alu_lo;
+    output_dst                : ipv4.num_pkts_with_rtt;
+    
+    initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
+    initial_register_hi_value : 0;
+
+    
+}
+
+// Stateful ALU Action
+action test_stateful_alu_1_1_action () {
+    test_stateful_alu_1_1_blackbox.execute_stateful_alu(0);
+    // TODO: Replace 0 with appropriate value for array-based registers. The
+    // appropriate value can be determined by parsing the .c file using the
+    // Domino compiler.
+}
+
+// Stateful ALU table
+@pragma ignore_table_dependency test_stateful_alu_1_1_table
+@pragma stage 1
+table test_stateful_alu_1_1_table {
+    actions {
+        test_stateful_alu_1_1_action;
+    }
+    default_action: test_stateful_alu_1_1_action;
+}
+
+  
+    
+// Stateful ALU blackbox
+blackbox stateful_alu test_stateful_alu_1_2_blackbox {
+    
+    
+    reg                       : reg_2;
+    condition_lo              : (((0-ipv4.p_rtt0)+alu_lo)+1)==0;
+    condition_hi              : (((0-ipv4.branch)-0)+1) not =0;
+    update_lo_1_predicate     :  not ((condition_hi) or (condition_lo));
+    update_lo_1_value         : (ipv4.p_rtt0)+(alu_lo);
+    update_lo_2_predicate     : ( not (condition_hi)) and (condition_lo);
+    update_lo_2_value         : (ipv4.p_rtt0)+(alu_lo);
+    update_hi_1_predicate     : false;
+    update_hi_1_value         : (22);
+    update_hi_2_predicate     : (condition_hi) or (condition_lo);
+    update_hi_2_value         : (14)-(30);
+    output_predicate          : 1;
+    output_value              : alu_lo;
+    output_dst                : ipv4.sum_rtt_Tr;
+    
+    initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
+    initial_register_hi_value : 0;
+
+    
+}
+
+// Stateful ALU Action
+action test_stateful_alu_1_2_action () {
+    test_stateful_alu_1_2_blackbox.execute_stateful_alu(0);
+    // TODO: Replace 0 with appropriate value for array-based registers. The
+    // appropriate value can be determined by parsing the .c file using the
+    // Domino compiler.
+}
+
+// Stateful ALU table
+@pragma ignore_table_dependency test_stateful_alu_1_2_table
+@pragma stage 1
+table test_stateful_alu_1_2_table {
+    actions {
+        test_stateful_alu_1_2_action;
+    }
+    default_action: test_stateful_alu_1_2_action;
+}
+
+  
+    
+  
+
+
+
+  
+
+  
+
+
+// Required: mac_forward table for forwarding to switch CPU.
+action set_egr(egress_spec) {
+    modify_field(ig_intr_md_for_tm.ucast_egress_port, egress_spec);
+}
+table mac_forward {
+    reads {
+        ethernet.dstAddr : exact;
+    }
+    actions {
+        set_egr;
+    }
+    size:1;
+}
+
+control ingress {
+    // Call all the required ALUs.
+    
+      
+      
+        
+          apply(test_stateful_alu_0_0_table);
+        
+      
+        
+      
+        
+      
+        
+          apply(test_stateful_alu_0_3_table);
+        
+      
+    
+      
+      
+        
+      
+        
+          apply(test_stateful_alu_1_1_table);
+        
+      
+        
+          apply(test_stateful_alu_1_2_table);
+        
+      
+        
+      
+    
+    // MAC Forwarding by default
+    apply(mac_forward);
+}
+
+control egress {
+
+}
+Time taken: 2.4326109886169434 s

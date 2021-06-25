@@ -1,5 +1,5 @@
 SKETCH version 1.7.6
-Benchmark = _flowlets_out/comp_2_stateless_pkt_next_hop1_bnd_1.sk
+Benchmark = ../all_tests/_flowlets_out/comp_2_stateless_pkt_next_hop1_bnd_1.sk
 /* BEGIN PACKAGE ANONYMOUS*/
 /*comp_2_.._bnd_1.sk:1*/
 
@@ -54,7 +54,7 @@ void comp_2 (int pkt_saved_hop_pkt_id0_2, ref int _out)/*comp_2_.._bnd_1.sk:54*/
 void sketch (int pkt_saved_hop_pkt_id0_2)/*comp_2_.._bnd_1.sk:60*/
 {
   int _out_s10 = 0;
-  alu(0, pkt_saved_hop_pkt_id0_2, pkt_saved_hop_pkt_id0_2, 31, _out_s10)//{};
+  alu(0, pkt_saved_hop_pkt_id0_2, pkt_saved_hop_pkt_id0_2, 0, _out_s10)//{};
   int _out_s4 = 0;
   comp_2(pkt_saved_hop_pkt_id0_2, _out_s4);
   assert (_out_s10 == _out_s4); //Assert at comp_2_.._bnd_1.sk:64 (0)
@@ -71,4 +71,4 @@ void sketch__WrapperNospec (int pkt_saved_hop_pkt_id0_2)/*comp_2_.._bnd_1.sk:60*
 { }
 /* END PACKAGE ANONYMOUS*/
 [SKETCH] DONE
-Total time = 176
+Total time = 218

@@ -4,20 +4,21 @@ import populate_j2
 from ply import lex # for parsing PHV vars in stateful ALUs
 import lexerRules
 import re
+
 class P4Codegen(object):
 
-
-
-    def __init__(self, table_info : ILP_Gurobi.ILP_TableInfo, ilp_output : ILP_Gurobi.ILP_Output, sketch_name):
+    def __init__(self, table_info : ILP_Gurobi.ILP_TableInfo, ilp_output : ILP_Gurobi.ILP_Output, sketch_name, rename_packet_fields = False):
         #sketch_name, num_alus_per_stage, num_state_groups, num_pipeline_stages, stateful_alus=None, stateless_alus=None, salu_configs=None
         self.sketch_name = sketch_name 
         self.table_info = table_info
         self.ilp_output = ilp_output 
         ilp_output.compute_alus_per_stage()
         self.num_pipeline_stages = ilp_output.num_stages 
-
+        self.rename_packet_fields = rename_packet_fields 
         print('================P4Codegen')
         print(self.table_info.alus)
+        self.packet_field_numbers = 0 
+        self.packet_field_to_numbered_field = {}
         self._process_alus()
         self._allocate_phv_container_struct_fields()
         self._postprocess_phv_container_fields()
@@ -28,16 +29,26 @@ class P4Codegen(object):
             self.num_state_groups, self.num_pipeline_stages, self.stateful_alus_matrix, \
                 self.stateless_alus_matrix, self.salu_configs_matrix, self.packet_fields)
 
+    def map_packet_field_to_numbered_field(self, packet_field):
+        self.packet_field_to_numbered_field[packet_field] = self.packet_field_numbers 
+        a = self.packet_field_numbers 
+        self.packet_field_numbers += 1
+        return a
 
+    def rename_packet_field(self, packet_field):
+        if self.rename_packet_fields: 
+            return 'ipv4.pkt_' + str(self.map_packet_field_to_numbered_field(packet_field))
+        else: 
+            return 'ipv4.' + packet_field 
+    
     def _postprocess_phv_container_fields(self):
         for alu in self.table_info.alus:
             if alu.get_type() == 'STATELESS':
                 # Perform substitution to add the ipv4.* prefix into variables.
-                alu.set_inputs(list(map(lambda x: 'ipv4.' + x if x in self.packet_fields else x, alu.inputs)))
-                alu.set_output('ipv4.' + alu.output if alu.output in self.packet_fields else alu.output)
+                alu.set_inputs(list(map(lambda x: self.rename_packet_field(x) if x in self.packet_fields else x, alu.inputs)))
+                alu.set_output(self.rename_packet_field(alu.output) if alu.output in self.packet_fields else alu.output)
             if alu.get_type() == 'STATEFUL':
                 pass # done in _allocate_phv_container_struct_fields already
-    
 
     def _allocate_phv_container_struct_fields(self):
         self.packet_fields = set()
@@ -83,10 +94,19 @@ class P4Codegen(object):
                                 # a packet field that belongs in the PHV container.
                                 print('p4_codegen: PHV var found for stateful ALU, it is ', tok.value)
                                 self.packet_fields.add(tok.value)
-                                tok.value = 'ipv4.' + tok.value
+                                tok.value = self.rename_packet_field(tok.value) #'ipv4.' + tok.value
                         toks.append(tok)
-                    alu.var_expressions[lhs] = ''.join(list(map(lambda x: x.value, toks)))
-                
+                    x = ''.join(list(map(lambda x: x.value, toks)))
+                    x = x.replace('&&', ' and ')
+                    x = x.replace('!', ' not ')
+                    x = x.replace('||', ' or ')
+                    x = x.replace('register_lo', 'alu_lo')
+                    x = x.replace('register_hi', 'alu_hi')
+                    # XXX: this is a bad fix, we should find a better solution for the future,
+                    # but subbing '!' for 'not' will miscompile '!=' into 'not ='. Hence we
+                    # do an additional sub that subs 'not =' with '!='.
+                    x = x.replace('not =', '!=')
+                    alu.var_expressions[lhs] = x
 
     def _process_alus(self):
         self.stateless_alus = []

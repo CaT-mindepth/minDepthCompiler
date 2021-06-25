@@ -152,40 +152,41 @@ class SALU(GenericALU):
 
     # copied over from chipc project
     def eval_bool_op(self, op1, op2, opcode):
+        print(' | -> eval_bool_op: op1 ', op1, ' ; op2 ', op2, ' ; opcode: ', opcode)
         if opcode == 0:
             template_str = 'false'
         elif opcode == 1:
-            template_str = 'not(({op1}) or ({op2}))'
+            template_str = '!(({op1}) || ({op2}))'
         elif opcode == 2:
-            template_str = '(not({op1})) and ({op2})'
+            template_str = '(!({op1})) && ({op2})'
         elif opcode == 3:
-            template_str = 'not({op1})'
+            template_str = '!({op1})'
         elif opcode == 4:
-            template_str = '({op1}) and (not({op2}))'
+            template_str = '({op1}) && (!({op2}))'
         elif opcode == 5:
-            template_str = 'not({op2})'
+            template_str = '!({op2})'
         elif opcode == 6:
             # This used to be XOR; it's been switched to AND because
             # the Tofino compiler doesn't accept it (issue #20).
-            template_str = '({op1}) and ({op2})'
+            template_str = '({op1}) && ({op2})'
         elif opcode == 7:
-            template_str = 'not(({op1}) and ({op2}))'
+            template_str = '!(({op1}) && ({op2}))'
         elif opcode == 8:
-            template_str = '({op1}) and ({op2})'
+            template_str = '({op1}) && ({op2})'
         elif opcode == 9:
             # This used to be XOR; it's been switched to AND because
             # the Tofino compiler doesn't accept it (issue #20).
-            template_str = 'not(({op1}) and ({op2}))'
+            template_str = '~(({op1}) && ({op2}))'
         elif opcode == 10:
             template_str = '({op2})'
         elif opcode == 11:
-            template_str = '(not({op1})) or ({op2})'
+            template_str = '(!({op1})) || ({op2})'
         elif opcode == 12:
             template_str = '({op1})'
         elif opcode == 13:
-            template_str = '({op1}) or (not({op2}))'
+            template_str = '({op1}) || (!({op2}))'
         elif opcode == 14:
-            template_str = '({op1}) or ({op2})'
+            template_str = '({op1}) || ({op2})'
         else:
             template_str = 'true'
 
@@ -254,8 +255,9 @@ class SALU(GenericALU):
                         bool_op_operand1 = toks[3].value
                         bool_op_operand2 = toks[4].value
                         bool_op_lhs = toks[5].value
-                        bool_op_rhs_expression = self.eval_bool_op(bool_op_opcode, bool_op_operand1, bool_op_operand2)
+                        bool_op_rhs_expression = self.eval_bool_op(bool_op_operand1, bool_op_operand2, bool_op_opcode)
                         self.var_expressions[bool_op_lhs] = bool_op_rhs_expression
+                        print('PARSING BOOL_OP <---------------------- LHS: ', bool_op_lhs, ' | RHS: ', bool_op_rhs_expression)
                 # Case IV: _out[1] -> output_value
                 # In this case, toks[0] is ID, toks[1] is LBRACKET, toks[2] is 'NUMBER' with value '1', toks[3] is 'RBRACKET'
                 if toks[0].type == 'ID' and toks[0].value.startswith('_out') \
@@ -427,12 +429,14 @@ class SketchOutputProcessor(object):
         return (lambda x: x[0] + '_' + x[1])(file.split('_'))
 
     def find_output_dst(self, input_file):
-        with open(input_file, "r") as f:
+        sketch_file = input_file[:-4] # sans '.out'
+        print(' find_output_dst: reading from sketch file ', sketch_file)
+        with open(sketch_file, "r") as f:
             specname = self.filename_to_specname(input_file)
             l = f.readline()
             outs = []
             print('find_output_dst: trying to find `void ' + specname + '`')
-            while not l.startswith("void " + specname):
+            while not l.startswith("int[2] " + specname):
                 #print('curr line: ' + l)
                 l = f.readline()
             print('done')
@@ -602,9 +606,20 @@ class SketchOutputProcessor(object):
         num_alus = len(self.alus)
         alu_adjacency_list = [[] for i in range(num_alus)]
         for alu in self.alus:
+            print('+---> dependencies of ALU ', alu.id, ': ', self.dependencies[alu])
             for nbor in self.dependencies[alu]:
-                alu_adjacency_list[alu.id].append(nbor)
+                alu_adjacency_list[nbor.id].append(alu)
         return ILP_Gurobi.ILP_TableInfo(table_name, num_alus, self.alus, alu_adjacency_list)
+
+    def to_ILP_ActionInfo(self, table_name, action_name):
+        import ILP_Gurobi
+        num_alus = len(self.alus)
+        alu_adjacency_list = [[] for i in range(num_alus)]
+        for alu in self.alus:
+            print('+---> dependencies of ALU ', alu.id, ': ', self.dependencies[alu])
+            for nbor in self.dependencies[alu]:
+                alu_adjacency_list[nbor.id].append(alu)
+        return ILP_Gurobi.ILP_ActionInfo(table_name, action_name, num_alus, self.alus, alu_adjacency_list)
 
     # return part of ILP solver configuration,
     # more specifically the part that specifies the

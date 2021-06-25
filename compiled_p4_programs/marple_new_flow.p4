@@ -28,8 +28,8 @@ header_type ipv4_t {
 header_type ipv4_t {
     fields {
  
-        p_new2 : 32 (signed);   
-        p_new0 : 32 (signed);  
+        p_new0 : 32 (signed);   
+        p_new2 : 32 (signed);  
     }
 }
 
@@ -71,16 +71,17 @@ register reg_0 {
 // Stateful ALU blackbox
 blackbox stateful_alu test_stateful_alu_0_0_blackbox {
     
+    
     reg                       : reg_0;
-    condition_lo              : (ipv4.p_new0+register_hi)>0;
-    condition_hi              : ((0-register_lo)+1)>0;
-    update_lo_1_predicate     : true;
-    update_lo_1_value         : 1;
-    update_lo_2_predicate     : true;
-    update_lo_2_value         : (1)-(register_lo);
-    update_hi_1_predicate     : true;
-    update_hi_1_value         : (ipv4.p_new0)+(0);
-    update_hi_2_predicate     : true;
+    condition_lo              : ((0-register_lo)+3)>0;
+    condition_hi              : (0+register_lo)==0;
+    update_lo_1_predicate     : false;
+    update_lo_1_value         : (ipv4.p_new0)-(31);
+    update_lo_2_predicate     : (condition_hi) and (condition_lo);
+    update_lo_2_value         : 1;
+    update_hi_1_predicate     :  not ((condition_hi) and (condition_lo));
+    update_hi_1_value         : (ipv4.p_new0);
+    update_hi_2_predicate     : (condition_hi);
     update_hi_2_value         : 1;
     output_predicate          : 1;
     output_value              : register_hi;
