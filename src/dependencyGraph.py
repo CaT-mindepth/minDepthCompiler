@@ -181,7 +181,6 @@ class DependencyGraph:
 		self.var_types = var_types
 		self.outputfilename = filename + "_3addr_code"
 
-
 		self.stmt_list = [] # list of statements
 		self.stmt_map = {} # key: lhs var, value: stmt (value is unique since input is in SSA)
 		self.read_write_flanks = {s:{} for s in self.state_variables} # key: state variable, value: {"read":read_flank, "write":write flank}

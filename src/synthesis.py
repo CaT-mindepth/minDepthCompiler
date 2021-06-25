@@ -8,6 +8,7 @@ import subprocess
 from sketch_output_processor import SketchOutputProcessor
 from dependencyGraph import Codelet
 from dependencyGraph import Statement
+import test_stats
 
 # Returns true if SSA variables v1 and v2 represent the same variable
 # TODO: update preprocessing code to store SSA info in a struct/class 
@@ -500,13 +501,13 @@ class StatefulComponent(object):
 		return str(self.codelet)
 
 class Synthesizer:
-	def __init__(self, state_vars, var_types, dep_graph, stateful_nodes, filename, p4_output_name):
+	def __init__(self, state_vars, var_types, dep_graph, stateful_nodes, filename, p4_output_name, stats: test_stats.Statistics = None):
 		self.state_vars = state_vars
 		self.var_types = var_types
 		self.filename = filename
 		self.templates_path = "templates"
 		self.output_dir = filename
-
+		self.stats = stats
 		try:
 			os.mkdir(self.output_dir)
 		except OSError:
@@ -522,8 +523,12 @@ class Synthesizer:
 		print("output dir", self.output_dir)
 		self.process_graph()
 		self.synth_output_processor = SketchOutputProcessor(self.comp_graph)
+		if self.stats != None:
+			self.stats.start_synthesis()
 		self.do_synthesis()
 		self.synth_output_processor.postprocessing()
+		if self.stats != None:
+			self.stats.end_synthesis()
 		print(self.synth_output_processor.to_ILP_str(table_name="NewTable"))
 
 
@@ -739,6 +744,8 @@ class Synthesizer:
 							self.merge_processed.add(pred)
 							self.merge_processed.add(node)
 							merged_component = self.perform_merge(pred, node)
+							if self.stats != None:
+								self.stats.incr_num_successful_merges()
 							self.recursive_merge() 
 							halt = True 
 					else:
@@ -927,10 +934,18 @@ class Synthesizer:
 		#self.transfer_branch_vars()
 		#print("------------------------------------------------- transfer components end. ------------------------------------")
 		#exit(1)
-
 		print("------------------------------------------------- Merging components... ------------------------------------")
+		if self.stats != None:
+			self.stats.update_num_components(len(list(self.comp_graph.nodes)))
+			self.stats.start_merging()
 		self.merge_components() 
+		if self.stats != None:
+			self.stats.end_merging()
 		print("------------------------------------------------- Merge components end. ------------------------------------")
+		print(' * number of components in current graph: ', len(list(self.comp_graph.nodes)))
+		if self.stats != None:
+			self.stats.update_num_postmerge_components(len(list(self.comp_graph.nodes)))
+		print('----------------------------------')
 		#exit(1)
 		self.comp_index = {} # component -> index
 		print("comp index", self.comp_index)
@@ -938,6 +953,7 @@ class Synthesizer:
 		print("Eliminate redundant outputs after merging")
 		i = 0
 		for comp in nx.topological_sort(self.comp_graph):
+			print(' -------- component ', i, ' is this: ', str(comp))
 			self.comp_index[comp] = i
 			print(i)
 			comp.print()
@@ -969,7 +985,6 @@ class Synthesizer:
 				for file in result_file:
 					self.synth_output_processor.process_stateless_output(file, comp.outputs[output_idx])
 					output_idx += 1
-
 		self.write_comp_graph()
 		# nx.draw(self.comp_graph)
 

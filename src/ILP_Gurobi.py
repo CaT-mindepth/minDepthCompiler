@@ -86,7 +86,7 @@ class ILP_TableInfo(object):
             self.table_dependencies.successor_deps, self.table_dependencies.reverse_deps, alu_dic, alu_dep_dic, table_list)
 
     # do ILP
-    def ILP(self):
+    def ILP(self, stats=None):
         # def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
         # match_dep: [(u, v)], where u and v are table names
         # action_dep: ...
@@ -95,10 +95,24 @@ class ILP_TableInfo(object):
         # alu_dic : map from table name to the number of ALUs in each table
         # alu_dep_dic: map from table name to dependency (edge) list between ALUs in each table
         # table_list: list of tables
+        if stats != None:
+            stats.start_ilp()
+        a=None
         if self.multi_table_mode:
-            return self.multi_table_ILP()
-        return gen_and_solve_ILP([], [], [], [], {self.table_name:len(self.alu_adjacency_list)}, \
-            {self.table_name: self.get_dependency_list()}, [self.table_name] )
+            a = self.multi_table_ILP()
+        else:
+            a = gen_and_solve_ILP([], [], [], [], {self.table_name:len(self.alu_adjacency_list)}, {self.table_name: self.get_dependency_list()}, [self.table_name] )
+        if stats != None:
+            stats.end_ilp()
+            a.find_number_of_stages()
+            a.compute_alus_per_stage()
+            stats.update_num_stages(a.num_stages)
+            stats.update_num_alus(self.num_alus)
+            num_statefuls = len(list(filter(lambda x: x.get_type() == 'STATEFUL', self.alus)))
+            stats.update_num_stateful_alus(num_statefuls)
+            stats.update_num_stateless_alus(self.num_alus - num_statefuls)
+            stats.update_num_alus_per_stage(list(map(lambda x: len(x), a.alus_per_stage)))
+        return a
 
 
 def ILP_MultiTable(ILP_Table):

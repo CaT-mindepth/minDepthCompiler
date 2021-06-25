@@ -54,7 +54,7 @@ class CodeGen:
       line = fdfd.readline()
 
 
-
+import test_stats
 if __name__ == "__main__":
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument("out_folder", help="test output folder")
@@ -62,11 +62,11 @@ if __name__ == "__main__":
   args = arg_parser.parse_args()
   out_folder = args.out_folder 
   log_file = args.out_file
-  tests = ['blue_decrease', 'blue_increase', 'flowlets', 'marple_tcp_nmo', 'marple_new_flow', 'sampling']
+  tests = ['blue_decrease', 'blue_increase', 'flowlets', 'marple_tcp_nmo', 'marple_new_flow', 'sampling', 'rcp_modified']
   log_fd = open(out_folder + '/' + log_file, 'w')
   for test_name in tests: 
     print('-------------------------- running test ', test_name, ' -----------------------------------')
-    start = time.time()
+    stats = test_stats.Statistics(test_name, log_fd)
     filename = test_name + '.in'
     output_folder_name = out_folder + '/' + '_' + test_name + '_out'
     p4outputname = out_folder + '/' + test_name + '.p4'
@@ -78,24 +78,30 @@ if __name__ == "__main__":
       print('STATE VARIABLES: ----------------- ', codeGen.state_variables)
       dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types)
       synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
-                                    dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes, output_folder_name, p4outputname)
+                                    dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes, \
+                                       output_folder_name, p4outputname, stats=stats)
       print('----- starting ILP Gurobi -----')
       ilp_table = synth_obj.synth_output_processor.to_ILP_TableInfo(table_name = 'T0')
       print("# alus: = ", ilp_table.get_num_alus())
-      ilp_output = ilp_table.ILP() 
+      ilp_output = ilp_table.ILP(stats) 
       import p4_codegen 
       codegen = p4_codegen.P4Codegen(ilp_table, ilp_output, "test")
       codegen.generate_p4_output('tofino_p4.j2', p4outputname)
-    end = time.time()
-    
-    print('---------------------------- finished testing ', test_name, '; statistics  ---------------------')
-    print("Time taken: {} s".format(end - start))
-    print('Num ALU stages: ', ilp_output.find_number_of_stages())
-    print('Num ALUs: ', ilp_table.get_num_alus())
-    print('------------------------------------------------------------------------------------------------')
+    stats.end()
+    stats.report()
+  #  print('---------------------------- finished testing ', test_name, '; statistics  ---------------------')
+  #  print("Time taken: {} s".format(end - start))
+  #  print('Num ALU stages: ', ilp_output.find_number_of_stages())
+  #  print('Num ALUs: ', ilp_table.get_num_alus())
+  #  print('------------------------------------------------------------------------------------------------')
 
-    log_fd.write('---------------------------- finished testing '+ test_name+ '; statistics  ---------------------\n')
-    log_fd.write("Time taken: {} s\n".format(end - start))
-    log_fd.write('Num ALU stages: ' + str(ilp_output.find_number_of_stages()) + '\n')
-    log_fd.write('Num ALUs: ' + str(ilp_table.get_num_alus()) + '\n')
-    log_fd.write('------------------------------------------------------------------------------------------------\n')
+#     - Num pairs of successful merges 
+#     - Time spent during merging
+#     - Number of ALUs per stage
+
+
+    #log_fd.write('---------------------------- finished testing '+ test_name+ '; statistics  ---------------------\n')
+    #log_fd.write("Time taken: {} s\n".format(end - start))
+    #log_fd.write('Num ALU stages: ' + str(ilp_output.find_number_of_stages()) + '\n')
+    #log_fd.write('Num ALUs: ' + str(ilp_table.get_num_alus()) + '\n')
+    #log_fd.write('------------------------------------------------------------------------------------------------\n')

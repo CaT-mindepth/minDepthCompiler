@@ -91,7 +91,8 @@ if __name__ == "__main__":
   table_name_to_ILP_table_name = {}
   ILP_table_name_to_action_map = {}
   ILP_table_name_deps = {}
-
+  action_name_to_ILP_table_name = {}
+  ILP_table_name_to_table_name = {}
   # parse table->action mapping
   with open(table_action_map) as fd:
     table_actions = fd.readlines() 
@@ -104,11 +105,14 @@ if __name__ == "__main__":
         tables.add(table_name)
         ILP_table_name = 'T' + str(table_num)        
         table_name_to_ILP_table_name[table_name] = ILP_table_name
+        ILP_table_name_to_table_name[ILP_table_name] = table_name
         table_num+=1
         ILP_table_name_to_action_map[ILP_table_name] = [ action_name ] 
+        action_name_to_ILP_table_name[action_name] = ILP_table_name
       else:
         ILP_table_name = table_name_to_ILP_table_name[table_name]
         ILP_table_name_to_action_map[ILP_table_name].append(action_name)
+        action_name_to_ILP_table_name[action_name] = ILP_table_name
       print(' - mapping table ', table_name, ' to ', ILP_table_name, ', it has action ', action_name)
 
   print(table_name_to_ILP_table_name)
@@ -135,6 +139,8 @@ if __name__ == "__main__":
   codeGens = []
   depGraphs = []
   synthObjs = []
+  actionObjs = []
+  action_names = []
   for file in filename: 
     print(' compiling action file ', file)
     with open(file, "r") as f:
@@ -144,12 +150,15 @@ if __name__ == "__main__":
                                     dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes, outputfilename, p4outputname)
       codeGens.append(codeGen)
       depGraphs.append(dep_graph_obj)
-      synthObjs.append(synthObjs)
-  exit(0)
+      synthObjs.append(synth_obj)
+      action_name = file.split('.')[0]
+      action_bjs.append(synth_obj.synth_output_processor.to_ILP_ActionInfo(action_name_to_ILP_table_name[action_name], action_name))
+      action_names.append(action_name)
 
   # ILP
   # self.synth_output_processor.schedule()
 	# TODO here
+  
   """
   print('----- starting ILP Gurobi -----')
 	ilp_table = self.synth_output_processor.to_ILP_TableInfo(table_name = 'T0')
