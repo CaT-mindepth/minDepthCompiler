@@ -107,6 +107,7 @@ class Statement:
 class Codelet:
 	def __init__(self, stmts=[]):
 		self.stmt_list = stmts
+		self.state_vars = []
 
 	def get_stmt_list(self):
 		return self.stmt_list
@@ -126,14 +127,21 @@ class Codelet:
 			stmt.replace_char(char_old, char_new)
 
 	def is_stateful(self, state_vars): # TODO: avoid recomputing this each time
+		# ruijief:
+		# This was for Domino ALU. For Tofino ALU we get two
+		# stateful updates, and in general we need to support
+		# multiple state variables. Hence we change this.
+		self.stateful = False
+		
 		for stmt in self.stmt_list:
 			if stmt.is_stateful:
 				self.stateful = True
-				self.state_var = stmt.get_state_var(state_vars)
-				return True
-
-		self.stateful = False
-		return False
+				svar = stmt.get_state_var(state_vars)
+				self.state_var = svar
+				self.state_vars.append(svar)
+				self.stateful = True
+		self.state_vars = list(set(self.state_vars)) # deduplicate
+		return self.stateful
 
 	def get_state_pkt_field(self):
 		# print("get_state_pkt_field")
@@ -153,15 +161,12 @@ class Codelet:
 		# an input is a use which has no define in the codelet
 		inputs = []
 		if self.stateful: # state_var is always an input for a stateful codelet
-			inputs.append(self.state_var)
+			# inputs.append(self.state_var)
+			inputs = list(set(self.state_vars)) # deduplicate
 		
 		inputs.extend([u for u in uses if u not in defines])
 
 		return list(set(inputs))
-
-	def get_state_var(self):
-		assert(self.stateful)
-		return self.get_state_pkt_field()
 
 	def get_outputs(self):
 		# all defines are outputs (may or may not be used by subsequent codelets)

@@ -265,7 +265,8 @@ class StatefulComponent(object):
 		self.codelet = stateful_codelet
 		self.salu_inputs = {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 0, 'register_hi': 0}
 		self.isStateful = True
-		self.state_vars = [stateful_codelet.state_var]
+		self.state_vars = stateful_codelet.state_vars # [stateful_codelet.state_var]
+		print('-------------------------------------- stateful codelet vars : ', self.state_vars , '--------------***')
 		self.state_pkt_fields = stateful_codelet.get_state_pkt_field()
 		self.comp_stmts = stateful_codelet.get_stmt_list()
 
@@ -874,12 +875,15 @@ class Synthesizer:
 	
 		for u in self.stateful_nodes:
 			print("stateful codelet ", i)
+			print(' codelet content: ', str(u))
+			u.is_stateful(self.state_vars)
+			print(' codelet has state vars: ', u.state_vars)
 			stateful_comp = StatefulComponent(u)
 			stateful_comp.set_name('comp_' + str(i))
 			self.components.append(stateful_comp)
 			codelet_component[str(u)] = stateful_comp
 			i += 1
-	
+		#exit(0)
 		for comp in nx.weakly_connected_components(self.dep_graph):
 			print("component ", i)
 			# print("".join([s.get_stmt() for v in comp for s in v.get_stmt_list()]))

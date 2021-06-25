@@ -89,4 +89,4 @@ class Statistics(object):
         self.fd.write('\nNumber of components pre-merge: ' + str(self.num_components))
         self.fd.write('\nNumber of successful merges: ' + str(self.num_successful_merges))
         self.fd.write('\nNumber of components post-merge: ' + str(self.num_postmerge_components))
-        self.fd.write('------------------------------------------------------------------------------------------------\n')
+        self.fd.write('\n------------------------------------------------------------------------------------------------\n')
