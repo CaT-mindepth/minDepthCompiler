@@ -227,11 +227,11 @@ int[2] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) 
     return result;
 }
 
-int[2] comp_0(int saved_hop, int pkt_new_hop0, bit pkt_br_tmp0){
+int[2] comp_0(int pkt_new_hop0, bit pkt_br_tmp0, int saved_hop){
 	int[2] _out;
+	int pkt_saved_hop_pkt_id0_0;
 	int pkt_next_hop1;
 	int pkt_saved_hop_pkt_id0_2;
-	int pkt_saved_hop_pkt_id0_0;
 	pkt_saved_hop_pkt_id0_0 = saved_hop;
 	pkt_saved_hop_pkt_id0_2 = pkt_br_tmp0 ? pkt_new_hop0 : pkt_saved_hop_pkt_id0_0;
 	saved_hop = pkt_saved_hop_pkt_id0_2;
@@ -241,9 +241,9 @@ int[2] comp_0(int saved_hop, int pkt_new_hop0, bit pkt_br_tmp0){
 	return _out;
 }
 
-harness void sketch(int saved_hop, int pkt_new_hop0, bit pkt_br_tmp0) {
+harness void sketch(int pkt_new_hop0, bit pkt_br_tmp0, int saved_hop) {
 	int[2] impl = salu(pkt_new_hop0, pkt_br_tmp0, saved_hop, 0);
-	int [2] spec = comp_0(saved_hop, pkt_new_hop0, pkt_br_tmp0);
+	int [2] spec = comp_0(pkt_new_hop0, pkt_br_tmp0, saved_hop);
 	assert(impl[0] == spec[0]);
 	assert(impl[1] == spec[1]);
 }

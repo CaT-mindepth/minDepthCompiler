@@ -227,11 +227,11 @@ int[2] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) 
     return result;
 }
 
-int[2] comp_1(int p_maxseq0, int p_tcpseq0, int count){
+int[2] comp_1(int count, int p_maxseq0, int p_tcpseq0){
 	int[2] _out;
-	int p_count1;
-	int p_count2;
 	int p_count0;
+	int p_count2;
+	int p_count1;
 	bit p_br_tmp0;
 	p_count0 = count;
 	p_count1 = p_count0 + 1;
@@ -242,9 +242,9 @@ int[2] comp_1(int p_maxseq0, int p_tcpseq0, int count){
 	return _out;
 }
 
-harness void sketch(int p_maxseq0, int p_tcpseq0, int count) {
+harness void sketch(int count, int p_maxseq0, int p_tcpseq0) {
 	int[2] impl = salu(p_maxseq0, p_tcpseq0, count, 0);
-	int [2] spec = comp_1(p_maxseq0, p_tcpseq0, count);
+	int [2] spec = comp_1(count, p_maxseq0, p_tcpseq0);
 	assert(impl[0] == spec[0]);
 	assert(impl[1] == spec[1]);
 }

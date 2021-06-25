@@ -143,19 +143,19 @@ void salu (int metadata_lo, int metadata_hi, int register_lo_0, int register_hi_
   int register_hi = register_hi_1;
   int register_lo = register_lo_0;
   int update_hi_1_value_s13 = 0;
-  compute_alu(1, 1, register_lo_0, update_hi_1_value_s13)//{};
+  compute_alu(1, metadata_lo, 3, update_hi_1_value_s13)//{};
   int update_hi_2_value_s23 = 0;
-  compute_alu(4, 1, 1, update_hi_2_value_s23)//{};
+  compute_alu(7, metadata_lo, 2, update_hi_2_value_s23)//{};
   int update_lo_1_value_s33 = 0;
-  compute_alu(4, metadata_lo, register_lo_0, update_lo_1_value_s33)//{};
+  compute_alu(4, metadata_lo, register_hi_1, update_lo_1_value_s33)//{};
   int update_lo_2_value_s43 = 0;
-  compute_alu(3, metadata_hi, 0, update_lo_2_value_s43)//{};
-  bit condition_hi_s55 = (((0 - metadata_lo) + register_lo_0) + 1) < 0;
-  bit condition_lo_s67 = (((0 - metadata_lo) + register_lo_0) + 2) < 0;
+  compute_alu(2, 27, 13, update_lo_2_value_s43)//{};
+  bit condition_hi_s55 = (((0 - metadata_lo) + register_lo_0) + 2) != 0;
+  bit condition_lo_s67 = (((0 - metadata_lo) + register_lo_0) + 2) > 0;
   bit update_hi_1_predicate_s69 = 0;
-  bool_op(2, condition_hi_s55, condition_lo_s67, update_hi_1_predicate_s69);
+  bool_op(0, condition_hi_s55, condition_lo_s67, update_hi_1_predicate_s69);
   bit update_hi_2_predicate_s71 = 0;
-  bool_op(10, condition_hi_s55, condition_lo_s67, update_hi_2_predicate_s71);
+  bool_op(4, condition_hi_s55, condition_lo_s67, update_hi_2_predicate_s71);
   bit update_lo_1_predicate_s73 = 0;
   bool_op(15, condition_hi_s55, condition_lo_s67, update_lo_1_predicate_s73);
   bit update_lo_2_predicate_s75 = 0;
@@ -219,4 +219,4 @@ void sketch__WrapperNospec (int pkt_arrival0, int last_time)/*comp_0_.._bnd_1.sk
 { }
 /* END PACKAGE ANONYMOUS*/
 [SKETCH] DONE
-Total time = 290
+Total time = 332

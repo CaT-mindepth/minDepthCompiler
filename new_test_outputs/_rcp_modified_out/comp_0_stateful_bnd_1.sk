@@ -227,21 +227,19 @@ int[2] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) 
     return result;
 }
 
-int[2] comp_0(int p_size_bytes0, int input_traffic_Bytes){
+int[2] comp_0(int p_rtt0, int branch){
 	int[2] _out;
-	int p_input_traffic_Bytes0;
-	int p_input_traffic_Bytes1;
-	p_input_traffic_Bytes0 = input_traffic_Bytes;
-	p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0;
-	input_traffic_Bytes = p_input_traffic_Bytes1;
-	_out[0] = input_traffic_Bytes;
-	_out[1] = input_traffic_Bytes;
+	int p_branch0;
+	p_branch0 = branch;
+	branch = (p_rtt0 < 30) ? 1 : 0;
+	_out[0] = branch;
+	_out[1] = branch;
 	return _out;
 }
 
-harness void sketch(int p_size_bytes0, int input_traffic_Bytes) {
-	int[2] impl = salu(p_size_bytes0, 0, input_traffic_Bytes, 0);
-	int [2] spec = comp_0(p_size_bytes0, input_traffic_Bytes);
+harness void sketch(int p_rtt0, int branch) {
+	int[2] impl = salu(p_rtt0, 0, branch, 0);
+	int [2] spec = comp_0(p_rtt0, branch);
 	assert(impl[0] == spec[0]);
 	assert(impl[1] == spec[1]);
 }

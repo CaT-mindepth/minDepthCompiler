@@ -229,8 +229,8 @@ int[2] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) 
 
 int[2] comp_1(bit p_br_tmp0, int count){
 	int[2] _out;
-	int p_count1;
 	int p_count2;
+	int p_count1;
 	int p_count0;
 	p_count0 = count;
 	p_count1 = p_count0 + 1;

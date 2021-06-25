@@ -54,7 +54,7 @@ void comp_0 (int p_now0, ref int _out)/*comp_0_.._bnd_1.sk:54*/
 void sketch (int p_now0)/*comp_0_.._bnd_1.sk:60*/
 {
   int _out_s10 = 0;
-  alu(5, p_now0, p_now0, 1, _out_s10)//{};
+  alu(5, p_now0, 1, 1, _out_s10)//{};
   int _out_s4 = 0;
   comp_0(p_now0, _out_s4);
   assert (_out_s10 == _out_s4); //Assert at comp_0_.._bnd_1.sk:64 (0)
@@ -71,4 +71,4 @@ void sketch__WrapperNospec (int p_now0)/*comp_0_.._bnd_1.sk:60*/
 { }
 /* END PACKAGE ANONYMOUS*/
 [SKETCH] DONE
-Total time = 174
+Total time = 200

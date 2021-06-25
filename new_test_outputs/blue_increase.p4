@@ -79,15 +79,15 @@ blackbox stateful_alu test_stateful_alu_1_0_blackbox {
     
     reg                       : reg_0;
     condition_lo              : (ipv4.p_now_plus_free1-alu_lo)>0;
-    condition_hi              : (alu_lo+1)>0;
+    condition_hi              : (ipv4.p_now0+12)<0;
     update_lo_1_predicate     : false;
-    update_lo_1_value         : (21)-(27);
-    update_lo_2_predicate     : ( not (condition_hi)) or (condition_lo);
-    update_lo_2_value         : (ipv4.p_now0)+(0);
-    update_hi_1_predicate     : (condition_hi) and (condition_lo);
+    update_lo_1_value         : (0)-(2);
+    update_lo_2_predicate     : ( not (condition_hi)) and (condition_lo);
+    update_lo_2_value         : (ipv4.p_now0);
+    update_hi_1_predicate     : ( not (condition_hi)) and (condition_lo);
     update_hi_1_value         : (1)+(alu_hi);
-    update_hi_2_predicate     :  not (condition_hi);
-    update_hi_2_value         : 1;
+    update_hi_2_predicate     : false;
+    update_hi_2_value         : (0)+(6);
     output_predicate          : 1;
     output_value              : alu_hi;
     output_dst                : ipv4.p_mark;

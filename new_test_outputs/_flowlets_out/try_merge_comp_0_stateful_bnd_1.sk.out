@@ -88,7 +88,7 @@ void bool_op (int opcode, bit o1, bit o2, ref bit _out0)/*try_mer.._bnd_1.sk:79*
 }
 /*try_mer.._bnd_1.sk:230*/
 
-void comp_0 (int saved_hop_0, int pkt_new_hop0, bit pkt_br_tmp0, ref int[2] _out0)/*try_mer.._bnd_1.sk:230*/
+void comp_0 (int pkt_new_hop0, bit pkt_br_tmp0, int saved_hop_0, ref int[2] _out0)/*try_mer.._bnd_1.sk:230*/
 {
   _out0 = ((int[2])0);
   int pkt_saved_hop_pkt_id0_2 = (pkt_br_tmp0 ? pkt_new_hop0 : saved_hop_0);
@@ -143,23 +143,23 @@ void salu (int metadata_lo, int metadata_hi, int register_lo_0, int register_hi_
   _out0 = ((int[2])0);
   int register_lo = register_lo_0;
   int update_hi_1_value_s13 = 0;
-  compute_alu(1, 7, 0, update_hi_1_value_s13)//{};
+  compute_alu(0, 0, register_lo_0, update_hi_1_value_s13)//{};
   int update_hi_2_value_s23 = 0;
-  compute_alu(1, 11, 23, update_hi_2_value_s23)//{};
+  compute_alu(4, metadata_hi, register_hi_1, update_hi_2_value_s23)//{};
   int update_lo_1_value_s33 = 0;
-  compute_alu(1, metadata_lo, register_hi_1, update_lo_1_value_s33)//{};
+  compute_alu(2, 19, 15, update_lo_1_value_s33)//{};
   int update_lo_2_value_s43 = 0;
-  compute_alu(3, metadata_lo, 0, update_lo_2_value_s43)//{};
-  bit condition_hi_s55 = (((0 - metadata_hi) - register_hi_1) + 1) > 0;
-  bit condition_lo_s67 = (((0 - metadata_lo) - register_lo_0) + 2) > 0;
+  compute_alu(4, metadata_lo, 4, update_lo_2_value_s43)//{};
+  bit condition_hi_s55 = (((0 - metadata_lo) - register_hi_1) + 2) == 0;
+  bit condition_lo_s67 = ((0 - metadata_hi) - 0) == 0;
   bit update_hi_1_predicate_s69 = 0;
   bool_op(0, condition_hi_s55, condition_lo_s67, update_hi_1_predicate_s69);
   bit update_hi_2_predicate_s71 = 0;
   bool_op(0, condition_hi_s55, condition_lo_s67, update_hi_2_predicate_s71);
   bit update_lo_1_predicate_s73 = 0;
-  bool_op(3, condition_hi_s55, condition_lo_s67, update_lo_1_predicate_s73);
+  bool_op(0, condition_hi_s55, condition_lo_s67, update_lo_1_predicate_s73);
   bit update_lo_2_predicate_s75 = 0;
-  bool_op(0, condition_hi_s55, condition_lo_s67, update_lo_2_predicate_s75);
+  bool_op(5, condition_hi_s55, condition_lo_s67, update_lo_2_predicate_s75);
   assert (!(update_hi_1_predicate_s69 && update_hi_2_predicate_s71)); //ASSERTION CAN NOT BE SATISFIED: try_mer.._bnd_1.sk:194 Assert at try_mer.._bnd_1.sk:194 (1)
   assert (!(update_lo_1_predicate_s73 && update_lo_2_predicate_s75)); //ASSERTION CAN NOT BE SATISFIED: try_mer.._bnd_1.sk:205 Assert at try_mer.._bnd_1.sk:205 (1)
   if(update_lo_1_predicate_s73 && (!(update_lo_2_predicate_s75)))/*try_mer.._bnd_1.sk:206*/
@@ -183,25 +183,25 @@ void salu (int metadata_lo, int metadata_hi, int register_lo_0, int register_hi_
 }
 /*try_mer.._bnd_1.sk:244*/
 
-void sketch (int saved_hop, int pkt_new_hop0, bit pkt_br_tmp0)/*try_mer.._bnd_1.sk:244*/
+void sketch (int pkt_new_hop0, bit pkt_br_tmp0, int saved_hop)/*try_mer.._bnd_1.sk:244*/
 {
   int[2] impl_s1 = {0,0};
   salu(pkt_new_hop0, pkt_br_tmp0, saved_hop, 0, impl_s1);
   int[2] spec_s3 = {0,0};
-  comp_0(saved_hop, pkt_new_hop0, pkt_br_tmp0, spec_s3);
+  comp_0(pkt_new_hop0, pkt_br_tmp0, saved_hop, spec_s3);
   assert ((impl_s1[0]) == (spec_s3[0])); //Assert at try_mer.._bnd_1.sk:247 (1)
   assert ((impl_s1[1]) == (spec_s3[1])); //Assert at try_mer.._bnd_1.sk:248 (1)
 }
 /*try_mer.._bnd_1.sk:244*/
 
-void sketch__Wrapper (int saved_hop, int pkt_new_hop0, bit pkt_br_tmp0)  implements sketch__WrapperNospec/*try_mer.._bnd_1.sk:244*/
+void sketch__Wrapper (int pkt_new_hop0, bit pkt_br_tmp0, int saved_hop)  implements sketch__WrapperNospec/*try_mer.._bnd_1.sk:244*/
 {
-  sketch(saved_hop, pkt_new_hop0, pkt_br_tmp0);
+  sketch(pkt_new_hop0, pkt_br_tmp0, saved_hop);
 }
 /*try_mer.._bnd_1.sk:244*/
 
-void sketch__WrapperNospec (int saved_hop, int pkt_new_hop0, bit pkt_br_tmp0)/*try_mer.._bnd_1.sk:244*/
+void sketch__WrapperNospec (int pkt_new_hop0, bit pkt_br_tmp0, int saved_hop)/*try_mer.._bnd_1.sk:244*/
 { }
 /* END PACKAGE ANONYMOUS*/
 [SKETCH] DONE
-Total time = 288
+Total time = 341

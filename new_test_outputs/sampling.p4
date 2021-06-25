@@ -28,8 +28,7 @@ header_type ipv4_t {
 header_type ipv4_t {
     fields {
  
-        p_sample4 : 32 (signed);   
-        p_sample0 : 32 (signed);  
+        p_sample4 : 32 (signed);  
     }
 }
 
@@ -73,16 +72,16 @@ blackbox stateful_alu test_stateful_alu_0_0_blackbox {
     
     
     reg                       : reg_0;
-    condition_lo              : ((0-alu_lo)+29)==0;
-    condition_hi              : (((0-ipv4.p_sample0)-alu_lo)+31)>0;
-    update_lo_1_predicate     : (condition_lo);
-    update_lo_1_value         : 0;
-    update_lo_2_predicate     :  not (condition_lo);
-    update_lo_2_value         : (1)+(alu_lo);
-    update_hi_1_predicate     : false;
-    update_hi_1_value         : (0);
-    update_hi_2_predicate     : (condition_lo);
-    update_hi_2_value         : 1;
+    condition_lo              : ((0-alu_lo)+30)>0;
+    condition_hi              : ((0-alu_lo)+29)==0;
+    update_lo_1_predicate     : ((condition_hi) and (condition_lo));
+    update_lo_1_value         : (1)+(alu_lo);
+    update_lo_2_predicate     : (condition_hi) and (condition_lo);
+    update_lo_2_value         : (0);
+    update_hi_1_predicate     : (condition_hi) and (condition_lo);
+    update_hi_1_value         : 1;
+    update_hi_2_predicate     :  not ((condition_hi) and (condition_lo));
+    update_hi_2_value         : 0;
     output_predicate          : 1;
     output_value              : alu_hi;
     output_dst                : ipv4.p_sample4;

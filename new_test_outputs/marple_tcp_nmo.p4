@@ -81,15 +81,15 @@ blackbox stateful_alu test_stateful_alu_0_0_blackbox {
     
     reg                       : reg_0;
     condition_lo              : (ipv4.p_tcpseq0-alu_lo)>0;
-    condition_hi              : ((0-ipv4.p_tcpseq0)+alu_lo) not =0;
-    update_lo_1_predicate     : ( not (condition_hi)) and (condition_lo);
-    update_lo_1_value         : (15)-(24);
-    update_lo_2_predicate     : (condition_hi) and (condition_lo);
-    update_lo_2_value         : (ipv4.p_tcpseq0)+(0);
-    update_hi_1_predicate     : (condition_hi) and ( not (condition_lo));
-    update_hi_1_value         : 1;
-    update_hi_2_predicate     : ( not (condition_hi)) and (condition_lo);
-    update_hi_2_value         : (alu_lo)-(0);
+    condition_hi              : ((0-ipv4.p_tcpseq0)+alu_lo)==0;
+    update_lo_1_predicate     : false;
+    update_lo_1_value         : (30)-(alu_lo);
+    update_lo_2_predicate     : (condition_lo);
+    update_lo_2_value         : (ipv4.p_tcpseq0)+(alu_hi);
+    update_hi_1_predicate     :  not ((condition_hi) or (condition_lo));
+    update_hi_1_value         : (1);
+    update_hi_2_predicate     : false;
+    update_hi_2_value         : (31)-(9);
     output_predicate          : 1;
     output_value              : alu_hi;
     output_dst                : ipv4.p_br_tmp0;
@@ -131,16 +131,16 @@ blackbox stateful_alu test_stateful_alu_1_1_blackbox {
     
     
     reg                       : reg_1;
-    condition_lo              : alu_lo>0;
-    condition_hi              : ((0-alu_lo)+31)<0;
-    update_lo_1_predicate     : ( not (condition_hi)) and (condition_lo);
+    condition_lo              : ((0-alu_lo)+1)==0;
+    condition_hi              : (((0-ipv4.p_br_tmp0)-alu_lo)+2)==0;
+    update_lo_1_predicate     :  not ((condition_hi) or (condition_lo));
     update_lo_1_value         : (ipv4.p_br_tmp0)+(alu_lo);
-    update_lo_2_predicate     :  not ((condition_hi) or (condition_lo));
-    update_lo_2_value         : (ipv4.p_br_tmp0)-(0);
-    update_hi_1_predicate     : (condition_hi) and ( not (condition_lo));
-    update_hi_1_value         : (0)-(0);
-    update_hi_2_predicate     : false;
-    update_hi_2_value         : (23)-(31);
+    update_lo_2_predicate     : (condition_hi) and (condition_lo);
+    update_lo_2_value         : (3)-(alu_lo);
+    update_hi_1_predicate     : false;
+    update_hi_1_value         : (25)-(0);
+    update_hi_2_predicate     : ( not (condition_hi)) or (condition_lo);
+    update_hi_2_value         : (8)-(5);
     output_predicate          : 1;
     output_value              : alu_lo;
     output_dst                : ipv4.count;

@@ -28,12 +28,12 @@ header_type ipv4_t {
 header_type ipv4_t {
     fields {
  
+        sum_rtt_Tr : 32 (signed);   
         branch : 32 (signed);   
         input_traffic_Bytes : 32 (signed);   
-        num_pkts_with_rtt : 32 (signed);   
-        sum_rtt_Tr : 32 (signed);   
         p_rtt0 : 32 (signed);   
-        p_size_bytes0 : 32 (signed);  
+        p_size_bytes0 : 32 (signed);   
+        num_pkts_with_rtt : 32 (signed);  
     }
 }
 
@@ -95,19 +95,19 @@ blackbox stateful_alu test_stateful_alu_0_0_blackbox {
     
     
     reg                       : reg_0;
-    condition_lo              : ((0-ipv4.p_size_bytes0)-alu_lo)>0;
-    condition_hi              : ((0-ipv4.p_size_bytes0)-alu_lo)>0;
-    update_lo_1_predicate     : (condition_hi) and ( not (condition_lo));
-    update_lo_1_value         : (alu_hi)-(17);
-    update_lo_2_predicate     : true;
-    update_lo_2_value         : (ipv4.p_size_bytes0)+(alu_lo);
-    update_hi_1_predicate     : (condition_hi) and (condition_lo);
-    update_hi_1_value         : 0;
-    update_hi_2_predicate     : false;
-    update_hi_2_value         : (0)-(8);
+    condition_lo              : ((0-alu_lo)+4)==0;
+    condition_hi              : (((0-ipv4.p_rtt0)-0)+29)<0;
+    update_lo_1_predicate     :  not (condition_hi);
+    update_lo_1_value         : (1);
+    update_lo_2_predicate     : (condition_hi);
+    update_lo_2_value         : (0)+(alu_hi);
+    update_hi_1_predicate     : false;
+    update_hi_1_value         : (29)+(30);
+    update_hi_2_predicate     : (condition_hi) and (condition_lo);
+    update_hi_2_value         : (14)-(29);
     output_predicate          : 1;
     output_value              : alu_lo;
-    output_dst                : ipv4.input_traffic_Bytes;
+    output_dst                : ipv4.branch;
     
     initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
     initial_register_hi_value : 0;
@@ -135,24 +135,28 @@ table test_stateful_alu_0_0_table {
 
   
     
+  
+    
+  
+    
 // Stateful ALU blackbox
-blackbox stateful_alu test_stateful_alu_0_1_blackbox {
+blackbox stateful_alu test_stateful_alu_0_3_blackbox {
     
     
-    reg                       : reg_1;
-    condition_lo              : (((0-ipv4.p_rtt0)+alu_hi)+29)<0;
-    condition_hi              : ((0-ipv4.p_rtt0)+28)<0;
-    update_lo_1_predicate     :  not ((condition_hi) and (condition_lo));
-    update_lo_1_value         : 1;
-    update_lo_2_predicate     : (condition_hi) and (condition_lo);
-    update_lo_2_value         : (0);
-    update_hi_1_predicate     : (condition_hi) and ( not (condition_lo));
-    update_hi_1_value         : (25)-(0);
-    update_hi_2_predicate     :  not ((condition_hi) or (condition_lo));
-    update_hi_2_value         : 0;
+    reg                       : reg_3;
+    condition_lo              : (ipv4.p_size_bytes0+alu_lo)>0;
+    condition_hi              : (((0-ipv4.p_size_bytes0)-alu_lo)+1)>0;
+    update_lo_1_predicate     : ( not (condition_hi)) or (condition_lo);
+    update_lo_1_value         : (ipv4.p_size_bytes0)+(alu_lo);
+    update_lo_2_predicate     :  not ((condition_hi) or (condition_lo));
+    update_lo_2_value         : 1;
+    update_hi_1_predicate     : (condition_hi) and (condition_lo);
+    update_hi_1_value         : (0)-(19);
+    update_hi_2_predicate     : false;
+    update_hi_2_value         : (ipv4.p_size_bytes0);
     output_predicate          : 1;
     output_value              : alu_lo;
-    output_dst                : ipv4.branch;
+    output_dst                : ipv4.input_traffic_Bytes;
     
     initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
     initial_register_hi_value : 0;
@@ -161,8 +165,57 @@ blackbox stateful_alu test_stateful_alu_0_1_blackbox {
 }
 
 // Stateful ALU Action
-action test_stateful_alu_0_1_action () {
-    test_stateful_alu_0_1_blackbox.execute_stateful_alu(0);
+action test_stateful_alu_0_3_action () {
+    test_stateful_alu_0_3_blackbox.execute_stateful_alu(0);
+    // TODO: Replace 0 with appropriate value for array-based registers. The
+    // appropriate value can be determined by parsing the .c file using the
+    // Domino compiler.
+}
+
+// Stateful ALU table
+@pragma ignore_table_dependency test_stateful_alu_1_3_table
+@pragma stage 0
+table test_stateful_alu_0_3_table {
+    actions {
+        test_stateful_alu_0_3_action;
+    }
+    default_action: test_stateful_alu_0_3_action;
+}
+
+  
+
+  
+    
+  
+    
+// Stateful ALU blackbox
+blackbox stateful_alu test_stateful_alu_1_1_blackbox {
+    
+    
+    reg                       : reg_1;
+    condition_lo              : ((0-ipv4.branch)+1) not =0;
+    condition_hi              : (((0-ipv4.branch)-alu_lo)+2)==0;
+    update_lo_1_predicate     : (condition_hi) and ( not (condition_lo));
+    update_lo_1_value         : (ipv4.branch)+(alu_lo);
+    update_lo_2_predicate     :  not ((condition_hi) or (condition_lo));
+    update_lo_2_value         : (1)+(alu_lo);
+    update_hi_1_predicate     : ((condition_hi) and (condition_lo));
+    update_hi_1_value         : (ipv4.branch)-(22);
+    update_hi_2_predicate     : (condition_hi) and (condition_lo);
+    update_hi_2_value         : (30)-(13);
+    output_predicate          : 1;
+    output_value              : alu_lo;
+    output_dst                : ipv4.num_pkts_with_rtt;
+    
+    initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
+    initial_register_hi_value : 0;
+
+    
+}
+
+// Stateful ALU Action
+action test_stateful_alu_1_1_action () {
+    test_stateful_alu_1_1_blackbox.execute_stateful_alu(0);
     // TODO: Replace 0 with appropriate value for array-based registers. The
     // appropriate value can be determined by parsing the .c file using the
     // Domino compiler.
@@ -170,24 +223,14 @@ action test_stateful_alu_0_1_action () {
 
 // Stateful ALU table
 @pragma ignore_table_dependency test_stateful_alu_1_1_table
-@pragma stage 0
-table test_stateful_alu_0_1_table {
+@pragma stage 1
+table test_stateful_alu_1_1_table {
     actions {
-        test_stateful_alu_0_1_action;
+        test_stateful_alu_1_1_action;
     }
-    default_action: test_stateful_alu_0_1_action;
+    default_action: test_stateful_alu_1_1_action;
 }
 
-  
-    
-  
-    
-  
-
-  
-    
-  
-    
   
     
 // Stateful ALU blackbox
@@ -195,19 +238,19 @@ blackbox stateful_alu test_stateful_alu_1_2_blackbox {
     
     
     reg                       : reg_2;
-    condition_lo              : ((0-ipv4.branch)+1)==0;
-    condition_hi              : (ipv4.branch-alu_hi)==0;
-    update_lo_1_predicate     : (condition_hi) and (condition_lo);
-    update_lo_1_value         : (ipv4.branch)+(2);
-    update_lo_2_predicate     : (condition_lo);
-    update_lo_2_value         : (ipv4.branch)+(alu_lo);
-    update_hi_1_predicate     : (condition_hi) and (condition_lo);
-    update_hi_1_value         : (25)-(0);
-    update_hi_2_predicate     : ( not (condition_hi)) or (condition_lo);
-    update_hi_2_value         : (8)-(5);
+    condition_lo              : (((0-ipv4.branch)-alu_hi)+1)==0;
+    condition_hi              : (ipv4.p_rtt0-0)>0;
+    update_lo_1_predicate     : false;
+    update_lo_1_value         : (15)-(19);
+    update_lo_2_predicate     : (condition_hi) and (condition_lo);
+    update_lo_2_value         : (ipv4.p_rtt0)+(alu_lo);
+    update_hi_1_predicate     : false;
+    update_hi_1_value         : (0)+(alu_lo);
+    update_hi_2_predicate     : false;
+    update_hi_2_value         : (ipv4.branch);
     output_predicate          : 1;
     output_value              : alu_lo;
-    output_dst                : ipv4.num_pkts_with_rtt;
+    output_dst                : ipv4.sum_rtt_Tr;
     
     initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
     initial_register_hi_value : 0;
@@ -235,49 +278,6 @@ table test_stateful_alu_1_2_table {
 
   
     
-// Stateful ALU blackbox
-blackbox stateful_alu test_stateful_alu_1_3_blackbox {
-    
-    
-    reg                       : reg_3;
-    condition_lo              : (((0-ipv4.branch)+alu_hi)+1)==0;
-    condition_hi              : alu_lo>0;
-    update_lo_1_predicate     : false;
-    update_lo_1_value         : (alu_lo)-(6);
-    update_lo_2_predicate     : (condition_lo);
-    update_lo_2_value         : (ipv4.p_rtt0)+(alu_lo);
-    update_hi_1_predicate     : true;
-    update_hi_1_value         : (0)-(8);
-    update_hi_2_predicate     : false;
-    update_hi_2_value         : (23)-(30);
-    output_predicate          : 1;
-    output_value              : alu_lo;
-    output_dst                : ipv4.sum_rtt_Tr;
-    
-    initial_register_lo_value : 0; // Magic value TODO: needs to be changed.
-    initial_register_hi_value : 0;
-
-    
-}
-
-// Stateful ALU Action
-action test_stateful_alu_1_3_action () {
-    test_stateful_alu_1_3_blackbox.execute_stateful_alu(0);
-    // TODO: Replace 0 with appropriate value for array-based registers. The
-    // appropriate value can be determined by parsing the .c file using the
-    // Domino compiler.
-}
-
-// Stateful ALU table
-@pragma ignore_table_dependency test_stateful_alu_1_3_table
-@pragma stage 1
-table test_stateful_alu_1_3_table {
-    actions {
-        test_stateful_alu_1_3_action;
-    }
-    default_action: test_stateful_alu_1_3_action;
-}
-
   
 
 
@@ -311,11 +311,11 @@ control ingress {
         
       
         
-          apply(test_stateful_alu_0_1_table);
-        
       
         
       
+        
+          apply(test_stateful_alu_0_3_table);
         
       
     
@@ -324,13 +324,13 @@ control ingress {
         
       
         
+          apply(test_stateful_alu_1_1_table);
+        
       
         
           apply(test_stateful_alu_1_2_table);
         
       
-        
-          apply(test_stateful_alu_1_3_table);
         
       
     

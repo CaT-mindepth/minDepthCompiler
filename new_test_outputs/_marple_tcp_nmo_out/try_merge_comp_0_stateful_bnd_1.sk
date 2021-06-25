@@ -227,25 +227,24 @@ int[2] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) 
     return result;
 }
 
-int[2] comp_0(int p_tcpseq0, int maxseq){
+int[2] comp_0(int p_tcpseq0, int p_maxseq0, int count){
 	int[2] _out;
-	int p_maxseq2;
-	bit p_br_tmp1;
-	int p_maxseq0;
+	int p_count2;
+	int p_count0;
+	int p_count1;
 	bit p_br_tmp0;
-	p_maxseq0 = maxseq;
-	p_br_tmp1 = !(p_tcpseq0 < p_maxseq0);
-	p_maxseq2 = p_br_tmp1 ? p_tcpseq0 : p_maxseq0;
-	maxseq = p_maxseq2;
-	p_br_tmp0 = (p_tcpseq0 < p_maxseq0);
-	_out[0] = maxseq;
-	_out[1] = p_br_tmp0;
+	p_count0 = count;
+	p_count1 = p_count0 + 1;
+	p_count2 = p_br_tmp0 ? p_count1 : p_count0;
+	count = p_count2;
+	_out[0] = count;
+	_out[1] = count;
 	return _out;
 }
 
-harness void sketch(int p_tcpseq0, int maxseq) {
-	int[2] impl = salu(p_tcpseq0, 0, maxseq, 0);
-	int [2] spec = comp_0(p_tcpseq0, maxseq);
+harness void sketch(int p_tcpseq0, int p_maxseq0, int count) {
+	int[2] impl = salu(p_tcpseq0, p_maxseq0, count, 0);
+	int [2] spec = comp_0(p_tcpseq0, p_maxseq0, count);
 	assert(impl[0] == spec[0]);
 	assert(impl[1] == spec[1]);
 }

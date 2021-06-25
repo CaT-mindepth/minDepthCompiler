@@ -227,23 +227,21 @@ int[2] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) 
     return result;
 }
 
-int[2] comp_3(int sum_rtt_Tr, int p_rtt0, int branch){
+int[2] comp_3(int p_size_bytes0, int input_traffic_Bytes){
 	int[2] _out;
-	int p_sum_rtt_Tr0;
-	int p_sum_rtt_Tr2;
-	int p_sum_rtt_Tr1;
-	p_sum_rtt_Tr0 = sum_rtt_Tr;
-	p_sum_rtt_Tr1 = p_sum_rtt_Tr0 + p_rtt0;
-	p_sum_rtt_Tr2 = (branch==1) ? p_sum_rtt_Tr1 : p_sum_rtt_Tr0;
-	sum_rtt_Tr = p_sum_rtt_Tr2;
-	_out[0] = sum_rtt_Tr;
-	_out[1] = sum_rtt_Tr;
+	int p_input_traffic_Bytes1;
+	int p_input_traffic_Bytes0;
+	p_input_traffic_Bytes0 = input_traffic_Bytes;
+	p_input_traffic_Bytes1 = p_input_traffic_Bytes0 + p_size_bytes0;
+	input_traffic_Bytes = p_input_traffic_Bytes1;
+	_out[0] = input_traffic_Bytes;
+	_out[1] = input_traffic_Bytes;
 	return _out;
 }
 
-harness void sketch(int sum_rtt_Tr, int p_rtt0, int branch) {
-	int[2] impl = salu(p_rtt0, branch, sum_rtt_Tr, 0);
-	int [2] spec = comp_3(sum_rtt_Tr, p_rtt0, branch);
+harness void sketch(int p_size_bytes0, int input_traffic_Bytes) {
+	int[2] impl = salu(p_size_bytes0, 0, input_traffic_Bytes, 0);
+	int [2] spec = comp_3(p_size_bytes0, input_traffic_Bytes);
 	assert(impl[0] == spec[0]);
 	assert(impl[1] == spec[1]);
 }
