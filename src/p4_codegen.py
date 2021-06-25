@@ -102,6 +102,10 @@ class P4Codegen(object):
                     x = x.replace('||', ' or ')
                     x = x.replace('register_lo', 'alu_lo')
                     x = x.replace('register_hi', 'alu_hi')
+                    # XXX: this is a bad fix, we should find a better solution for the future,
+                    # but subbing '!' for 'not' will miscompile '!=' into 'not ='. Hence we
+                    # do an additional sub that subs 'not =' with '!='.
+                    x = x.replace('not =', '!=')
                     alu.var_expressions[lhs] = x
 
     def _process_alus(self):
