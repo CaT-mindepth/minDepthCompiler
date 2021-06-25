@@ -1,0 +1,23 @@
+int p_srcip0;
+int p_heavy_hitter_p_srcip0_0;
+int p_heavy_hitter_p_srcip0_1;
+int p_heavy_hitter_p_srcip0_2;
+int p_hh_counter_p_srcip0_0;
+int p_hh_counter_p_srcip0_1;
+int p_hh_counter_p_srcip0_2;
+# state variables start
+int heavy_hitter;
+int hh_counter;
+# state variables end
+bit p_br_tmp0;
+bit p_br_tmp1;
+# declarations end
+p_heavy_hitter_p_srcip0_0 = heavy_hitter;
+p_br_tmp0 = (p_heavy_hitter_p_srcip0_0 == 0);
+p_hh_counter_p_srcip0_0 = hh_counter;
+p_hh_counter_p_srcip0_1 = p_hh_counter_p_srcip0_0 + 1;
+p_br_tmp1 = !(p_heavy_hitter_p_srcip0_0 == 0) && (p_hh_counter_p_srcip0_1 == 20);
+p_heavy_hitter_p_srcip0_2 = p_br_tmp1 ? 1 : p_heavy_hitter_p_srcip0_0;
+p_hh_counter_p_srcip0_2 = p_br_tmp0 ? p_hh_counter_p_srcip0_1 : p_hh_counter_p_srcip0_0;
+heavy_hitter = p_heavy_hitter_p_srcip0_2;
+hh_counter = p_hh_counter_p_srcip0_2;
