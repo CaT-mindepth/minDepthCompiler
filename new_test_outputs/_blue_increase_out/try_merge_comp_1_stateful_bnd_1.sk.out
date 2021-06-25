@@ -1,0 +1,225 @@
+SKETCH version 1.7.6
+Benchmark = ../new_test_outputs/_blue_increase_out/try_merge_comp_1_stateful_bnd_1.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*try_mer.._bnd_1.sk:79*/
+
+void bool_op (int opcode, bit o1, bit o2, ref bit _out0)/*try_mer.._bnd_1.sk:79*/
+{
+  if(opcode == 0)/*try_mer.._bnd_1.sk:80*/
+  {
+    _out0 = 0;
+    return;
+  }
+  if(opcode == 1)/*try_mer.._bnd_1.sk:83*/
+  {
+    _out0 = !(o1 | o2);
+    return;
+  }
+  if(opcode == 2)/*try_mer.._bnd_1.sk:86*/
+  {
+    _out0 = (!(o1)) & o2;
+    return;
+  }
+  if(opcode == 3)/*try_mer.._bnd_1.sk:89*/
+  {
+    _out0 = !(o1);
+    return;
+  }
+  if(opcode == 4)/*try_mer.._bnd_1.sk:92*/
+  {
+    _out0 = o1 & (!(o2));
+    return;
+  }
+  if(opcode == 5)/*try_mer.._bnd_1.sk:95*/
+  {
+    _out0 = !(o2);
+    return;
+  }
+  if(opcode == 6)/*try_mer.._bnd_1.sk:98*/
+  {
+    _out0 = o1 & o2;
+    return;
+  }
+  if(opcode == 7)/*try_mer.._bnd_1.sk:102*/
+  {
+    _out0 = !(o1 & o2);
+    return;
+  }
+  if(opcode == 8)/*try_mer.._bnd_1.sk:105*/
+  {
+    _out0 = o1 & o2;
+    return;
+  }
+  if(opcode == 9)/*try_mer.._bnd_1.sk:108*/
+  {
+    _out0 = !(o1 & o2);
+    return;
+  }
+  if(opcode == 10)/*try_mer.._bnd_1.sk:112*/
+  {
+    _out0 = o2;
+    return;
+  }
+  if(opcode == 11)/*try_mer.._bnd_1.sk:115*/
+  {
+    _out0 = (!(o1)) | o2;
+    return;
+  }
+  if(opcode == 12)/*try_mer.._bnd_1.sk:118*/
+  {
+    _out0 = o1;
+    return;
+  }
+  if(opcode == 13)/*try_mer.._bnd_1.sk:121*/
+  {
+    _out0 = o1 | (!(o2));
+    return;
+  }
+  if(opcode == 14)/*try_mer.._bnd_1.sk:124*/
+  {
+    _out0 = o1 | o2;
+    return;
+  }
+  else
+  {
+    _out0 = 1;
+    return;
+  }
+}
+/*try_mer.._bnd_1.sk:230*/
+
+void comp_1 (int p_now0, int last_update_0, int p_now_plus_free1, int p_mark_1, ref int[2] _out0)/*try_mer.._bnd_1.sk:230*/
+{
+  _out0 = ((int[2])0);
+  bit p_br_tmp0 = p_now_plus_free1 > last_update_0;
+  int p_last_update2 = (p_br_tmp0 ? p_now0 : last_update_0);
+  int p_p_mark2 = (p_br_tmp0 ? p_mark_1 + 1 : p_mark_1);
+  _out0[0] = p_last_update2;
+  _out0[1] = p_p_mark2;
+  return;
+}
+/*try_mer.._bnd_1.sk:134*/
+
+void compute_alu (int op, int o1, int o2, ref int _out0)/*try_mer.._bnd_1.sk:134*/
+{
+  if(op == 0)/*try_mer.._bnd_1.sk:135*/
+  {
+    _out0 = o1 + o2;
+    return;
+  }
+  if(op == 1)/*try_mer.._bnd_1.sk:138*/
+  {
+    _out0 = o1 - o2;
+    return;
+  }
+  if(op == 2)/*try_mer.._bnd_1.sk:141*/
+  {
+    _out0 = o2 - o1;
+    return;
+  }
+  if(op == 3)/*try_mer.._bnd_1.sk:144*/
+  {
+    _out0 = o2;
+    return;
+  }
+  if(op == 4)/*try_mer.._bnd_1.sk:147*/
+  {
+    _out0 = o1;
+    return;
+  }
+  if(op == 5)/*try_mer.._bnd_1.sk:150*/
+  {
+    _out0 = 0;
+    return;
+  }
+  else
+  {
+    _out0 = 1;
+    return;
+  }
+}
+/*try_mer.._bnd_1.sk:158*/
+
+void salu (int metadata_lo, int metadata_hi, int register_lo_0, int register_hi_1, ref int[2] _out0)/*try_mer.._bnd_1.sk:158*/
+{
+  _out0 = ((int[2])0);
+  int register_hi = register_hi_1;
+  int register_lo = register_lo_0;
+  int update_hi_1_value_s13 = 0;
+  compute_alu(0, 1, register_hi_1, update_hi_1_value_s13)//{};
+  int update_hi_2_value_s23 = 0;
+  compute_alu(1, 0, 5, update_hi_2_value_s23)//{};
+  int update_lo_1_value_s33 = 0;
+  compute_alu(4, 0, 27, update_lo_1_value_s33)//{};
+  int update_lo_2_value_s43 = 0;
+  compute_alu(1, metadata_lo, 0, update_lo_2_value_s43)//{};
+  bit condition_hi_s55 = metadata_lo == 0;
+  bit condition_lo_s67 = (metadata_hi - register_lo_0) > 0;
+  bit update_hi_1_predicate_s69 = 0;
+  bool_op(10, condition_hi_s55, condition_lo_s67, update_hi_1_predicate_s69);
+  bit update_hi_2_predicate_s71 = 0;
+  bool_op(0, condition_hi_s55, condition_lo_s67, update_hi_2_predicate_s71);
+  bit update_lo_1_predicate_s73 = 0;
+  bool_op(6, condition_hi_s55, condition_lo_s67, update_lo_1_predicate_s73);
+  bit update_lo_2_predicate_s75 = 0;
+  bool_op(2, condition_hi_s55, condition_lo_s67, update_lo_2_predicate_s75);
+  assert (!(update_hi_1_predicate_s69 && update_hi_2_predicate_s71)); //ASSERTION CAN NOT BE SATISFIED: try_mer.._bnd_1.sk:194 Assert at try_mer.._bnd_1.sk:194 (1)
+  if(update_hi_1_predicate_s69 && (!(update_hi_2_predicate_s71)))/*try_mer.._bnd_1.sk:195*/
+  {
+    register_hi = update_hi_1_value_s13;
+  }
+  else
+  {
+    if((!(update_hi_1_predicate_s69)) && update_hi_2_predicate_s71)/*try_mer.._bnd_1.sk:197*/
+    {
+      register_hi = update_hi_2_value_s23;
+    }
+    else
+    {
+      register_hi = register_hi_1;
+    }
+  }
+  assert (!(update_lo_1_predicate_s73 && update_lo_2_predicate_s75)); //ASSERTION CAN NOT BE SATISFIED: try_mer.._bnd_1.sk:205 Assert at try_mer.._bnd_1.sk:205 (1)
+  if(update_lo_1_predicate_s73 && (!(update_lo_2_predicate_s75)))/*try_mer.._bnd_1.sk:206*/
+  {
+    register_lo = update_lo_1_value_s33;
+  }
+  else
+  {
+    if((!(update_lo_1_predicate_s73)) && update_lo_2_predicate_s75)/*try_mer.._bnd_1.sk:208*/
+    {
+      register_lo = update_lo_2_value_s43;
+    }
+    else
+    {
+      register_lo = register_lo_0;
+    }
+  }
+  _out0[0] = register_lo;
+  _out0[1] = register_hi;
+  return;
+}
+/*try_mer.._bnd_1.sk:251*/
+
+void sketch (int p_now0, int last_update, int p_now_plus_free1, int p_mark)/*try_mer.._bnd_1.sk:251*/
+{
+  int[2] impl_s1 = {0,0};
+  salu(p_now0, p_now_plus_free1, last_update, p_mark, impl_s1);
+  int[2] spec_s3 = {0,0};
+  comp_1(p_now0, last_update, p_now_plus_free1, p_mark, spec_s3);
+  assert ((impl_s1[0]) == (spec_s3[0])); //Assert at try_mer.._bnd_1.sk:254 (1)
+  assert ((impl_s1[1]) == (spec_s3[1])); //Assert at try_mer.._bnd_1.sk:255 (1)
+}
+/*try_mer.._bnd_1.sk:251*/
+
+void sketch__Wrapper (int p_now0, int last_update, int p_now_plus_free1, int p_mark)  implements sketch__WrapperNospec/*try_mer.._bnd_1.sk:251*/
+{
+  sketch(p_now0, last_update, p_now_plus_free1, p_mark);
+}
+/*try_mer.._bnd_1.sk:251*/
+
+void sketch__WrapperNospec (int p_now0, int last_update, int p_now_plus_free1, int p_mark)/*try_mer.._bnd_1.sk:251*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 335

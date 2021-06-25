@@ -1,0 +1,92 @@
+---------------------------- finished testing blue_decrease; statistics  ---------------------
+Time taken during merging: 0.4769761562347412 s
+Time taken during synthesis: 0.6567747592926025 s
+Time taken during ILP: -0.004519939422607422 s
+Num ALU stages: 2
+
+Num ALUs: 2
+Num stateful ALUs: 1
+Num stateless ALUs: 1
+Num stages: 2
+Num ALUs per stage: [1, 1]
+Number of components pre-merge: 3
+Number of successful merges: 1
+Number of components post-merge: 2---------------------------------------------------------------------------------------------------------------------------- finished testing blue_increase; statistics  ---------------------
+Time taken during merging: 0.41487598419189453 s
+Time taken during synthesis: 0.6421160697937012 s
+Time taken during ILP: -0.0020728111267089844 s
+Num ALU stages: 2
+
+Num ALUs: 2
+Num stateful ALUs: 1
+Num stateless ALUs: 1
+Num stages: 2
+Num ALUs per stage: [1, 1]
+Number of components pre-merge: 3
+Number of successful merges: 1
+Number of components post-merge: 2---------------------------------------------------------------------------------------------------------------------------- finished testing flowlets; statistics  ---------------------
+Time taken during merging: 0.738394021987915 s
+Time taken during synthesis: 0.7146041393280029 s
+Time taken during ILP: -0.001875162124633789 s
+Num ALU stages: 2
+
+Num ALUs: 2
+Num stateful ALUs: 2
+Num stateless ALUs: 0
+Num stages: 2
+Num ALUs per stage: [1, 1]
+Number of components pre-merge: 4
+Number of successful merges: 2
+Number of components post-merge: 2---------------------------------------------------------------------------------------------------------------------------- finished testing marple_tcp_nmo; statistics  ---------------------
+Time taken during merging: 0.811453104019165 s
+Time taken during synthesis: 0.7528078556060791 s
+Time taken during ILP: -0.001901865005493164 s
+Num ALU stages: 2
+
+Num ALUs: 2
+Num stateful ALUs: 2
+Num stateless ALUs: 0
+Num stages: 2
+Num ALUs per stage: [1, 1]
+Number of components pre-merge: 3
+Number of successful merges: 1
+Number of components post-merge: 2---------------------------------------------------------------------------------------------------------------------------- finished testing marple_new_flow; statistics  ---------------------
+Time taken during merging: 0.3788890838623047 s
+Time taken during synthesis: 0.37898755073547363 s
+Time taken during ILP: -0.0011441707611083984 s
+Num ALU stages: 1
+
+Num ALUs: 1
+Num stateful ALUs: 1
+Num stateless ALUs: 0
+Num stages: 1
+Num ALUs per stage: [1]
+Number of components pre-merge: 2
+Number of successful merges: 1
+Number of components post-merge: 1---------------------------------------------------------------------------------------------------------------------------- finished testing sampling; statistics  ---------------------
+Time taken during merging: 0.4130258560180664 s
+Time taken during synthesis: 0.3857309818267822 s
+Time taken during ILP: -0.0011031627655029297 s
+Num ALU stages: 1
+
+Num ALUs: 1
+Num stateful ALUs: 1
+Num stateless ALUs: 0
+Num stages: 1
+Num ALUs per stage: [1]
+Number of components pre-merge: 2
+Number of successful merges: 1
+Number of components post-merge: 1---------------------------------------------------------------------------------------------------------------------------- finished testing rcp_modified; statistics  ---------------------
+Time taken during merging: 0.00030422210693359375 s
+Time taken during synthesis: 1.499532699584961 s
+Time taken during ILP: -0.004405975341796875 s
+Num ALU stages: 2
+
+Num ALUs: 4
+Num stateful ALUs: 4
+Num stateless ALUs: 0
+Num stages: 2
+Num ALUs per stage: [2, 2]
+Number of components pre-merge: 4
+Number of successful merges: 0
+Number of components post-merge: 4------------------------------------------------------------------------------------------------
