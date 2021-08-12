@@ -132,7 +132,7 @@ class Codelet:
 		# stateful updates, and in general we need to support
 		# multiple state variables. Hence we change this.
 		self.stateful = False
-		
+		self.state_vars = []
 		for stmt in self.stmt_list:
 			if stmt.is_stateful:
 				self.stateful = True
@@ -179,6 +179,13 @@ class Codelet:
 	def __str__(self):
 		return " ".join(s.get_stmt() for s in self.stmt_list)
 
+	# overloaded equality operator
+	def __eq__(self, other):
+		return str(self) == str(other)
+
+	def __hash__(self):
+		return str(self).__hash__()
+
 class DependencyGraph:
 	def __init__(self, filename, state_vars, var_types):
 		self.inputfilename = filename
@@ -196,19 +203,10 @@ class DependencyGraph:
 		self.use_define = {} # reverse map of define_use
 		self.depends = {} # key: stmt, value: list of stmts which depend on key
 
-		# self.stmt_map = {} # key: lhs var, value: (rhs_vars, line_no, stmt)
-		# self.stmt_list = [] # list of statements
-		# self.stmt_validity = {} # key:statement value: flag, flag is 0 if statement is to be deleted
-
 		self.process_input()
 		self.find_dependencies()
-		# self.remove_dead_code()
 		self.build_dependency_graph()
-		self.remove_read_write_flanks()
 		self.build_SCC_graph()
-
-		# self.process_stateful_nodes()
-
 
 	def process_input(self):
 		f = open(self.inputfilename)
@@ -252,15 +250,6 @@ class DependencyGraph:
 			self.depends[stmt] = []
 			self.define_use[stmt] = set()
 			self.use_define[stmt] = set()
-
-			# if line not in self.stmt_validity: # prevent duplicates
-			# 	self.stmt_validity[line] = 1
-			# 	self.stmt_list.append(line)
-			# 	self.stmt_map[lhs] = (rhs_variables, i, line)
-
-			# 	self.depends[line] = []
-			# 	self.define_use[line] = set()
-			# 	self.use_define[line] = set()
 					
 			i += 1
 
@@ -294,6 +283,8 @@ class DependencyGraph:
 
 		print("read_write_flanks", self.read_write_flanks)
 		for state_var, read_write in self.read_write_flanks.items():
+			print('var: ', state_var)
+			print(read_write)
 			read_flank = read_write["read"]
 			write_flank = read_write["write"]
 			print('state_var ', state_var)
@@ -302,52 +293,6 @@ class DependencyGraph:
 			self.depends[read_flank].append(write_flank)
 			self.depends[write_flank].append(read_flank)
 
-		# self.print_dependencies()
-
-
-	def remove_dead_code(self):
-		# print("Dead code elimination")
-		i = len(self.stmt_list)-1
-		it = 0
-		while True:
-			changed = False
-			while i >= 0:
-				stmt = self.stmt_list[i]
-				if self.temp_stmt(stmt) and ((stmt not in self.define_use) or (len(self.define_use[stmt]) == 0)):
-					# temp stmt is not used, mark it to be deleted
-					# print("%s not used" % stmt)
-					self.stmt_validity[stmt] = 0
-					# remove stmt wherever it occurs in the value of define_use
-					if stmt in self.use_define:
-						for defn in self.use_define[stmt]:
-							self.define_use[defn].remove(stmt)
-							self.depends[defn].remove(stmt)
-							changed = True
-				i -= 1
-
-			it += 1
-			print("Finished %d iterations" % it)
-			if changed == False:
-				print("Done, took %d iterations." % it)
-				break
-
-	def write_optimized_code(self, outputfile):
-		print("Writing optimized code after dead code elimination")
-		# print("stmt_list", self.stmt_list)
-		f_out = open(outputfile+"_opt", "w+")
-		for stmt in self.stmt_list:
-			# print(stmt)
-			if self.stmt_validity[stmt] == 1:
-				f_out.write(stmt)
-
-		f_out.close()
-
-	def temp_stmt(self, stmt):
-		lhs = stmt.split('=')[0].rstrip()
-		if lhs.startswith("tmp"):
-			return True
-		else:
-			return False
 
 	def build_dependency_graph(self):
 		self.dep_graph = nx.DiGraph()
@@ -371,12 +316,8 @@ class DependencyGraph:
 			self.read_write_edges.add((read_c, write_c))
 			self.read_write_edges.add((write_c, read_c))
 
-		# ruijief: commented out 6/25/2021
-		# self.condense_phi_nodes()
 
 		self.draw_graph(self.dep_graph, self.inputfilename + "_dep")
-
-		# self.contract_cycles()
 
 
 	def build_SCC_graph(self): # strongly connected components
@@ -440,199 +381,6 @@ class DependencyGraph:
 		self.draw_graph(self.scc_graph, self.inputfilename + "_dag")
 		print("state vars", self.state_variables)
 
-
-	def remove_read_write_flanks(self):
-		for state_var, read_write in self.read_write_flanks.items():
-			read_flank = read_write["read"]
-			write_flank = read_write["write"]
-
-	# def contract_single_cycle(self, cycle):
-	# 	out_nbrs = set()
-	# 	in_nbrs = set()
-
-	# 	for v in cycle:
-	# 		for u in filter(lambda x: x not in cycle, list(self.dep_graph.successors(v))):
-	# 			out_nbrs.add(u)
-	# 		for u1 in filter(lambda x: x not in cycle, list(self.dep_graph.predecessors(v))):
-	# 			in_nbrs.add(u1)
-
-	# 	# combined_node = "[" + " ".join([str(x).rstrip() for x in cycle]) + "]"
-	# 	combined_node = Codelet([])
-	# 	print("combined_node", " ".join([s.get_stmt() for s in combined_node.get_stmt_list()]))
-	# 	for v in cycle:
-	# 		v_text = " ".join([s.get_stmt() for s in v.get_stmt_list()])
-	# 		print(v_text)
-	# 		combined_node.add_stmts(v.get_stmt_list())
-
-	# 	print("out_nbrs")
-	# 	for v in out_nbrs:
-	# 		print(" ".join([s.get_stmt() for s in v.get_stmt_list()]))
-	# 	print("in_nbrs")
-	# 	for v in in_nbrs:
-	# 		print(" ".join([s.get_stmt() for s in v.get_stmt_list()]))
-
-	# 	# deleting cycle
-
-	# 	for v in cycle:
-	# 		self.dep_graph.remove_node(v)
-
-	# 	self.dep_graph.add_node(combined_node)
-
-	# 	self.dep_graph.add_edges_from([(combined_node, n) for n in out_nbrs])
-	# 	self.dep_graph.add_edges_from([(m, combined_node) for m in in_nbrs])
-
-	# 	self.stateful_nodes.add(combined_node)
-
-	# 	if v in self.stateful_nodes:
-	# 		self.stateful_nodes.remove(v)
-
-
-	# def contract_cycles(self):
-	# 	i = 1
-	# 	cycles = list(nx.simple_cycles(self.dep_graph))
-	# 	print("cycles:", cycles)
-	# 	while len(cycles) > 0:
-	# 		print("contracting cycles: iteration {}".format(i))
-	# 		self.contract_single_cycle(cycles[0])
-	# 		self.draw_graph(self.dep_graph, self.inputfilename + "_dep_" + str(i))
-	# 		cycles = list(nx.simple_cycles(self.dep_graph))
-	# 		i += 1		
-
-	def condense_phi_nodes(self):
-		print("condense phi nodes")
-		phi_nodes_list =  [] # (u, v, new node)
-		
-		for u1, v1 in self.dep_graph.edges:
-			assert(len(u1.stmt_list) == 1)
-			assert(len(v1.stmt_list) == 1)
-			u = u1.get_stmt_list()[0]
-			v = v1.get_stmt_list()[0]
-			if ":" in u.rhs and ":" in v.rhs: # both u and v are phi nodes
-				print("u lhs", u.lhs, "v lhs", v.lhs)
-				same_var = True
-				state_var = False
-
-				pkt_state_var_prefix = ["p_" + x for x in self.state_variables]
-				print(pkt_state_var_prefix)
-				for prefix in pkt_state_var_prefix:
-					if u.lhs.startswith(prefix) or v.lhs.startswith(prefix): # skip state var phi nodes
-						state_var = True
-						break
-
-				# check if u.lhs and v.lhs refer to the same program variable. TODO: make this more general
-				# may not work for some variable names, eg. pkt1, pkt12.
-				# SSA vars pkt120 (20, pkt1) and pkt120 (0, pkt12) are indistinguishable
-				# TODO: SSA var = var + "_" + idx
-				i = 0
-				common_prefix = "" # longest common prefix
-				mismatched_chars = []
-				while i < len(u.lhs) and i < len(v.lhs):
-					if (u.lhs[i] == v.lhs[i]):
-						common_prefix += u.lhs[i]
-					elif (not u.lhs[i].isdigit()) or (not v.lhs[i].isdigit()): # mismatched character is not a digit, so not the same variable
-							same_var = False
-						
-					i += 1
-
-				if (not state_var) and same_var:
-					print(u, v)
-					print("same var")
-					u_cond_var, u_br1, u_br2 = u.tokenize_phi_node()
-					v_cond_var, v_br1, v_br2 = v.tokenize_phi_node()
-
-
-					u_cond = self.stmt_map[u_cond_var].rhs # definition of cond_var
-					v_cond = self.stmt_map[v_cond_var].rhs
-					
-
-					if v_cond == "!"+u_cond_var or v_cond == "!"+u_cond:
-						print("branch var, neg branch var")
-						new_lhs = v.lhs
-						new_cond = u_cond_var
-						new_br1 = u_br1
-						new_br2 = v_br1
-						new_rhs = "{} ? {} : {}".format(new_cond, new_br1, new_br2)
-						# new_phi_node = Codelet(["{} = {};".format(new_lhs, new_rhs)])
-						new_phi_node = Codelet([Statement(new_lhs, new_rhs, -1)])
-
-						phi_nodes_list.append((u1, v1, new_phi_node))
-
-
-		for u, v, new_phi_node in phi_nodes_list:
-			print("nodes", self.dep_graph.nodes)
-			self.dep_graph.add_node(new_phi_node)
-
-			out_nbrs = [x for x in self.dep_graph.successors(u) if x != v] + \
-				[x for x in self.dep_graph.successors(v)]
-
-			in_nbrs = [x for x in self.dep_graph.predecessors(u)] + \
-				[x for x in self.dep_graph.predecessors(v) if x != u]
-
-			self.dep_graph.add_edges_from([(new_phi_node, n) for n in out_nbrs])
-			self.dep_graph.add_edges_from([(m, new_phi_node) for m in in_nbrs])
-
-			self.dep_graph.remove_node(u)
-			self.dep_graph.remove_node(v)
-
-	# def tokenize_expr(l):
-	# 	toks = []
-	# 	variables = set()
-	# 	lexer = lex.lex(module=lexerRules)
-	# 	lexer.input(l)
-	# 	lhs_vars = []
-	# 	rhs_vars = []
-	# 	found_assign = False
-	# 	for tok in lexer:
-	# 		if tok.type == "ID":
-	# 			if not found_assign:
-	# 				lhs_vars.append(tok)
-	# 			else:
-	# 				rhs_vars.append(tok)
-	# 		if tok.type == "ASSIGN":
-	# 			found_assign = True
-
-	# 	assert(len(lhs_vars) == 1)
-	# 	return (lhs_vars[0], rhs_vars)
-
-	# def run_stateful_sketch(self, node, state_var):
-	# 	# find stateful var, packet vars
-	# 	print("Stateful codelet for {}".format(state_var))
-	# 	defs = set()
-	# 	uses = set()
-	# 	for stmt in node:
-	# 		lhs_var, rhs_vars = tokenize_expr(stmt)
-	# 		defs.add(lhs_var)
-	# 		uses.update(rhs_vars)
-
-	# 	inputs = uses.difference(defs)
-	# 	if len(inputs) > 2: # doesn't fit ALU description
-	# 		print("Stateful codelet has more than two inputs")
-
-	# 	input_types = []
-	# 	for var in inputs:
-	# 		input_types.append((var, self.var_types[var]))
-
-	# 	state_var_type = self.var_types[state_var]
-
-	# 	self.stateful_sketch = stateful.StatefulSketch(node, self.inputfilename, (state_var, state_var_type), input_types)
-	# 	self.stateful_sketch.check_codelet()
-
-	# def process_stateful_nodes(self):
-	# 	print("process_stateful_nodes")
-	# 	print(self.read_write_flanks)
-	# 	read_flanks, write_flanks = zip(*self.read_write_flanks.values())
-	# 	for node in self.dep_graph.nodes:
-	# 		print("node", node)
-	# 		node_stmts = node.split(";")
-	# 		print("node_stmts", node_stmts)
-	# 		for stmt in node_stmts:
-	# 			if stmt+"\n" in read_flanks: # stateful codelet
-	# 				print("stateful codelet", stmt)
-	# 				lhs = stmt[:stmt.find("=")].strip()
-	# 				rhs = stmt[stmt.find("=")+1 : ].strip()
-	# 				assert((rhs in self.state_variables) or (rhs[:rhs.find("[")] in self.state_variables))
-	# 				self.run_stateful_sketch(node, rhs)
-# 
 	def draw_graph(self, graph, graphfile):
 		dot = Digraph(comment='Dependency graph')
 		node_stmts = {}

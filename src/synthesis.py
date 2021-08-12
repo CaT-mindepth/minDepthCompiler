@@ -51,7 +51,8 @@ def get_variable_name(v1, v2): # longest common prefix
 	return prefix
 
 def is_branch_var(var):
-	return var.startswith("p_br_tmp") or var.startswith("pkt_br_tmp")
+	# ruijief: updated this to make domino preprocessing input work.
+	return "br_tmp" in var #var.startswith("p_br_tmp") or var.startswith("pkt_br_tmp") 
 
 class Component: # group of codelets
 	def __init__(self, codelet_list, id):
@@ -62,6 +63,14 @@ class Component: # group of codelets
 		self.set_component_stmts()
     # Here we name each component using comp_{} 
 		self.set_name("comp_" + str(id))
+		self.bci_inputs = []
+		self.bci_outputs = []
+
+	def add_bci_inputs(self, ins):
+		self.bci_inputs += (ins)
+	
+	def add_bci_outputs(self, outs):
+		self.bci_outputs += (outs)
 
 	def set_name(self, name):
 		self.name = name
@@ -179,19 +188,10 @@ class Component: # group of codelets
 					f.write(" {} |".format(v))
 		f.write("};\n")
 		f.write("\t}\n")
-#ruijief: TODO TODO
 
 		if not ("bit" not in [var_types[v] for v in self.inputs]): # no inputs of type bit
 			print('ERROR: bit present in inputs')
 			assert False
-		#f.write("\tgenerator bit bool_vars(){\n")
-		#f.write("\t\treturn {| 1 |")
-		#if "bit" in [var_types[v] for v in self.inputs]:
-	#		for v in self.inputs:
-#		 		if var_types[v] == "bit":
-#		 			f.write(" %s |" % v)
-#			f.write("};\n")
-#			f.write("\t}\n")
 
 		comp_fxn = comp_name + "(" + ", ".join(self.inputs) + ")"
 
@@ -210,9 +210,11 @@ class Component: # group of codelets
 
 		f.write("}\n")
 
-	def write_sketch_file(self, output_path, comp_name, var_types):
+	def write_sketch_file(self, output_path, comp_name, var_types, stats : test_stats.Statistics = None):
 		filenames = []
 		for o in self.outputs:
+			if stats != None:
+				stats.start_synthesis_comp(f"stateless {comp_name} {o}")
 			bnd = 1 # start with bound 1, since ALU cannot be a wire (which is bnd 0)
 			while True:
 				# run Sketch
@@ -231,6 +233,8 @@ class Component: # group of codelets
 				ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
 				print("return code", ret_code)
 				if ret_code == 0: # successful
+					if stats != None:
+						stats.end_synthesis_comp(f"stateless {comp_name} {o}")
 					print("solved")
 					result_file = sketch_outfilename
 					print("output is in " + result_file)
@@ -269,10 +273,16 @@ class StatefulComponent(object):
 		print('-------------------------------------- stateful codelet vars : ', self.state_vars , '--------------***')
 		self.state_pkt_fields = stateful_codelet.get_state_pkt_field()
 		self.comp_stmts = stateful_codelet.get_stmt_list()
-
 		self.grammar_path = "grammars/stateful_tofino.sk"
-
 		self.get_inputs_outputs()
+		self.bci_inputs = []
+		self.bci_outputs = []
+
+	def add_bci_inputs(self, ins):
+		self.bci_inputs += ins 
+	
+	def add_bci_outputs(self, outs):
+		self.bci_outputs += outs
 
 	def set_name(self, name):
 		self.name = name
@@ -308,7 +318,9 @@ class StatefulComponent(object):
 		3. It is a packet field
 		Allow an additional packet field / state var to be an output
 		With merging, there can be at most 2 outputs (state_var and additional packet field / state var)
-		TODO: duplicate if there are > 2 outputs
+		TODO: ruijief: I see the issue here --- we can't
+			use variable names (e.g. self.last_ssa_var(o)) to distinguish whether a thing is a stateful var or not
+			anymore. 
 		'''
 		redundant_outputs = []
 		adj_inputs = [i for c in adj_comps for i in c.inputs]
@@ -317,9 +329,8 @@ class StatefulComponent(object):
 		for o in self.outputs:
 			if o not in self.state_vars:
 				if o not in adj_inputs: # not used in adjacent component
-					if self.temp_var(o) or (not self.last_ssa_var(o)):
-						redundant_outputs.append(o)
-						# print("Redundant output: {}".format(o))
+					redundant_outputs.append(o)
+					# print("Redundant output: {}".format(o))
 				
 
 		print("redundant outputs", redundant_outputs)
@@ -340,9 +351,11 @@ class StatefulComponent(object):
 			self.codelet.add_stmts(comp.comp_stmts)
 
 		if comp.isStateful:
-			if len(self.state_vars) == 2:
+			if len(self.state_vars) > 1:
 				print("Cannot merge stateful component (current component already has 2 state variables)")
 				assert(False)
+			print(' --my stateful vars: ', self.state_vars)
+			print(' --their stateful vars: ', comp.state_vars)
 			assert(len(comp.state_vars) == 1)
 			self.state_vars.append(comp.state_vars[0])
 			self.state_pkt_fields += (comp.codelet.get_state_pkt_field()) # get_state_pkt_field() returns a list
@@ -458,40 +471,35 @@ class StatefulComponent(object):
 		f.write("\tassert(impl[1] == spec[1]);\n") 
 		f.write("}\n")
 
-	def write_sketch_file(self, output_path, comp_name, var_types, upper_bnd = 2, prefix=""): # TODO: remove bounds from stateful synthesis
-		bnd = 1 # start with bound 1, since SALU cannot be a wire (which is bnd 0)
-		while True:
-			# run Sketch
-			# if optionally, upper_bnd is specified, then 
-			# we check if bound exceeds upper bound, and perform synthesis
-			if upper_bnd != -1 and bnd >= upper_bnd: 
-				return None
-			
-			sketch_filename = os.path.join(output_path, prefix + f"{comp_name}_stateful_bnd_{bnd}.sk")
-			sketch_outfilename = os.path.join(output_path, prefix + f"{comp_name}_stateful_bnd_{bnd}.sk"+ ".out")
-			f = open(sketch_filename, 'w+')
-			self.set_alu_inputs()
-			self.write_grammar(f)
-			self.write_sketch_spec(f, var_types, comp_name)
-			f.write("\n")
-			self.write_sketch_harness(f, var_types, comp_name)
-			f.close()
-			print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
-			f_sk_out = open(sketch_outfilename, "w+")
+	def write_sketch_file(self, output_path, comp_name, var_types, upper_bnd = 2, prefix="", stats : test_stats.Statistics = None): # TODO: remove bounds from stateful synthesis
+		if stats != None:
+			stats.start_synthesis_comp(f"stateful {comp_name}")
+		bnd = 1 # unused		
+		sketch_filename = os.path.join(output_path, prefix + f"{comp_name}_stateful_bnd_{bnd}.sk")
+		sketch_outfilename = os.path.join(output_path, prefix + f"{comp_name}_stateful_bnd_{bnd}.sk"+ ".out")
+		f = open(sketch_filename, 'w+')
+		self.set_alu_inputs()
+		self.write_grammar(f)
+		self.write_sketch_spec(f, var_types, comp_name)
+		f.write("\n")
+		self.write_sketch_harness(f, var_types, comp_name)
+		f.close()
+		print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
+		with open(sketch_outfilename, "w+") as f_sk_out:
 			print("running sketch, bnd = {}".format(bnd))
 			print("sketch_filename", sketch_filename)
 			ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
 			print("return code", ret_code)
 			if ret_code == 0: # successful
+				if stats != None:
+					stats.end_synthesis_comp(f"stateful {comp_name}")
 				print("solved")
 				result_file = sketch_outfilename
 				print("output is in " + result_file)
 				return result_file 
 			else:
 				print("failed")
-	
-			f_sk_out.close()
-			bnd += 1
+				return None
 
 	def print(self):
 		stmts = self.codelet.get_stmt_list()
@@ -586,10 +594,6 @@ class Synthesizer:
 			print('AssertionError? failed ')
 			print('---------- Merge failure. ---------')
 			return False
-	# def all_phv_outputs(self):
-	#	# PHV outputs are outputs that aren't branch variables (e.g. branch variables are of type bit)
-	#	# and not state variables
-	#	return list(filter(lambda x: not (x in self.state_vars) and not (self.var_types[x] == 'bit'), self.outputs))
 
 	def non_temporary_outputs(self, comp):
 		x= list(filter(lambda x: not self.var_types[x] == 'bit', comp.outputs))
@@ -638,7 +642,6 @@ class Synthesizer:
 		#
 		# check outputs 
 		#
-
 		if a.isStateful: 
 			if len(a.state_vars) != 1:
 				print('		~ merge_candidate: component a state_vars length != 1')
@@ -686,6 +689,7 @@ class Synthesizer:
 			print(' 	| cannot merge: too many inputs.')
 			return False
 		else: 
+			print('		| merge_candidate: Can try merging.')
 			return True
 
 	def perform_merge(self, a, b): 
@@ -764,162 +768,141 @@ class Synthesizer:
 		self.merge_processed = set() 
 		self.recursive_merge() 
 
-	def transfer_branch_vars(self):
-		#for comp in nx.topological_sort(self.comp_graph):
-		comps = list(nx.topological_sort(self.comp_graph))
-		comp_transform = {}
-		for comp in comps:
-			comp_transform[comp] = comp
-		modified_lhses = []
+	# TODO: this is a kludge for now: we need to properly
+	# do BFS in order to deduplicate the nodes we return.
+	# for now we use the list(set(...)) trick in code that
+	# calls this method to dedup.
+	#
+	# return format: (BCI codelets, inputs to this component)
+	def BCI(self, codelet):
+		if codelet.is_stateful(self.state_vars):
+			return [], [codelet]
+		ret = []
+		ret_inputs = []
+		for pred in self.dep_graph.predecessors(codelet):
+			pred_ret, pred_inputs = self.BCI(pred)
+			ret += pred_ret 
+			ret_inputs += pred_inputs
+		ret.append(codelet)
+		return ret, ret_inputs # TODO: deduplicate
 
-		print('transfer_branch_vars: finding stateless branch variables to move to int...')
-		for comp_old in comps:
-			comp = comp_transform[comp_old]
-			if not comp.isStateful:
-				# is stateless component.
-				# XXX: quick check if the current component is a branch tmp var component of one.
-				if len(comp.outputs) == 1 and self.var_types[comp.outputs[0]] == 'bit' \
-					and 'tmp' in comp.outputs[0]:
-					print(' * transfer_branch_vars: found a stateless component to doctor: ', str(comp))
-					assert len(comp.codelets) == 1
-					assert len(comp.codelets[0].stmt_list) == 1
-					# change its type to int
-					self.var_types[comp.outputs[0]] = 'int'
-					stmt = comp.codelets[0].stmt_list[0]
-					print('    | statement: ', str(stmt))
-					# (self, lhs, rhs, line_no)
-					#	dependencyGraph.Statement(lhs, rhs, line_no)
-					modified_lhses.append(stmt.lhs)
-					new_stmt = Statement(stmt.lhs, '( ' + stmt.rhs + ") ? 1 : 0", stmt.line_no)
-					# new stmt init 
-					new_stmt.find_rhs_vars()
-					new_stmt.is_read_flank(self.state_vars)
-					new_stmt.is_write_flank(self.state_vars)
 
-					print('    | new statement: ', str(new_stmt))
-
-					new_codelet = Codelet([new_stmt]) 
-					assert new_codelet.is_stateful(self.state_vars) != False
-					new_comp = StatefulComponent(new_codelet)
-					
-					print('    | new component: ', str(new_comp))
-
-					# add in new_comp and delete current component.
-					comp_transform[comp] = new_comp
-					self.comp_graph.add_node(comp)
-					self.comp_graph.add_edges_from([(new_comp, succ) for succ in self.comp_graph.successors(comp)])
-					self.comp_graph.add_edges_from([(pred, new_comp) for pred in self.comp_graph.predecessors(comp)])
-					self.comp_graph.remove_node(comp)
-					new_comp.get_inputs_outputs()
-		print(' ***** transfer_branch_vars: finished creating new components. Now finding RHSes.')
-		comps = list(nx.topological_sort(self.comp_graph))
-		for comp in comps:
-			lexer = lex.lex(module=lexerRules)
-			def modify_stmt(stmt, lexer, branch_var):
-				rhs = stmt.rhs 
-				old_rhs = rhs
-				rhs = rhs.replace(branch_var, '(' + branch_var + '==1)')
-				stmt.rhs = rhs 
-				print('         - modify_stmt: previous rhs ', old_rhs, '; current rhs ', rhs)
-				return stmt
-			print(' | looking at component ', comp)
-			if comp.isStateful:
-				new_stmt_list = []
-				for stmt1 in comp.codelet.stmt_list:
-					stmt = stmt1
-					for branch_var in modified_lhses:
-						stmt = modify_stmt(stmt, lexer, branch_var)
-					new_stmt_list.append(stmt)					
-				comp.codelet.stmt_list = new_stmt_list 
-			
-			if not comp.isStateful:
-				new_codelets = []
-				for codelet in comp.codelets:
-					new_stmt_list = []
-					for stmt1 in codelet.stmt_list:
-						stmt = stmt1 
-						for branch_var in modified_lhses:
-							stmt = modify_stmt(stmt, lexer, branch_var)
-						new_stmt_list.append(stmt)
-					codelet.stmt_list = new_stmt_list 
-					new_codelets.append(codelet)
-				comp.codelets = new_codelets
-
-	def process_graph(self):
-		original_dep_edges = copy.deepcopy(self.dep_graph.edges())
-		# print("original_dep_edges")
-		#for u, v in original_dep_edges:
-			#print("edge")
-			#print("u")
-			#u.print()
-			#print("v")
-			#v.print()
-
-		#print("\n Dep graph nodes")
-		#for codelet in self.dep_graph.nodes:
-		#	print()
-		#	codelet.print()
-
-		#print("\n Dep graph stateful nodes")
-		#for codelet in self.stateful_nodes:
-		#	print()
-		#	codelet.print()
-
-		self.dep_graph.remove_nodes_from(self.stateful_nodes)
-		# remove incoming and outgoing edges
-		# self.dep_graph.remove_edges_from([(w, u) for w in self.dep_graph.predecessors(u)])
-		# self.dep_graph.remove_edges_from([(u, v) for v in self.dep_graph.successors(u)])
-
+	def compute_scc_graph(self):
+		# Step 1: Process stateful components. By processing we mean
+		# forming a graph of stateful singleton components.
 		i = 0
-		codelet_component = {} # codelet repr -> component it belongs to
-	
+		codelet_component = {} # maps the string of each stateful codelet to the component it belongs to.
+		component_inputs = {} # component -> list of codelets that are inputs to that component.
 		for u in self.stateful_nodes:
-			print("stateful codelet ", i)
-			print(' codelet content: ', str(u))
-			u.is_stateful(self.state_vars)
-			print(' codelet has state vars: ', u.state_vars)
+			u.is_stateful(self.state_vars) # initialize state_vars in u
 			stateful_comp = StatefulComponent(u)
 			stateful_comp.set_name('comp_' + str(i))
+			print('compute_scc_graph: StatefulComponent(', stateful_comp.name, '): state vars: ', stateful_comp.state_vars)
 			self.components.append(stateful_comp)
 			codelet_component[str(u)] = stateful_comp
 			i += 1
-		#exit(0)
-		for comp in nx.weakly_connected_components(self.dep_graph):
-			print("component ", i)
-			# print("".join([s.get_stmt() for v in comp for s in v.get_stmt_list()]))
-			comp_sorted = []
-			for codelet in nx.topological_sort(self.dep_graph):
-				if codelet in comp:
-					comp_sorted.append(codelet)
+		# Step 2: Process stateless components. By processing
+		# we mean for each principal stateless output, compute its BCI
+		# and include everything in its BCI in the stateless component.
 
-			component = Component(comp_sorted, i)
 
-			for codelet in comp_sorted:
-				codelet_component[str(codelet)] = component
+		# 2a: process principal outputs (POs).
+		principal_outputs = []
+		for codelet in self.dep_graph.nodes:
+			if not(codelet.is_stateful(self.state_vars)):
+				if len(list(self.dep_graph.successors(codelet))) == 0:
+					# contains principal outputs. Include it in the list
+					principal_outputs.append(codelet)
 
-			self.components.append(component)
+		print('number of POs: ', len(principal_outputs))
 
-			# output_file = "{}_comp_{}".format(self.filename, i)
-			# self.synthesize_comp(component, output_file, i) # synthesize component
-			i += 1
+		for codelet in principal_outputs:
+			print('processing PO codelet: ', str(codelet))
+			bci_nodes, bci_inputs = self.BCI(codelet)
+			bci_nodes = list(set(bci_nodes))
+			bci_inputs = list(set(bci_inputs)) # dedup.
+			bci_comp = Component(bci_nodes, i)
+			for node in bci_nodes:
+				codelet_component[str(node)] = bci_comp
+			component_inputs[bci_comp] = bci_inputs
+			self.components.append(bci_comp)
+			print(' -> stateless PO component: ', bci_comp, ' | id = ', bci_comp.name)
+			i += 1 
+	
+		for comp in self.components:
+			if comp.isStateful:
+				print(' # state_vars : ', comp.state_vars)
 
-		####
-		#print("\n Original_dep_edges")
-		#for u, v in original_dep_edges:
-	#		print("edge")
-#			print("u")
-#			u.print()
-#			print("v")
-#			v.print()
-#		print()
-		######
+		# 2b:
+		# calculate BCIs for stateless outputs that aren't POs. 
+		# They occur because as inputs to stateful components.
+		for codelet in self.dep_graph.nodes:
+			if not(codelet.is_stateful(self.state_vars)) and not (str(codelet) in codelet_component):
+				bci_nodes, bci_inputs = self.BCI(codelet)
+				bci_nodes = list(set(bci_nodes))
+				bci_inputs = list(set(bci_inputs))
+				bci_comp = Component(bci_nodes, i)
+				for node in bci_nodes:
+					codelet_component[str(node)] = bci_comp 
+				self.components.append(bci_comp)
+				component_inputs[bci_comp] = bci_inputs 
+				i += 1
+		# Finally: Build the actual components graph by adding predecessor relations.
+		# Stateful components: Add their predecessor codelets' corresponding
+		# components as in-neighbors. 
+		# Stateless components: Add their input codelets' corresponding components
+		# as in-neighbors.
+		self.scc_graph = nx.DiGraph()
+		for comp in self.components:
+			self.scc_graph.add_node(comp)
 
-#		print("codelet_component", codelet_component)
+		for comp in self.components:
+			if comp.isStateful:
+				# stateful component contains a single (stateful) codelet.
+				for pred_codelet in self.dep_graph.predecessors(comp.codelet):
+					pred_codelet_comp = codelet_component[str(pred_codelet)]
+					self.scc_graph.add_edge(pred_codelet_comp, comp)
+					print(': ',pred_codelet_comp.name, ' ->', comp.name)
+			else:
+				# stateless component. their predecessors come from 
+				# corresponding codelets in components_inputs[.] map.
+				for pred_codelet in component_inputs[comp]:
+					pred_codelet_comp = codelet_component[str(pred_codelet)]
+					self.scc_graph.add_edge(pred_codelet_comp, comp)
+					print('! ', pred_codelet_comp.name, ' ->', comp.name)
+			
+		# we leave it to the postprocessor to figure out dependencies between
+		# stateless and stateful components.
+		print('--------------------- stateless components from BCI --------------------')
+		for comp in self.components:
+			if comp.isStateful:
+				print('------- Stateful Component: ', comp.name)
+				print(comp)
+				print('# state_vars: ', comp.state_vars)
+				print('-------')
+			else:
+				print('------- Stateless Component: ', comp.name)
+				print(comp)
+				print('-------')
+
+
+	def process_graph(self):
+		self.state_vars = list(set(self.state_vars))
+		self.comp_graph = nx.DiGraph() 
+		self.compute_scc_graph()
+		#exit(1)
+		"""
+		original_dep_edges = copy.deepcopy(self.dep_graph.edges())
+
+		self.dep_graph.remove_nodes_from(self.stateful_nodes)
+		i = 0
+		codelet_component = {} # codelet repr -> component it belongs to
 
 		# create component graph
 		print("Add component graph edges")
-		self.comp_graph = nx.DiGraph()
-		self.comp_graph.add_nodes_from(self.components)	
+		#self.comp_graph = nx.DiGraph()
+		#self.comp_graph.add_nodes_from(self.components)	
+		self.compute_scc_graph() # Here
 		for u, v in original_dep_edges: # add edges between components
 			if codelet_component[str(u)] != codelet_component[str(v)]:
 				self.comp_graph.add_edge(codelet_component[str(u)], codelet_component[str(v)])
@@ -927,17 +910,11 @@ class Synthesizer:
 				print("->")
 				print(str(codelet_component[str(v)]))
 				print()
-
 		# Duplicate components to eliminate inputs of type bit (branch variables)
 		outputs_comp = {} # output -> component
+		"""
+		self.comp_graph = self.scc_graph 
 
-		#self.write_comp_graph()
-		#exit(1)
-
-		#print("------------------------------------------------- transferring components... ------------------------------------")
-		#self.transfer_branch_vars()
-		#print("------------------------------------------------- transfer components end. ------------------------------------")
-		#exit(1)
 		print("------------------------------------------------- Merging components... ------------------------------------")
 		if self.stats != None:
 			self.stats.update_num_components(len(list(self.comp_graph.nodes)))
@@ -978,7 +955,7 @@ class Synthesizer:
 			comp_name = "comp_{}".format(self.comp_index[comp])
 			comp.set_name(comp_name)
 			print(" > codelet output directory: " + self.output_dir)
-			result_file = comp.write_sketch_file(self.output_dir, comp_name, self.var_types)
+			result_file = comp.write_sketch_file(self.output_dir, comp_name, self.var_types, stats = self.stats)
 			print("processing sketch output...")
 			if comp.isStateful:
 				print("processing: output is stateful.")

@@ -1,0 +1,29 @@
+int p_cond1;
+int p_link_idle;
+int p_loss;
+int p_pkt_0;
+int p_pkt_1;
+int p_pkt_10;
+int p_qlen;
+int p_state_00;
+int p_state_000;
+int p_state_001;
+int p_state_10;
+int p_state_100;
+int p_state_101;
+int p_tmp0;
+int p_tmp1;
+# state variables start
+int state_0;
+int state_1;
+# state variables end
+bit p__br_tmp0;
+bit p__br_tmp00;
+# declarations end
+p_state_000 = state_0;
+p_state_100 = state_1;
+p_pkt_10 = p_pkt_0 - 10;
+p__br_tmp00 = p_pkt_10 > p_state_100;
+p_tmp1 = p_state_000 + 1;
+state_0 = (p__br_tmp00) ? p_tmp1 : p_state_000;
+state_1 = (p__br_tmp00) ? (p_pkt_0) : p_state_100;

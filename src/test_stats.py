@@ -18,6 +18,8 @@ class Statistics(object):
         self.synthesis_done = False
         self.ilp_done = False
         self.fd = fd
+        self.synthesis_comp_start_times = {}
+        self.synthesis_comp_end_times = {}
 
     def start_merging(self):
         self.merging_start_time = time.time()
@@ -54,6 +56,12 @@ class Statistics(object):
     def start_synthesis(self):
         self.synthesis_start_time = time.time()
     
+    def start_synthesis_comp(self, comp_name):
+        self.synthesis_comp_start_times[comp_name] = time.time()
+
+    def end_synthesis_comp(self, comp_name):
+        self.synthesis_comp_end_times[comp_name] = time.time()
+
     def end_synthesis(self):
         self.synthesis_end_time = time.time()
         self.synthesis_time = self.synthesis_end_time - self.synthesis_start_time
@@ -77,6 +85,8 @@ class Statistics(object):
             self.fd.write("Time taken during merging: {} s\n".format(self.merging_time))
         if self.synthesis_done:
             self.fd.write("Time taken during synthesis: {} s\n".format(self.synthesis_time))
+            for comp_name in self.synthesis_comp_start_times:
+                self.fd.write("Component " + comp_name + " : " + ("{} s\n".format(self.synthesis_comp_end_times[comp_name] - self.synthesis_comp_start_times[comp_name])))
         if self.ilp_done:
             self.fd.write("Time taken during ILP: {} s\n".format(self.ilp_time))
         self.fd.write("Time taken overall: {} s\n".format(self.overall_time))
