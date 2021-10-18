@@ -210,7 +210,127 @@ class Component: # group of codelets
 
 		f.write("}\n")
 
+	def write_sketch_spec_ternary(self, f, var_types, comp_name):
+		input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
+		spec_name = comp_name
+		# write function signature
+		f.write("int[2] {}({})".format(spec_name, ", ".join(input_types)) + "{\n")
+		# declare output array
+		output_array = "_out"
+		f.write("\tint[2] {};\n".format(output_array))
+		# declare defined variables
+		defines = self.codelets[0].get_outputs()
+		for v in defines:
+			if v not in self.inputs:
+				f.write("\t{} {};\n".format(var_types[v], v))
+		# function body
+		for stmt in self.comp_stmts:
+			f.write("\t{}\n".format(stmt.get_stmt()))
+		# update output array
+		if not(len(self.outputs) <= 2): 
+			print('ERROR: outputs are ', self.outputs, ' which is more than 2.')
+			assert False
+		f.write("\t{}[0] = {};\n".format(output_array, self.outputs[0]))
+		if len(self.outputs) > 1:
+			f.write("\t{}[1] = {};\n".format(output_array, self.outputs[1]))
+		# return
+		f.write("\treturn {};\n".format(output_array))
+		f.write("}\n")
+
+	def write_grammar_ternary(self, f):
+		grammar_path = "grammars/stateful_tofino.sk"
+		try:
+			f_grammar = open(grammar_path)
+			# copy gramar
+			lines = f_grammar.readlines()
+			for l in lines:
+				f.write(l)
+
+		except IOError:
+			print("Failed to open stateful grammar file {}.".format(self.grammar_path))
+			exit(1)
+
+	def write_sketch_harness_ternary(self, f, var_types, comp_name):
+		f.write("harness void sketch(")
+		if len(self.inputs) >= 1:
+			var_type = var_types[self.inputs[0]]
+			f.write("{} {}".format(var_type, self.inputs[0]))
+
+		for v in self.inputs[1:]:
+			var_type = var_types[v]
+			f.write(", ")
+			f.write("{} {}".format(var_type, v))
+
+		f.write(") {\n")
+		assert len(self.inputs) <= 4
+		f.write('\tint[2] impl = salu(')
+		for i in range(len(self.inputs)):
+			f.write(self.inputs[i])
+			if i < len(self.inputs) - 1:
+				f.write(', ')
+		if len(self.inputs) < 4:
+			fill = 4 - len(self.inputs)
+			f.write(', ')
+			for _ in range(fill - 1):
+				f.write('0, ')
+			f.write('0')
+		f.write(');\n')
+
+		f.write("\tint [2] spec = {}({});\n".format(comp_name, ', '.join(self.inputs)))
+
+		f.write("\tassert(impl[0] == spec[0]);\n")
+		f.write("\tassert(impl[1] == spec[1]);\n") 
+		f.write("}\n")
+
+
+
+	def write_ternary_sketch_file(self, output_path, comp_name, var_types, stats : test_stats.Statistics = None):
+		filenames = []
+		for o in self.outputs:
+			if stats != None:
+				stats.start_synthesis_comp(f"stateless {comp_name} {o}")
+			bnd = 1 # start with bound 1, since ALU cannot be a wire (which is bnd 0)
+			while True:
+				# run Sketch
+				sketch_filename = os.path.join(output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
+				sketch_outfilename = os.path.join(output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk.out")
+				f = open(sketch_filename, 'w+')
+				self.write_grammar_ternary(f)
+				self.write_sketch_spec_ternary(f, var_types, comp_name)
+				f.write("\n")
+				self.write_sketch_harness_ternary(f, var_types, comp_name)
+				f.close()				
+				print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
+				f_sk_out = open(sketch_outfilename, "w+")
+				print("running sketch, bnd = {}".format(bnd))
+				print("sketch_filename", sketch_filename)
+				ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
+				print("return code", ret_code)
+				if ret_code == 0: # successful
+					if stats != None:
+						stats.end_synthesis_comp(f"stateless {comp_name} {o}")
+					print("solved")
+					result_file = sketch_outfilename
+					print("output is in " + result_file)
+					filenames.append(result_file)
+					break
+				else:
+					print("failed")
+		
+				f_sk_out.close()
+				bnd += 1
+		return filenames
+
+
+	def contains_ternary(self):
+		for output in self.outputs:
+			if is_branch_var(output):
+				return True 
+		return False
+
 	def write_sketch_file(self, output_path, comp_name, var_types, stats : test_stats.Statistics = None):
+		if self.contains_ternary():
+			return self.write_ternary_sketch_file(output_path, comp_name, var_types, stats)
 		filenames = []
 		for o in self.outputs:
 			if stats != None:
@@ -263,6 +383,8 @@ class Component: # group of codelets
 	
 	def __str__(self):
 		return " ".join([s.get_stmt() for s in self.comp_stmts])
+
+
 
 class StatefulComponent(object):
 	def __init__(self, stateful_codelet):
@@ -616,6 +738,11 @@ class Synthesizer:
 
 		return filtered_outputs 
 
+	def pred_is_branch(self, comp):
+		preds = list(self.comp_graph.predecessors(comp))
+		return len(preds) == 1 and ((not preds[0].isStateful) and  preds[0].contains_ternary())
+
+
 	def merge_candidate(self, a, b):
 		a.update_outputs(self.comp_graph.neighbors(a))
 		b.update_outputs(self.comp_graph.neighbors(b))
@@ -636,8 +763,8 @@ class Synthesizer:
 		if len(list(self.comp_graph.successors(a))) != 1:
 			print('    ~ merge_candidate: predecessor packing condition not met.')
 			return False 
-		else:
-			assert list(self.comp_graph.successors(a))[0] == b
+		#else:
+		#	assert list(self.comp_graph.successors(a))[0] == b
 
 		#
 		# check outputs 
@@ -961,11 +1088,16 @@ class Synthesizer:
 				print("processing: output is stateful.")
 				self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[0])
 			else:
-				print("processing: output is stateless.")
-				output_idx = 0
-				for file in result_file:
-					self.synth_output_processor.process_stateless_output(file, comp.outputs[output_idx])
-					output_idx += 1
+				if comp.contains_ternary():
+					print('processing: output is ternary stateful.')
+					for file in result_file:
+						self.synth_output_processor.process_single_stateful_output(file, comp.outputs[0])
+				else:
+					print("processing: output is stateless.")
+					output_idx = 0
+					for file in result_file:
+						self.synth_output_processor.process_stateless_output(file, comp.outputs[output_idx])
+						output_idx += 1
 		self.write_comp_graph()
 		# nx.draw(self.comp_graph)
 

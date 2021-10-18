@@ -1,0 +1,63 @@
+int p_pkt_0;
+int p_state_00;
+int p_state_000;
+int p_state_001;
+int p_state_10;
+int p_state_100;
+int p_state_101;
+int p_tmp0;
+int p_tmp1;
+int p_tmp10;
+int p_tmp11;
+int p_tmp12;
+int p_tmp13;
+int p_tmp14;
+int p_tmp15;
+int p_tmp16;
+int p_tmp17;
+int p_tmp18;
+int p_tmp19;
+int p_tmp2;
+int p_tmp20;
+int p_tmp21;
+int p_tmp22;
+int p_tmp23;
+int p_tmp24;
+int p_tmp25;
+int p_tmp3;
+int p_tmp4;
+int p_tmp5;
+int p_tmp6;
+int p_tmp7;
+int p_tmp8;
+int p_tmp9;
+# state variables start
+int state_0
+int state_1
+# state variables end
+bit p__br_tmp0;
+bit p__br_tmp00;
+bit p__br_tmp1;
+bit p__br_tmp10;
+bit p__br_tmp2;
+bit p__br_tmp20;
+bit p__br_tmp3;
+bit p__br_tmp30;
+bit p__br_tmp4;
+bit p__br_tmp40;
+# declarations end
+p_state_000 = state_0;
+p_state_100 = state_1;
+p__br_tmp10 = (!(p_tmp0)) ? !(p_tmp15) : 0;
+p_tmp20 = (!(p_tmp0))&&p__br_tmp10;
+p_tmp3 = p_pkt_0<p_state_100;
+p__br_tmp20 = p_tmp20 ? p_tmp3 : 0;
+p_tmp11 = p_tmp20&&p__br_tmp20;
+p_tmp12 = p_state_000+1;
+p__br_tmp30 = !p__br_tmp00 ? !(p_tmp17) : 0;
+p_tmp21 = !p__br_tmp00&&p__br_tmp30;
+p__br_tmp40 = p_tmp21 ? !(p_pkt_0<p_state_100) : 0;
+p_tmp13 = p_tmp21&&p__br_tmp40;
+state_0 = p_tmp11 ? p_tmp12 : p_state_000;
+state_1 = p_tmp13 ? (p_pkt_0) : p_state_100;
+

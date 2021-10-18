@@ -115,12 +115,80 @@ class ILP_TableInfo(object):
         return a
 
 
-def ILP_MultiTable(ILP_Table):
+class ILP_MultiTable():
+    """
+            self.table_name = table_name 
+        self.num_alus = num_alus 
+        self.alu_adjacency_list = alu_adjacency_list
+        self.alus = alus
+        self.multi_table_mode = False 
+        """
     def __init__(self, table_dependencies : ILP_TableDeps, table_action_map : dict[str, list[str]], action_infos : dict[str, list[ILP_ActionInfo]]):
         self.action_infos = action_infos 
         self.multi_table_mode = True 
         self.table_dependencies = table_dependencies 
         self.table_action_map = table_action_map
+        self.alus = []
+        for table_name in self.action_infos:
+            self.alus += self.action_infos[table_name].alus
+        
+
+    def get_num_alus(self):
+        return self.num_alus 
+
+    # returns a list of edges in the ALU dependency graph.
+    def get_dependency_list(self):
+        deps = []
+        for src_alu_id in range(len(self.alu_adjacency_list)):
+            for tgt_alu in self.alu_adjacency_list[src_alu_id]:
+                tgt_alu_id = tgt_alu.id 
+                print(' * gen_dependency_list: dependency between ', src_alu_id, ' and ', tgt_alu_id)
+                deps.append((src_alu_id, tgt_alu_id))
+        return deps
+
+    def get_multi_table_info(self):
+        assert self.multi_table_mode == True 
+        alu_dep_dic = {}
+        alu_dic = {}
+        table_list = []
+        #action_deps = self.get_dependency_list()
+        for table in self.table_action_map: 
+            alu_dep_dic[table] = [] # empty dependency list 
+            table_list.append(table)
+            num_alus = 0
+            for action_name in self.table_action_map[table]:
+                actionObj = self.action_infos[action_name]
+                num_alus += actionObj.get_num_alus()
+                action_dep_list = actionObj.get_dependency_list()
+                alu_dep_dic[table] += action_dep_list
+                #print(self.action_infos)
+                #x = self.action_infos[action]
+                #alu_dep_dic[table] += [ x ] # actions 
+            alu_dic[table] = num_alus
+        return alu_dic, alu_dep_dic, table_list 
+        
+    def multi_table_ILP(self):
+        alu_dic, alu_dep_dic, table_list = self.get_multi_table_info()
+        return gen_and_solve_ILP(self.table_dependencies.match_deps, self.table_dependencies.action_deps, \
+            self.table_dependencies.successor_deps, self.table_dependencies.reverse_deps, alu_dic, alu_dep_dic, table_list)
+
+    # do ILP
+    def ILP(self, stats=None):
+        # def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic, alu_dep_dic, table_list):
+        # match_dep: [(u, v)], where u and v are table names
+        # action_dep: ...
+        # successor_dep: ...
+        # reverse_dep:  ...
+        # alu_dic : map from table name to the number of ALUs in each table
+        # alu_dep_dic: map from table name to dependency (edge) list between ALUs in each table
+        # table_list: list of tables
+        if stats != None:
+            stats.start_ilp()
+        a=None
+        if self.multi_table_mode:
+            a = self.multi_table_ILP()
+        else:
+            assert(False)
 
 class ILP_Output(object):
     """
@@ -253,10 +321,6 @@ def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic
     avail_alu = 16
 
     # Constraint 3: alu-level dependency
-    # alu_level_c = []
-    # for key in alu_dep_dic:
-    #     for pair in alu_dep_dic[key]:
-    #         alu_level_c.append(And(Int('%s_A_%s' % (key, pair[0])) < Int('%s_A_%s' % (key, pair[1]))))
     print('ILP_Gurobi: alu_dep_dic: ', alu_dep_dic)
     for key in alu_dep_dic:
         for pair in alu_dep_dic[key]:
@@ -266,34 +330,23 @@ def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic
     for i in range(len(z3_alu_list)):
         for k in range(total_stage):
             # Note: model.addConstr((x == 1) >> (y + z <= 5)); LHS must be == 1
-            # m.addConstr(((z3_alu_list[i] - k + 1)==1) >> (z3_alu_loc_vec[i][k]==1))
-            # m.addConstr(((z3_alu_list[i] - k)==0) >> (z3_alu_loc_vec[i][k]==1))
             m.addConstr((z3_alu_loc_vec[i][k]==1) >> (z3_alu_list[i] == k))
     # alu_pos_rel_c = []
-    # for i in range(len(z3_alu_list)):
-    #    for k in range(total_stage):
-    #        alu_pos_rel_c.append(Implies(z3_alu_list[i] == k, z3_alu_loc_vec[i][k] == 1))
     for i in range(len(z3_alu_loc_vec)):
         for j in range(len(z3_alu_loc_vec[0])):
             m.addConstr(z3_alu_loc_vec[i][j] >= 0)
-    # alu_pos_val_c = [And(z3_alu_loc_vec[i][j] >= 0) for i in range(len(z3_alu_loc_vec)) for j in range(len(z3_alu_loc_vec[0]))]
     for i in range(len(z3_alu_loc_vec)):
         m.addConstr(sum(z3_alu_loc_vec[i]) == 1)
-    # alu_row_sum_c = [Sum(z3_alu_loc_vec[i]) == 1 for i in range(len(z3_alu_loc_vec))]
     for i in range(len(z3_alu_loc_vec_transpose)):
         m.addConstr(sum(z3_alu_loc_vec_transpose[i]) <= avail_alu)
-    # alu_col_sum_c = [Sum(z3_alu_loc_vec_transpose[i]) <= avail_alu for i in range(len(z3_alu_loc_vec_transpose))]
     # Constraint 5: set a variable cost which is our objective function whose value is >= to any other vars
     cost = m.addVar(name='cost', vtype=GRB.INTEGER)
     for m_v in z3_match_list:
         m.addConstr(cost >= m_v)
     for alu_v in z3_alu_list:
         m.addConstr(cost >= alu_v)
-    # cost_with_match_c = [And(cost >= m_v) for m_v in z3_match_list]
-    # cost_with_alu_c = [And(cost >= alu_v) for alu_v in z3_alu_list]
 
     # TODO:Constraint 6: constraints for match, action, successor and reverse dep
-    # match_dep_c = []
     for ele in match_dep:
         t1 = ele[0]
         t2 = ele[1]
@@ -312,8 +365,6 @@ def gen_and_solve_ILP(match_dep, action_dep, successor_dep, reverse_dep, alu_dic
                 # action_dep_c.append(And(Int('%s_A_%s' % (t1, i)) < Int('%s_A_%s' % (t2, j))))
     # successor_dep_c = []
     # reverse_dep_c = []
-    # print("z3_match_list = ", z3_match_list)
-    # print("z3_alu_list = ", z3_alu_list)
     print("Come here------------------------")
     # Set objective
     m.setObjective(cost, GRB.MINIMIZE)

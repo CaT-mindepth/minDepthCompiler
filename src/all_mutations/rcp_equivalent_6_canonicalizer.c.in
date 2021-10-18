@@ -1,0 +1,33 @@
+int p_pkt_0;
+int p_pkt_1;
+int p_state_00;
+int p_state_000;
+int p_state_001;
+int p_state_10;
+int p_state_100;
+int p_state_101;
+int p_state_20;
+int p_state_200;
+int p_state_201;
+int p_tmp0;
+int p_tmp1;
+int p_tmp2;
+int p_tmp3;
+# state variables start
+int state_0
+int state_1
+int state_2
+# state variables end
+bit p__br_tmp0;
+bit p__br_tmp00;
+# declarations end
+p_state_000 = state_0;
+p_state_100 = state_1;
+p_state_200 = state_2;
+p__br_tmp00 = p_pkt_1<30;
+p_tmp2 = p_state_100-p_pkt_1;
+p_tmp3 = p_state_200-1;
+state_0 = p_state_000-p_pkt_0;
+state_1 = (p__br_tmp00) ? p_tmp2 : p_state_100;
+state_2 = (p__br_tmp00) ? p_tmp3 : p_state_200;
+

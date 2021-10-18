@@ -1,0 +1,54 @@
+---------------------------- finished testing blue_decrease_equivalent_10_canonicalizer.c; statistics  ---------------------
+Time taken during merging: 0.8135819435119629 s
+Time taken during synthesis: 0.9282279014587402 s
+Component stateless comp_0 p_pkt_10 : 0.3829329013824463 s
+Component stateful comp_1 : 0.5379571914672852 s
+Time taken during ILP: 0.007966995239257812 s
+Time taken overall: 2.6905088424682617 s
+Num ALU stages: 2
+
+Num ALUs: 2
+Num stateful ALUs: 1
+Num stateless ALUs: 1
+Num stages: 2
+Num ALUs per stage: [1, 1]
+Number of components pre-merge: 3
+Number of successful merges: 1
+Number of components post-merge: 2
+------------------------------------------------------------------------------------------------
+---------------------------- finished testing blue_decrease_equivalent_1_canonicalizer.c; statistics  ---------------------
+Time taken during merging: 0.6995298862457275 s
+Time taken during synthesis: 0.8197557926177979 s
+Component stateless comp_0 p_pkt_10 : 0.32715892791748047 s
+Component stateful comp_1 : 0.486738920211792 s
+Time taken during ILP: 0.002344846725463867 s
+Time taken overall: 2.3754820823669434 s
+Num ALU stages: 2
+
+Num ALUs: 2
+Num stateful ALUs: 1
+Num stateless ALUs: 1
+Num stages: 2
+Num ALUs per stage: [1, 1]
+Number of components pre-merge: 3
+Number of successful merges: 1
+Number of components post-merge: 2
+------------------------------------------------------------------------------------------------
+---------------------------- finished testing blue_decrease_equivalent_2_canonicalizer.c; statistics  ---------------------
+Time taken during merging: 0.7984449863433838 s
+Time taken during synthesis: 0.7182440757751465 s
+Component stateless comp_0 p_pkt_10 : 0.3029909133911133 s
+Component stateful comp_1 : 0.4093458652496338 s
+Time taken during ILP: 0.0020520687103271484 s
+Time taken overall: 2.323284864425659 s
+Num ALU stages: 2
+
+Num ALUs: 2
+Num stateful ALUs: 1
+Num stateless ALUs: 1
+Num stages: 2
+Num ALUs per stage: [1, 1]
+Number of components pre-merge: 3
+Number of successful merges: 1
+Number of components post-merge: 2
+------------------------------------------------------------------------------------------------

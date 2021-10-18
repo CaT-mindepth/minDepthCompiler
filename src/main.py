@@ -139,7 +139,7 @@ if __name__ == "__main__":
   codeGens = []
   depGraphs = []
   synthObjs = []
-  actionObjs = []
+  actionObjs = {}
   action_names = []
   for file in filename: 
     print(' compiling action file ', file)
@@ -152,13 +152,18 @@ if __name__ == "__main__":
       depGraphs.append(dep_graph_obj)
       synthObjs.append(synth_obj)
       action_name = file.split('.')[0]
-      action_bjs.append(synth_obj.synth_output_processor.to_ILP_ActionInfo(action_name_to_ILP_table_name[action_name], action_name))
+      actionObjs[action_name] = (synth_obj.synth_output_processor.to_ILP_ActionInfo(action_name_to_ILP_table_name[action_name], action_name))
       action_names.append(action_name)
 
   # ILP
   # self.synth_output_processor.schedule()
 	# TODO here
-  
+  #    def __init__(self, table_dependencies : ILP_TableDeps, table_action_map : dict[str, list[str]], action_infos : dict[str, list[ILP_ActionInfo]]):
+  multi_table_ILP = ILP_Gurobi.ILP_MultiTable(ILP_dep_obj, ILP_table_name_to_action_map, actionObjs)
+  multi_table_ilp_output = multi_table_ILP.multi_table_ILP()
+  import p4_codegen 
+  codegen = p4_codegen.P4Codegen(multi_table_ILP, multi_table_ilp_output, "test")
+  codegen.generate_p4_output("tofino_p4.j2", p4outputname)
   """
   print('----- starting ILP Gurobi -----')
 	ilp_table = self.synth_output_processor.to_ILP_TableInfo(table_name = 'T0')

@@ -1,0 +1,2 @@
+table1 new-xiangyu-example/table1_action_1
+table2 new-xiangyu-example/table2_action_2

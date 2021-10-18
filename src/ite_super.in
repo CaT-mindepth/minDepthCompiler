@@ -1,0 +1,22 @@
+int p_a0;
+int p_a1;
+int p_a2;
+int p_a3;
+int p_a4;
+int p_a5;
+int p_a6;
+int p_b0;
+int p_cond0;
+# state variables start
+# state variables end
+bit p_br_tmp0;
+bit p_br_tmp1;
+# declarations end
+p_br_tmp0 = (p_cond0 > 0);
+p_a1 = p_b0 + 3;
+p_a2 = p_a1 + p_cond0 + 6;
+p_a3 = p_br_tmp0 ? p_a2 : p_a0;
+p_br_tmp1 = !(p_cond0 > 0);
+p_a4 = p_b0 + 3;
+p_a5 = p_a4 + p_cond0 - 4;
+p_a6 = p_br_tmp1 ? p_a5 : p_a3;
