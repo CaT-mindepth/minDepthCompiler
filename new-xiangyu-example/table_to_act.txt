@@ -1,0 +1,2 @@
+table1 action_1
+table2 action_2

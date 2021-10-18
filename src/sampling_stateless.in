@@ -1,8 +1,0 @@
-int p_sample0;
-int p_sample1;
-int p_sample2;
-# state variables start
-# state variables end
-# declarations end
-p_sample1 = p_sample0 + 1;
-p_sample2 = p_sample1 + 1;
