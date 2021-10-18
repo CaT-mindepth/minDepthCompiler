@@ -1,0 +1,23 @@
+int p_field10;
+int p_field20;
+int p_state00;
+int p_state01;
+int p_state02;
+int p_state03;
+int p_state04;
+int p_state05;
+int p_state06;
+# state variables start
+int state0;
+# state variables end
+bit p_br_tmp0;
+bit p_br_tmp1;
+# declarations end
+p_br_tmp0 = (! ! ! ! p_field10 + p_field20 > 2 + 2);
+p_state00 = state0;
+p_state02 = p_br_tmp0 ? 7 : p_state00;
+p_br_tmp1 = !(! ! ! ! p_field10 + p_field20 > 2 + 2);
+p_state03 = p_field10 - p_field20;
+p_state04 = p_state03 + 3 + p_field10;
+p_state06 = p_br_tmp1 ? 5 : p_state02;
+state0 = p_state06;

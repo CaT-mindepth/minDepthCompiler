@@ -1,0 +1,159 @@
+---------------------------- finished testing blue_decrease; statistics  ---------------------
+Time taken during merging: 0.4743521213531494 s
+Time taken during synthesis: 0.7100439071655273 s
+Output stateless comp_0 p_now_plus_free1 : 0.25113487243652344 s size=1
+Output stateful comp_1 : 0.45322704315185547 s size=8
+Time taken during ILP: 0.0047910213470458984 s
+Time taken overall: 1.9919731616973877 s
+Number of nodes pre-merge: 3
+Number of successful merges: 1
+Number of nodes post-merge: 2
+Number of sketch queries: 3
+Number of sketch queries during merging: 2
+Num ALUs: 2
+Num stateful ALUs: 1
+Num stateless ALUs: 1
+Num stages: 2
+Num ALUs per stage: [1, 1]
+------------------------------------------------------------------------------------------------
+---------------------------- finished testing blue_increase; statistics  ---------------------
+Time taken during merging: 0.49067211151123047 s
+Time taken during synthesis: 0.7113656997680664 s
+Output stateless comp_0 p_now_plus_free1 : 0.24966096878051758 s size=1
+Output stateful comp_1 : 0.4560739994049072 s size=8
+Time taken during ILP: 0.0020918846130371094 s
+Time taken overall: 1.9245128631591797 s
+Number of nodes pre-merge: 3
+Number of successful merges: 1
+Number of nodes post-merge: 2
+Number of sketch queries: 3
+Number of sketch queries during merging: 2
+Num ALUs: 2
+Num stateful ALUs: 1
+Num stateless ALUs: 1
+Num stages: 2
+Num ALUs per stage: [1, 1]
+------------------------------------------------------------------------------------------------
+---------------------------- finished testing flowlets; statistics  ---------------------
+Time taken during merging: 0.7617981433868408 s
+Time taken during synthesis: 0.7509298324584961 s
+Output stateful comp_0 : 0.38008713722229004 s size=3
+Output stateful comp_1 : 0.36424803733825684 s size=4
+Time taken during ILP: 0.001984834671020508 s
+Time taken overall: 2.2345621585845947 s
+Number of nodes pre-merge: 4
+Number of successful merges: 2
+Number of nodes post-merge: 2
+Number of sketch queries: 4
+Number of sketch queries during merging: 2
+Num ALUs: 2
+Num stateful ALUs: 2
+Num stateless ALUs: 0
+Num stages: 2
+Num ALUs per stage: [1, 1]
+------------------------------------------------------------------------------------------------
+---------------------------- finished testing marple_tcp_nmo; statistics  ---------------------
+Time taken during merging: 0.6587169170379639 s
+Time taken during synthesis: 0.7538957595825195 s
+Output stateful comp_0 : 0.39414501190185547 s size=5
+Output stateful comp_1 : 0.35309910774230957 s size=4
+Time taken during ILP: 0.0019459724426269531 s
+Time taken overall: 2.1529598236083984 s
+Number of nodes pre-merge: 3
+Number of successful merges: 1
+Number of nodes post-merge: 2
+Number of sketch queries: 4
+Number of sketch queries during merging: 2
+Num ALUs: 2
+Num stateful ALUs: 2
+Num stateless ALUs: 0
+Num stages: 2
+Num ALUs per stage: [1, 1]
+------------------------------------------------------------------------------------------------
+---------------------------- finished testing marple_new_flow; statistics  ---------------------
+Time taken during merging: 0.3897531032562256 s
+Time taken during synthesis: 0.392017126083374 s
+Output stateful comp_0 : 0.38858532905578613 s size=3
+Time taken during ILP: 0.0011551380157470703 s
+Time taken overall: 1.47371506690979 s
+Number of nodes pre-merge: 2
+Number of successful merges: 1
+Number of nodes post-merge: 1
+Number of sketch queries: 2 
+Number of sketch queries during merging: 1
+Num ALUs: 1
+Num stateful ALUs: 1
+Num stateless ALUs: 0
+Num stages: 1
+Num ALUs per stage: [1]
+------------------------------------------------------------------------------------------------
+---------------------------- finished testing sampling; statistics  ---------------------
+Time taken during merging: 0.381472110748291 s
+Time taken during synthesis: 0.3668041229248047 s
+Output stateful comp_0 : 0.363311767578125 s size=6
+Time taken during ILP: 0.0011472702026367188 s
+Time taken overall: 1.5355000495910645 s
+Number of nodes pre-merge: 2
+Number of successful merges: 1
+Number of nodes post-merge: 1
+Number of sketch queries: 2
+Number of sketch queries during merging: 1
+Num ALUs: 1
+Num stateful ALUs: 1
+Num stateless ALUs: 0
+Num stages: 1
+Num ALUs per stage: [1]
+------------------------------------------------------------------------------------------------
+---------------------------- finished testing conga; statistics  ---------------------
+Time taken during merging: 0.0004000663757324219 s
+Time taken during synthesis: 0.5753231048583984 s
+Output stateful comp_0 : 0.5713849067687988 s size=10
+Time taken during ILP: 0.0011489391326904297 s
+Time taken overall: 1.2747211456298828 s
+Number of nodes pre-merge: 1
+Number of successful merges: 0
+Number of nodes post-merge: 1
+Number of sketch queries:
+Number of sketch queries during merging:
+Num ALUs: 1
+Num stateful ALUs: 1
+Num stateless ALUs: 0
+Num stages: 1
+Num ALUs per stage: [1]
+------------------------------------------------------------------------------------------------
+---------------------------- finished testing snap_heavy_hitter_20; statistics  ---------------------
+Time taken during merging: 0.0001990795135498047 s
+Time taken during synthesis: 0.3963320255279541 s
+Output stateful comp_0 : 0.39283204078674316 s size=
+Time taken during ILP: 0.0011429786682128906 s
+Time taken overall: 1.223597764968872 s
+Number of nodes pre-merge: 1
+Number of successful merges: 0
+Number of nodes post-merge: 1
+Number of sketch queries:
+Number of sketch queries during merging:
+Num ALUs: 1
+Num stateful ALUs: 1
+Num stateless ALUs: 0
+Num stages: 1
+Num ALUs per stage: [1]
+------------------------------------------------------------------------------------------------
+---------------------------- finished testing dns_ttl_change_modified; statistics  ---------------------
+Time taken during merging: 0.39371204376220703 s
+Time taken during synthesis: 1.0114092826843262 s
+Output stateless comp_0 p_id1 : 0.2502927780151367 s size=
+Output stateful comp_1 : 0.33252525329589844 s
+Output stateful comp_2 : 0.41971611976623535 s
+Time taken during ILP: 0.0024290084838867188 s
+Time taken overall: 2.131756067276001 s
+Number of nodes pre-merge: 4
+Number of successful merges: 1
+Number of nodes post-merge: 3
+Number of sketch queries: 
+Number of sketch queries during merging:
+Num ALUs: 3
+Num stateful ALUs: 2
+Num stateless ALUs: 1
+Num stages: 2
+Num ALUs per stage: [2, 1]
+------------------------------------------------------------------------------------------------

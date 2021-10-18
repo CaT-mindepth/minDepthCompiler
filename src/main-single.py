@@ -84,6 +84,7 @@ if __name__ == "__main__":
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
                                     dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes, outputfilename, p4outputname)
 
+  
   # ILP
   # self.synth_output_processor.schedule()
 	# TODO here

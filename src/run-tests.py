@@ -62,12 +62,22 @@ if __name__ == "__main__":
   args = arg_parser.parse_args()
   out_folder = args.out_folder 
   log_file = args.out_file
-  tests = ['blue_decrease', 'blue_increase', 'flowlets', 'marple_tcp_nmo', 'marple_new_flow', 'sampling', 'rcp_modified']
+  #tests = ['blue_decrease', 'blue_increase', 'flowlets', 'marple_tcp_nmo', 'marple_tcp_nmo', 'sampling', 'rcp_modified', 'conga', 'snap_heavy_hitter_20', 'dns_ttl_change_modified']
+  tests = [ #"marple_tcp_nmo_equivalent_1_canonicalizer.c",
+  "marple_tcp_nmo_equivalent_2_canonicalizer.c",
+  "marple_tcp_nmo_equivalent_3_canonicalizer.c",
+  "marple_tcp_nmo_equivalent_4_canonicalizer.c",
+  "marple_tcp_nmo_equivalent_5_canonicalizer.c",
+  "marple_tcp_nmo_equivalent_6_canonicalizer.c",
+  "marple_tcp_nmo_equivalent_7_canonicalizer.c",
+  "marple_tcp_nmo_equivalent_8_canonicalizer.c",
+  "marple_tcp_nmo_equivalent_9_canonicalizer.c"]
+  #tests = ['blue_decrease', 'blue_increase', '']
   log_fd = open(out_folder + '/' + log_file, 'w')
   for test_name in tests: 
     print('-------------------------- running test ', test_name, ' -----------------------------------')
     stats = test_stats.Statistics(test_name, log_fd)
-    filename = test_name + '.in'
+    filename = out_folder + '/' + test_name + '.in'
     output_folder_name = out_folder + '/' + '_' + test_name + '_out'
     p4outputname = out_folder + '/' + test_name + '.p4'
     codeGen = None 

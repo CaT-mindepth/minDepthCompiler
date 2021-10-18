@@ -1,0 +1,15 @@
+int p_pkt_0;
+int p_pkt_00;
+int p_state_00;
+int p_state_000;
+int p_state_001;
+# state variables start
+int state_0
+# state variables end
+bit p__br_tmp0;
+bit p__br_tmp00;
+# declarations end
+p_state_000 = state_0;
+p__br_tmp00 = p_state_000==0;
+state_0 = (p__br_tmp00) ? (1) : p_state_000;
+

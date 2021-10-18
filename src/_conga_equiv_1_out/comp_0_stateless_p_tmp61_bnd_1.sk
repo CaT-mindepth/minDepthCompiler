@@ -1,0 +1,70 @@
+int alu(int opcode, int operand0, int operand1, int immediate_operand) {
+	if (opcode == 0) {
+		return operand0;
+	}
+    if (opcode == 1) {
+        return immediate_operand;
+    }
+	if (opcode == 2) {
+		return operand0 + operand1;
+	}
+    if (opcode == 3) {
+        return operand0 + immediate_operand;
+    }
+	if (opcode == 4) {
+		return operand1 - operand0;
+	}
+    if (opcode == 5) {
+        return operand0 - immediate_operand;
+    }
+    if (opcode == 6) {
+        return immediate_operand - operand0;
+    }
+    /*
+    if (opcode == 7) {
+        // max(operand0, operand1)
+        return operand0 > operand1 ? operand0 : operand1;
+    }
+    if (opcode == 8) {
+        // max(operand0, immediate_operand)
+        return operand0 > immediate_operand ? operand0 : immediate_operand;
+    }
+    if (opcode == 9) {
+        // min(operand0, operand1)
+        return operand0 > operand1 ? operand1 : operand0;
+    }
+    else {
+        // min(operand0, immediate_operand)
+        return operand0 > immediate_operand ? immediate_operand : operand0;
+    }*/
+}
+
+generator int expr(fun vars, int bnd) {
+	assert bnd >= 1;
+    int t = ??(1);
+
+    if (t == 0) {
+        return alu(??, vars(), vars(), ??);
+    }
+    if (t == 1) {
+        return alu(??, expr(vars, bnd-1), expr(vars, bnd-1), ??);
+    }
+}
+
+int comp_0(int p_tmp51, bit p__br_tmp00, bit p__br_tmp50, int p_tmp29, int p_tmp31, bit p__br_tmp70, int p_tmp33){
+	int p_tmp61;
+	int p_tmp38;
+	bit p__br_tmp60;
+	p_tmp61 = !p__br_tmp00&&p__br_tmp50;
+	p__br_tmp50 = !p__br_tmp00 ? !(p_tmp29) : 0;
+	p_tmp38 = p_tmp51&&p__br_tmp70;
+	p__br_tmp60 = p_tmp61 ? !(p_tmp31) : 0;
+	p_tmp51 = p_tmp61&&p__br_tmp60;
+	p__br_tmp70 = p_tmp51 ? !(p_tmp33) : 0;
+	return p_tmp61;
+}
+
+harness void sketch(int p_tmp51, bit p__br_tmp00, bit p__br_tmp50, int p_tmp29, int p_tmp31, bit p__br_tmp70, int p_tmp33) {
+	generator int vars(){
+		return {| 1 | p_tmp51 | p_tmp29 | p_tmp31 | p_tmp33 |};
+	}

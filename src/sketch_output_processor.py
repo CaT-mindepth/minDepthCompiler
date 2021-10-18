@@ -455,8 +455,8 @@ class SketchOutputProcessor(object):
                             assert (l_toks[-1].type == 'ID')
                             print("> found out variable: ", l_toks[-1].value)
                             outs.append(l_toks[-1].value)
-        print('done ---- outs[-1] is ', outs[-1])
-        return outs[-1]
+        #print('done ---- outs[-1] is ', outs[-1])
+        return outs[-1] if len(outs) > 0 else '0'
 
     # process a stateful ALU from a single stateful sketch file.
     def process_single_stateful_output(self, input_file, output):
