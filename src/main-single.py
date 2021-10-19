@@ -94,7 +94,8 @@ if __name__ == "__main__":
   ilp_output = ilp_table.ILP() 
   import p4_codegen 
   codegen = p4_codegen.P4Codegen(ilp_table, ilp_output, "test")
-  codegen.generate_p4_output('tofino_p4.j2', p4outputname)
+  #codegen.generate_p4_output('tofino_p4.j2', p4outputname)
+  codegen.generate_json_output('tofino_p4.j2', p4outputname)
   
 
   
