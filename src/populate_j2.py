@@ -270,7 +270,7 @@ class TofinoP4(object):
                 'stateful_alus': self.stateful_alus,
                 'stateless_alus': self.stateless_alus,
                 'salu_configs': self.salu_configs,
-                'phv_container_fields': self.phv_container_fields }
+                'phv_container_fields': list(self.phv_container_fields) }
 
 
     # path: path under which the tofino_p4.j2 template is stored.
@@ -280,6 +280,10 @@ class TofinoP4(object):
         env = jinja2.Environment(loader=fsloader)
         tof = env.get_template(filename)
         return tof.render(self._asdict())
+
+    # retrieves the dictionary
+    def get_dict(self):
+        return self._asdict()
 
 # reads in a TofinoP4 object from a json file
 def tofinop4_from_json(path_to_json_file):

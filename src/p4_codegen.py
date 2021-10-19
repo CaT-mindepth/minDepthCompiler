@@ -181,3 +181,11 @@ class P4Codegen(object):
         print(p4program)
         with open(p4outputname, 'w+') as fd:
             fd.writelines([p4program])
+
+    def generate_json_output(self, filename, p4outputname):
+        import json
+        print('----------------------------------------------------')
+        tofino_dict = self.tofinop4.get_dict()
+        print(tofino_dict)
+        with open(p4outputname, 'w+') as fd:
+            fd.writelines(json.dumps(tofino_dict))

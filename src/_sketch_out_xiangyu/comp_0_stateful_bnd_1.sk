@@ -229,12 +229,12 @@ int[2] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) 
 
 int[2] comp_0(int reg2_tmp){
 	int[2] _out;
-	int pkt_reg2_tmp3;
-	int pkt_reg2_tmp4;
 	bit pkt_br_tmp1;
 	int pkt_reg2_tmp2;
-	bit pkt_br_tmp0;
+	int pkt_reg2_tmp4;
 	int pkt_reg2_tmp0;
+	int pkt_reg2_tmp3;
+	bit pkt_br_tmp0;
 	pkt_reg2_tmp0 = reg2_tmp;
 	pkt_br_tmp1 = !(pkt_reg2_tmp0 == 30);
 	pkt_br_tmp0 = (pkt_reg2_tmp0 == 30);

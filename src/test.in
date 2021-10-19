@@ -1,0 +1,18 @@
+int pkt_reg1_tmp0;
+int pkt_reg1_tmp1;
+int pkt_reg1_tmp2;
+int pkt_reg1_tmp3;
+int pkt_reg1_tmp4;
+# state variables start
+int reg1_tmp;
+# state variables end
+bit pkt_br_tmp0;
+bit pkt_br_tmp1;
+# declarations end
+pkt_reg1_tmp0 = reg1_tmp;
+pkt_br_tmp0 = (pkt_reg1_tmp0 == 30);
+pkt_reg1_tmp2 = pkt_br_tmp0 ? 1 : pkt_reg1_tmp0;
+pkt_br_tmp1 = !(pkt_reg1_tmp0 == 30);
+pkt_reg1_tmp3 = pkt_reg1_tmp2 + 1;
+pkt_reg1_tmp4 = pkt_br_tmp1 ? pkt_reg1_tmp3 : pkt_reg1_tmp2;
+reg1_tmp = pkt_reg1_tmp4;

@@ -144,23 +144,23 @@ void salu (int metadata_lo, int metadata_hi, int register_lo_0, int register_hi_
   _out0 = ((int[2])0);
   int register_lo = register_lo_0;
   int update_hi_1_value_s13 = 0;
-  compute_alu(2, 8, 6, update_hi_1_value_s13)//{};
+  compute_alu(2, 24, register_lo_0, update_hi_1_value_s13)//{};
   int update_hi_2_value_s23 = 0;
-  compute_alu(0, 8, 0, update_hi_2_value_s23)//{};
+  compute_alu(1, 8, 25, update_hi_2_value_s23)//{};
   int update_lo_1_value_s33 = 0;
-  compute_alu(0, metadata_hi, 1, update_lo_1_value_s33)//{};
+  compute_alu(4, 1, register_hi_1, update_lo_1_value_s33)//{};
   int update_lo_2_value_s43 = 0;
   compute_alu(0, 1, register_lo_0, update_lo_2_value_s43)//{};
-  bit condition_hi_s55 = ((metadata_lo - register_lo_0) + 30) == 0;
-  bit condition_lo_s67 = metadata_lo < 0;
+  bit condition_hi_s55 = ((metadata_lo - register_lo_0) + 25) == 0;
+  bit condition_lo_s67 = ((metadata_lo - register_lo_0) + 30) == 0;
   bit update_hi_1_predicate_s69 = 0;
-  bool_op(1, condition_hi_s55, condition_lo_s67, update_hi_1_predicate_s69);
+  bool_op(0, condition_hi_s55, condition_lo_s67, update_hi_1_predicate_s69);
   bit update_hi_2_predicate_s71 = 0;
-  bool_op(10, condition_hi_s55, condition_lo_s67, update_hi_2_predicate_s71);
+  bool_op(0, condition_hi_s55, condition_lo_s67, update_hi_2_predicate_s71);
   bit update_lo_1_predicate_s73 = 0;
-  bool_op(4, condition_hi_s55, condition_lo_s67, update_lo_1_predicate_s73);
+  bool_op(2, condition_hi_s55, condition_lo_s67, update_lo_1_predicate_s73);
   bit update_lo_2_predicate_s75 = 0;
-  bool_op(11, condition_hi_s55, condition_lo_s67, update_lo_2_predicate_s75);
+  bool_op(13, condition_hi_s55, condition_lo_s67, update_lo_2_predicate_s75);
   assert (!(update_hi_1_predicate_s69 && update_hi_2_predicate_s71)); //ASSERTION CAN NOT BE SATISFIED: comp_0_.._bnd_1.sk:194 Assert at comp_0_.._bnd_1.sk:194 (1)
   assert (!(update_lo_1_predicate_s73 && update_lo_2_predicate_s75)); //ASSERTION CAN NOT BE SATISFIED: comp_0_.._bnd_1.sk:205 Assert at comp_0_.._bnd_1.sk:205 (1)
   if(update_lo_1_predicate_s73 && (!(update_lo_2_predicate_s75)))/*comp_0_.._bnd_1.sk:206*/
@@ -205,4 +205,4 @@ void sketch__WrapperNospec (int reg2_tmp)/*comp_0_.._bnd_1.sk:250*/
 { }
 /* END PACKAGE ANONYMOUS*/
 [SKETCH] DONE
-Total time = 329
+Total time = 368
