@@ -1,3 +1,4 @@
+from lib2to3.pgen2 import grammar
 from re import A
 import os
 import ply.lex as lex
@@ -9,6 +10,7 @@ from sketch_output_processor import SketchOutputProcessor
 from dependencyGraph import Codelet
 from dependencyGraph import Statement
 import test_stats
+import grammar_util
 
 # Returns true if SSA variables v1 and v2 represent the same variable
 # TODO: update preprocessing code to store SSA info in a struct/class 
@@ -55,10 +57,12 @@ def is_branch_var(var):
 	return "br_tmp" in var #var.startswith("p_br_tmp") or var.startswith("pkt_br_tmp") 
 
 class Component: # group of codelets
-	def __init__(self, codelet_list, id):
+	def __init__(self, codelet_list, id, 
+		grammar_name = None, is_tofino = True):
 		self.codelets = codelet_list # topologically sorted
 		self.isStateful = False
-		self.grammar_path = "grammars/stateless_tofino.sk"
+		self.grammar_name = grammar_name 
+		self.is_tofino = is_tofino 
 		self.get_inputs_outputs()
 		self.set_component_stmts()
     # Here we name each component using comp_{} 
@@ -133,14 +137,14 @@ class Component: # group of codelets
 		
 	def write_grammar(self, f):
 		try:
-			f_grammar = open(self.grammar_path)
+			f_grammar = open(grammar_util.resolve_stateless(self.is_tofino))
 			# copy gramar
 			lines = f_grammar.readlines()
 			for l in lines:
 				f.write(l)
 
 		except IOError:
-			print("Failed to open stateless grammar file {}.".format(self.grammar_path))
+			print("Failed to open stateless grammar file {}.".format(self.grammar_name))
 			exit(1)
 
 	def write_sketch_spec(self, f, var_types, comp_name, o):
@@ -189,7 +193,7 @@ class Component: # group of codelets
 		f.write("};\n")
 		f.write("\t}\n")
 
-		if not ("bit" not in [var_types[v] for v in self.inputs]): # no inputs of type bit
+		if self.is_tofino and not ("bit" not in [var_types[v] for v in self.inputs]): # no inputs of type bit
 			print('ERROR: bit present in inputs')
 			assert False
 
@@ -199,7 +203,7 @@ class Component: # group of codelets
 		# TODO: more robust type checking; relational expression can be assigned to an integer variable (should be bool)
 		# if output_type == "int":
 		# print(' - TODO output type of ', o, ' is int? but it is ', output_type)
-		if not (output_type == "int"):
+		if self.is_tofino and (not (output_type == "int")):
 			print('ERROR:bit present as output type')
 			assert False
 		f.write("\tassert expr(vars, {}) == {};\n".format(bnd, comp_fxn))
@@ -247,7 +251,7 @@ class Component: # group of codelets
 				f.write(l)
 
 		except IOError:
-			print("Failed to open stateful grammar file {}.".format(self.grammar_path))
+			print("Failed to open stateful grammar file {}.".format(grammar_path))
 			exit(1)
 
 	def write_sketch_harness_ternary(self, f, var_types, comp_name):
@@ -329,7 +333,8 @@ class Component: # group of codelets
 		return False
 
 	def write_sketch_file(self, output_path, comp_name, var_types, stats : test_stats.Statistics = None):
-		if self.contains_ternary():
+		if self.contains_ternary() and self.is_tofino:
+			print('----------- writing ternary sketch file')
 			return self.write_ternary_sketch_file(output_path, comp_name, var_types, stats)
 		filenames = []
 		for o in self.outputs:
@@ -366,16 +371,6 @@ class Component: # group of codelets
 				f_sk_out.close()
 				bnd += 1
 		return filenames
-	#		max_bnd = 3 # TODO: run till success
-	#		while bnd <= max_bnd:
-	#			f = open(os.path.join(output_path, f"{comp_name}_{i}_bnd_{bnd}.sk"), 'w+')
-	#			self.write_grammar(f)
-	#			self.write_sketch_spec(f, var_types, comp_name, o)
-	#			f.write("\n")
-	#			self.write_sketch_harness(f, var_types, comp_name, o, bnd)
-	#			f.close()
-	#			bnd += 1
-	#		i += 1
 
 	def print(self):
 		for s in self.comp_stmts:
@@ -387,7 +382,7 @@ class Component: # group of codelets
 
 
 class StatefulComponent(object):
-	def __init__(self, stateful_codelet):
+	def __init__(self, stateful_codelet, grammar_name = None, is_tofino = True):
 		self.codelet = stateful_codelet
 		self.salu_inputs = {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 0, 'register_hi': 0}
 		self.isStateful = True
@@ -395,7 +390,8 @@ class StatefulComponent(object):
 		print('-------------------------------------- stateful codelet vars : ', self.state_vars , '--------------***')
 		self.state_pkt_fields = stateful_codelet.get_state_pkt_field()
 		self.comp_stmts = stateful_codelet.get_stmt_list()
-		self.grammar_path = "grammars/stateful_tofino.sk"
+		self.grammar_name = grammar_name
+		self.is_tofino = is_tofino
 		self.get_inputs_outputs()
 		self.bci_inputs = []
 		self.bci_outputs = []
@@ -500,8 +496,11 @@ class StatefulComponent(object):
 		self.salu_inputs['register_hi'] = 0
 		self.salu_inputs['metadata_lo'] = 0
 		self.salu_inputs['metadata_hi'] = 0
+		self.input_statevars = set()
+		self.input_stateless_vars = set()
 		for i in self.inputs:
 			if i in self.state_vars:
+				self.input_statevars.add(i)
 				if self.salu_inputs['register_lo'] == 0:
 					self.salu_inputs['register_lo'] = i
 				elif self.salu_inputs['register_hi'] == 0:
@@ -512,6 +511,7 @@ class StatefulComponent(object):
 					print(' problematic state vars: ', self.state_vars)
 					assert(False)
 			else:
+				self.input_stateless_vars.add(i)
 				if self.salu_inputs['metadata_lo'] == 0:
 					self.salu_inputs['metadata_lo'] = i
 				elif self.salu_inputs['metadata_hi'] == 0:
@@ -526,17 +526,41 @@ class StatefulComponent(object):
 
 	def write_grammar(self, f):
 		try:
-			f_grammar = open(self.grammar_path)
+			f_grammar = open(grammar_util.resolve_stateful(self.grammar_name))
 			# copy gramar
 			lines = f_grammar.readlines()
 			for l in lines:
 				f.write(l)
 
 		except IOError:
-			print("Failed to open stateful grammar file {}.".format(self.grammar_path))
+			print("Failed to open stateful grammar file {}.".format(self.grammar_name))
 			exit(1)
 		
-	def write_sketch_spec(self, f, var_types, comp_name):
+	def write_domino_sketch_spec(self, f, var_types, comp_name):
+		# generate list of arguments 
+		input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
+		spec_name = comp_name
+		# write function signature
+		f.write("int {}({})".format(spec_name, ", ".join(input_types)) + "{\n")
+		# declare output array
+		spec_ret = "_out"
+		f.write("\tint {};\n".format(spec_ret))
+		# declare defined variables
+		defines = self.codelet.get_outputs()
+		for v in defines:
+			if v not in self.inputs:
+				f.write("\t{} {};\n".format(var_types[v], v))
+		# function body
+		for stmt in self.comp_stmts:
+			f.write("\t{}\n".format(stmt.get_stmt()))
+		# update output array
+		f.write("\t{} = {};\n".format(spec_ret, self.state_vars[0]))
+		# return
+		f.write("\treturn {};\n".format(spec_ret))
+		f.write("}\n")
+
+
+	def write_tofino_sketch_spec(self, f, var_types, comp_name):
 		input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
 		spec_name = comp_name
 		# write function signature
@@ -571,7 +595,7 @@ class StatefulComponent(object):
 		f.write("\treturn {};\n".format(output_array))
 		f.write("}\n")
 
-	def write_sketch_harness(self, f, var_types, comp_name):
+	def write_tofino_sketch_harness(self, f, var_types, comp_name):
 		f.write("harness void sketch(")
 		if len(self.inputs) >= 1:
 			var_type = var_types[self.inputs[0]]
@@ -593,22 +617,74 @@ class StatefulComponent(object):
 		f.write("\tassert(impl[1] == spec[1]);\n") 
 		f.write("}\n")
 
-	def write_sketch_file(self, output_path, comp_name, var_types, upper_bnd = 2, prefix="", stats : test_stats.Statistics = None): # TODO: remove bounds from stateful synthesis
+	def write_domino_sketch_harness(self, f, var_types, comp_name):
+		f.write("harness void sketch(")
+		if len(self.inputs) >= 1:
+			var_type = var_types[self.inputs[0]]
+			f.write("{} {}".format(var_type, self.inputs[0]))
+
+		for v in self.inputs[1:]:
+			var_type = var_types[v]
+			f.write(", ")
+			f.write("{} {}".format(var_type, v))
+
+		f.write(") {\n")
+
+		f.write('\t int impl = salu(')
+
+		num_statefuls = grammar_util.num_statefuls_domino[self.grammar_name]
+		num_stateless = grammar_util.num_stateless_domino[self.grammar_name]
+		for i in self.input_statevars:
+			f.write('{}, '.format(i))
+		
+		if len(self.input_statevars) < num_statefuls:
+			numfill = num_statefuls - len(self.input_statevars)
+			for _ in range(numfill):
+				f.write('0, ')
+
+		stateless_vars= list(self.input_stateless_vars)
+		for i in range(len(stateless_vars)-1):
+			f.write('{}, '.format(stateless_vars[i]))
+
+		if len(self.input_stateless_vars) < num_stateless:
+			if len(stateless_vars) > 0:
+				f.write('{}, '.format(stateless_vars[len(stateless_vars) - 1]))
+			numfill = num_stateless - len(self.input_stateless_vars)
+			if numfill > 1:
+				for _ in range(numfill - 1):
+					f.write('0, ')
+			f.write('0);\n')
+		else:
+			if len(stateless_vars) > 0:
+				f.write('{});\n'.format( stateless_vars[len(stateless_vars) - 1]))
+
+
+		f.write("\tint spec = {}({});\n".format(comp_name, ', '.join(self.inputs)))
+
+		f.write("\tassert(impl == spec);\n")
+		f.write("}\n")
+
+	def write_sketch_file(self, output_path, comp_name, var_types, prefix="", stats : test_stats.Statistics = None): # TODO: remove bounds from stateful synthesis
 		if stats != None:
 			stats.start_synthesis_comp(f"stateful {comp_name}")
-		bnd = 1 # unused		
-		sketch_filename = os.path.join(output_path, prefix + f"{comp_name}_stateful_bnd_{bnd}.sk")
-		sketch_outfilename = os.path.join(output_path, prefix + f"{comp_name}_stateful_bnd_{bnd}.sk"+ ".out")
+		sketch_filename = os.path.join(output_path, prefix + f"{comp_name}_stateful.sk")
+		sketch_outfilename = os.path.join(output_path, prefix + f"{comp_name}_stateful.sk"+ ".out")
 		f = open(sketch_filename, 'w+')
 		self.set_alu_inputs()
 		self.write_grammar(f)
-		self.write_sketch_spec(f, var_types, comp_name)
-		f.write("\n")
-		self.write_sketch_harness(f, var_types, comp_name)
+		if self.is_tofino:
+			self.write_tofino_sketch_spec(f, var_types, comp_name)
+			f.write("\n")
+			self.write_tofino_sketch_harness(f, var_types, comp_name)
+		else:
+			self.write_domino_sketch_spec(f, var_types, comp_name)
+			f.write('\n')
+			self.write_domino_sketch_harness(f, var_types, comp_name)
+	
 		f.close()
 		print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
 		with open(sketch_outfilename, "w+") as f_sk_out:
-			print("running sketch, bnd = {}".format(bnd))
+			print("running sketch for stateful")
 			print("sketch_filename", sketch_filename)
 			ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
 			print("return code", ret_code)
@@ -632,7 +708,15 @@ class StatefulComponent(object):
 		return str(self.codelet)
 
 class Synthesizer:
-	def __init__(self, state_vars, var_types, dep_graph, stateful_nodes, filename, p4_output_name, stats: test_stats.Statistics = None):
+	def __init__(self, state_vars, 
+		var_types, dep_graph, stateful_nodes,
+		filename, p4_output_name, stats: test_stats.Statistics = None, 
+		is_tofino = True, stateless_path = None, stateful_path = None):
+		# handle domino grammar generation.
+		self.is_tofino = is_tofino 
+		self.stateless_path = stateless_path 
+		self.stateful_path = stateful_path 
+
 		self.state_vars = state_vars
 		self.var_types = var_types
 		self.filename = filename
@@ -652,16 +736,30 @@ class Synthesizer:
 
 		print("Synthesizer")
 		print("output dir", self.output_dir)
+
 		self.process_graph()
-		self.synth_output_processor = SketchOutputProcessor(self.comp_graph)
+
+		if is_tofino: 
+			self.synth_output_processor = SketchOutputProcessor(self.comp_graph)
+		else:
+			from domino_processor import DominoOutputProcessor
+			self.synth_output_processor = DominoOutputProcessor(self.comp_graph)
+		
+		# 
 		if self.stats != None:
 			self.stats.start_synthesis()
+		
 		self.do_synthesis()
-		self.synth_output_processor.postprocessing()
-		if self.stats != None:
-			self.stats.end_synthesis()
-		print(self.synth_output_processor.to_ILP_str(table_name="NewTable"))
-
+		if is_tofino:
+			self.synth_output_processor.postprocessing()
+			if self.stats != None:
+				self.stats.end_synthesis()
+			print(self.synth_output_processor.to_ILP_str(table_name="NewTable"))
+		else:
+			if self.stats != None:
+				self.synth_output_processor.postprocessing()
+				self.stats.end_synthesis() 
+				print("Domino synthesis: ended successfully.")
 
 	def get_var_type(self, v):
 		if v in self.var_types:
@@ -703,19 +801,19 @@ class Synthesizer:
 
 		new_comp.update_outputs(self.comp_graph.neighbors(b))
 		print('-------------- Merging... -------------')
-		try:
-			result = new_comp.write_sketch_file(self.output_dir, new_comp.name, self.var_types,\
-				upper_bnd=k, prefix='try_merge_')
-			if result == None:
-				print('---------- Merge failure. ---------')
-				return False
-			else:
-				print('---------- Merge success. ---------')
-				return True
-		except: 
-			print('AssertionError? failed ')
+		#try:
+		result = new_comp.write_sketch_file(self.output_dir, new_comp.name, self.var_types,\
+			 prefix='try_merge_')
+		if result == None:
 			print('---------- Merge failure. ---------')
 			return False
+		else:
+			print('---------- Merge success. ---------')
+			return True
+		#except: 
+		#	print('AssertionError? failed ')
+		#	print('---------- Merge failure. ---------')
+		#	return False
 
 	def non_temporary_outputs(self, comp):
 		x= list(filter(lambda x: not self.var_types[x] == 'bit', comp.outputs))
@@ -922,7 +1020,10 @@ class Synthesizer:
 		component_inputs = {} # component -> list of codelets that are inputs to that component.
 		for u in self.stateful_nodes:
 			u.is_stateful(self.state_vars) # initialize state_vars in u
-			stateful_comp = StatefulComponent(u)
+			if self.stateful_path != None:
+				stateful_comp = StatefulComponent(u, grammar_name = self.stateful_path, is_tofino = self.is_tofino)
+			else:
+				stateful_comp = StatefulComponent(u, is_tofino = self.is_tofino)
 			stateful_comp.set_name('comp_' + str(i))
 			print('compute_scc_graph: StatefulComponent(', stateful_comp.name, '): state vars: ', stateful_comp.state_vars)
 			self.components.append(stateful_comp)
@@ -948,7 +1049,10 @@ class Synthesizer:
 			bci_nodes, bci_inputs = self.BCI(codelet)
 			bci_nodes = list(set(bci_nodes))
 			bci_inputs = list(set(bci_inputs)) # dedup.
-			bci_comp = Component(bci_nodes, i)
+			if self.stateless_path != None:
+				bci_comp = Component(bci_nodes, i, grammar_name = self.stateless_path, is_tofino = self.is_tofino)
+			else: 
+				bci_comp = Component(bci_nodes, i, is_tofino = self.is_tofino)
 			for node in bci_nodes:
 				codelet_component[str(node)] = bci_comp
 			component_inputs[bci_comp] = bci_inputs
@@ -968,7 +1072,10 @@ class Synthesizer:
 				bci_nodes, bci_inputs = self.BCI(codelet)
 				bci_nodes = list(set(bci_nodes))
 				bci_inputs = list(set(bci_inputs))
-				bci_comp = Component(bci_nodes, i)
+				if self.stateless_path != None:
+					bci_comp = Component(bci_nodes, i, grammar_name = self.stateless_path, is_tofino = self.is_tofino)
+				else:
+					bci_comp = Component(bci_nodes, i, is_tofino = self.is_tofino)
 				for node in bci_nodes:
 					codelet_component[str(node)] = bci_comp 
 				self.components.append(bci_comp)
@@ -1041,20 +1148,26 @@ class Synthesizer:
 		outputs_comp = {} # output -> component
 		"""
 		self.comp_graph = self.scc_graph 
-
-		print("------------------------------------------------- Merging components... ------------------------------------")
-		if self.stats != None:
-			self.stats.update_num_components(len(list(self.comp_graph.nodes)))
-			self.stats.start_merging()
-		self.merge_components() 
-		if self.stats != None:
-			self.stats.end_merging()
-		print("------------------------------------------------- Merge components end. ------------------------------------")
-		print(' * number of components in current graph: ', len(list(self.comp_graph.nodes)))
-		if self.stats != None:
-			self.stats.update_num_postmerge_components(len(list(self.comp_graph.nodes)))
-		print('----------------------------------')
-		#exit(1)
+		if False: # True: # self.is_tofino:
+			print("------------------------------------------------- Merging components... ------------------------------------")
+			if self.stats != None:
+				self.stats.update_num_components(len(list(self.comp_graph.nodes)))
+				self.stats.start_merging()
+			self.merge_components() 
+			if self.stats != None:
+				self.stats.end_merging()
+			print("------------------------------------------------- Merge components end. ------------------------------------")
+			print(' * number of components in current graph: ', len(list(self.comp_graph.nodes)))
+			if self.stats != None:
+				self.stats.update_num_postmerge_components(len(list(self.comp_graph.nodes)))
+			print('----------------------------------')
+		else:
+			if self.stats != None:
+				self.stats.start_merging()
+				self.stats.end_merging()
+				self.stats.num_successful_merges = 0
+				self.stats.update_num_postmerge_components(len(list(self.comp_graph.nodes)))
+			print('Not Tofino Grammar, skipping merge components algorithm...')
 		self.comp_index = {} # component -> index
 		print("comp index", self.comp_index)
 		# check for redundant outputs

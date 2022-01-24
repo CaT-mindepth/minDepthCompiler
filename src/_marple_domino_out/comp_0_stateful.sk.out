@@ -1,0 +1,46 @@
+SKETCH version 1.7.6
+Benchmark = _marple_domino_out/comp_0_stateful.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*comp_0_..ateful.sk:138*/
+
+void comp_0 (int count_0, ref int _out0)/*comp_0_..ateful.sk:138*/
+{
+  int p_count2 = (count_0 == 0 ? 1 : count_0);
+  _out0 = p_count2;
+  return;
+}
+/*comp_0_..ateful.sk:131*/
+
+void salu (int state_0_0, int pkt_0, int pkt_1, ref int _out0)/*comp_0_..ateful.sk:131*/
+{
+  int state_0 = state_0_0;
+  if(state_0_0 == pkt_0)/*comp_0_..ateful.sk:133*/
+  {
+    state_0 = state_0_0 + 1;
+  }
+  _out0 = state_0;
+  return;
+}
+/*comp_0_..ateful.sk:151*/
+
+void sketch (int count)/*comp_0_..ateful.sk:151*/
+{
+  int impl_s1 = 0;
+  salu(count, 0, 0, impl_s1);
+  int spec_s3 = 0;
+  comp_0(count, spec_s3);
+  assert (impl_s1 == spec_s3); //Assert at comp_0_..ateful.sk:154 (2)
+}
+/*comp_0_..ateful.sk:151*/
+
+void sketch__Wrapper (int count)  implements sketch__WrapperNospec/*comp_0_..ateful.sk:151*/
+{
+  sketch(count);
+}
+/*comp_0_..ateful.sk:151*/
+
+void sketch__WrapperNospec (int count)/*comp_0_..ateful.sk:151*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 192

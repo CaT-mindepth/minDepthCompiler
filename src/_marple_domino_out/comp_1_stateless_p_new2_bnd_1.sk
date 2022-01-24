@@ -1,0 +1,66 @@
+int alu(int opcode, int operand0, int operand1, int operand2, int immediate_operand) {
+if (opcode == 0) {
+  return immediate_operand;
+} elif (opcode == 1) {
+  return pkt_0 + pkt_1;
+} elif (opcode == 2) {
+  return pkt_0 + immediate_operand;
+} elif (opcode == 3) {
+  return pkt_0 - pkt_1;
+} elif (opcode == 4) {
+  return pkt_0 - immediate_operand;
+} elif (opcode == 5) {
+  return immediate_operand - pkt_0;
+} elif (opcode == 6) {
+  return pkt_0!=pkt_1;
+} elif (opcode == 7) {
+  return (pkt_0 != immediate_operand);
+} elif (opcode == 8) {
+  return (pkt_0 == pkt_1);
+} elif (opcode == 9) {
+  return (pkt_0 == immediate_operand);
+} elif (opcode == 10) {
+  return (pkt_0 >= pkt_1);
+} elif (opcode == 11) {
+  return (pkt_0 >= immediate_operand);
+} elif (opcode == 12) {
+  return (pkt_0 < pkt_1);
+} elif (opcode == 13) {
+  return (pkt_0 < immediate_operand);
+} elif (opcode == 14) {
+  return pkt_0 != 0 ? pkt_1 : pkt_2;
+} elif (opcode == 15) {
+  return pkt_0 != 0 ? pkt_1 : immediate_operand;
+} elif (opcode == 16) {
+  return ((pkt_0 != 0) || (pkt_1 != 0));
+} elif (opcode == 17) {
+  return ((pkt_0 != 0) || (immediate_operand != 0));
+}  elif (opcode == 18) {
+  return ((pkt_0 != 0) && (pkt_1 != 0));
+} elif (opcode == 19) {
+  return ((pkt_0 != 0) && (immediate_operand != 0));
+} else {
+  return (pkt_0 == 0);
+}
+}
+generator int expr(fun vars, int bnd) {
+  assert bnd >= 1;
+    int t = ??(1);
+
+    if (t == 0) {
+        return alu(??, vars(), vars(), ??);
+    }
+    if (t == 1) {
+        return alu(??, expr(vars, bnd-1), expr(vars, bnd-1), ??);
+    }
+}
+int comp_1(int p_new0, bit p_br_tmp0){
+	int p_new2;
+	p_new2 = p_br_tmp0 ? 1 : p_new0;
+	return p_new2;
+}
+
+harness void sketch(int p_new0, bit p_br_tmp0) {
+	generator int vars(){
+		return {| 1 | p_new0 |};
+	}

@@ -1,0 +1,43 @@
+SKETCH version 1.7.6
+Benchmark = _blue_increase_domino_out/comp_2_stateful.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*comp_2_..ateful.sk:138*/
+
+void comp_2 (bit p_br_tmp0, int p_mark_0, ref int _out0)/*comp_2_..ateful.sk:138*/
+{
+  int p_p_mark2 = (p_br_tmp0 ? p_mark_0 + 1 : p_mark_0);
+  _out0 = p_p_mark2;
+  return;
+}
+/*comp_2_..ateful.sk:131*/
+
+void salu (int state_0_0, int pkt_0, int pkt_1, ref int _out0)/*comp_2_..ateful.sk:131*/
+{
+  int state_0 = state_0_0;
+  state_0 = state_0_0 + pkt_0;
+  _out0 = state_0;
+  return;
+}
+/*comp_2_..ateful.sk:151*/
+
+void sketch (bit p_br_tmp0, int p_mark)/*comp_2_..ateful.sk:151*/
+{
+  int impl_s1 = 0;
+  salu(p_mark, p_br_tmp0, 0, impl_s1);
+  int spec_s3 = 0;
+  comp_2(p_br_tmp0, p_mark, spec_s3);
+  assert (impl_s1 == spec_s3); //Assert at comp_2_..ateful.sk:154 (2)
+}
+/*comp_2_..ateful.sk:151*/
+
+void sketch__Wrapper (bit p_br_tmp0, int p_mark)  implements sketch__WrapperNospec/*comp_2_..ateful.sk:151*/
+{
+  sketch(p_br_tmp0, p_mark);
+}
+/*comp_2_..ateful.sk:151*/
+
+void sketch__WrapperNospec (bit p_br_tmp0, int p_mark)/*comp_2_..ateful.sk:151*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 223

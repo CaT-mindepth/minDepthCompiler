@@ -1,0 +1,67 @@
+SKETCH version 1.7.6
+Benchmark = _conga_domino_out/comp_0_stateful.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*comp_0_..ateful.sk:154*/
+
+void comp_0 (int best_path_0, int p_path_id0, int best_path_util_1, int p_util0, ref int _out0)/*comp_0_..ateful.sk:154*/
+{
+  int p_best_path_p_best_path_idx0_2 = (p_util0 < best_path_util_1 ? p_path_id0 : best_path_0);
+  _out0 = p_best_path_p_best_path_idx0_2;
+  return;
+}
+/*comp_0_..ateful.sk:131*/
+
+void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int _out0)/*comp_0_..ateful.sk:131*/
+{
+  int state_0 = state_0_0;
+  if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:134*/
+  {
+    if((state_1_1 - pkt_1) < 0)/*comp_0_..ateful.sk:135*/
+    {
+      state_0 = state_0_0;
+    }
+    else
+    {
+      state_0 = 1 - pkt_2;
+    }
+  }
+  else
+  {
+    if((state_1_1 - pkt_2) > 0)/*comp_0_..ateful.sk:142*/
+    {
+      if(((state_1_1 + pkt_2) - pkt_1) < 2)/*comp_0_..ateful.sk:143*/
+      {
+        state_0 = pkt_1 - 0;
+      }
+      else
+      {
+        state_0 = pkt_1;
+      }
+    }
+  }
+  _out0 = state_0;
+  return;
+}
+/*comp_0_..ateful.sk:176*/
+
+void sketch (int best_path, int p_path_id0, int best_path_util, int p_util0)/*comp_0_..ateful.sk:176*/
+{
+  int impl_s1 = 0;
+  salu(best_path, best_path_util, p_path_id0, p_util0, impl_s1);
+  int spec_s3 = 0;
+  comp_0(best_path, p_path_id0, best_path_util, p_util0, spec_s3);
+  assert (impl_s1 == spec_s3); //Assert at comp_0_..ateful.sk:179 (2)
+}
+/*comp_0_..ateful.sk:176*/
+
+void sketch__Wrapper (int best_path, int p_path_id0, int best_path_util, int p_util0)  implements sketch__WrapperNospec/*comp_0_..ateful.sk:176*/
+{
+  sketch(best_path, p_path_id0, best_path_util, p_util0);
+}
+/*comp_0_..ateful.sk:176*/
+
+void sketch__WrapperNospec (int best_path, int p_path_id0, int best_path_util, int p_util0)/*comp_0_..ateful.sk:176*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 660

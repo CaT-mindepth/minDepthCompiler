@@ -1,0 +1,46 @@
+SKETCH version 1.7.6
+Benchmark = _blue_increase_domino_out/comp_1_stateful.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*comp_1_..ateful.sk:138*/
+
+void comp_1 (int last_update_0, int p_now_plus_free1, int p_now0, ref int _out0)/*comp_1_..ateful.sk:138*/
+{
+  int p_last_update2 = (p_now_plus_free1 > last_update_0 ? p_now0 : last_update_0);
+  _out0 = p_last_update2;
+  return;
+}
+/*comp_1_..ateful.sk:131*/
+
+void salu (int state_0_0, int pkt_0, int pkt_1, ref int _out0)/*comp_1_..ateful.sk:131*/
+{
+  int state_0 = state_0_0;
+  if(state_0_0 < pkt_0)/*comp_1_..ateful.sk:133*/
+  {
+    state_0 = pkt_1;
+  }
+  _out0 = state_0;
+  return;
+}
+/*comp_1_..ateful.sk:151*/
+
+void sketch (int last_update, int p_now_plus_free1, int p_now0)/*comp_1_..ateful.sk:151*/
+{
+  int impl_s1 = 0;
+  salu(last_update, p_now_plus_free1, p_now0, impl_s1);
+  int spec_s3 = 0;
+  comp_1(last_update, p_now_plus_free1, p_now0, spec_s3);
+  assert (impl_s1 == spec_s3); //Assert at comp_1_..ateful.sk:154 (2)
+}
+/*comp_1_..ateful.sk:151*/
+
+void sketch__Wrapper (int last_update, int p_now_plus_free1, int p_now0)  implements sketch__WrapperNospec/*comp_1_..ateful.sk:151*/
+{
+  sketch(last_update, p_now_plus_free1, p_now0);
+}
+/*comp_1_..ateful.sk:151*/
+
+void sketch__WrapperNospec (int last_update, int p_now_plus_free1, int p_now0)/*comp_1_..ateful.sk:151*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 217

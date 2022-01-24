@@ -1,0 +1,151 @@
+generator int C() { return ??; }
+
+generator int Opt(int op1) {
+  bit enable = ??(1);
+  if (enable != 0) {
+    return 0;
+  }
+  else {
+    return op1;
+  }
+}
+
+generator int Mux2(int op1, int op2) {
+  int choice = ??(1);
+  if (choice == 0) {
+    return op1;
+  }
+  else {
+    return op2;
+  }
+}
+
+generator int Mux3(int op1, int op2, int op3) {
+  int choice = ??(2);
+  if (choice == 0) {
+    return op1;
+  }
+  if (choice == 1) {
+    return op2;
+  }
+  else {
+    return op3;
+  }
+}
+
+generator int Mux4(int op1, int op2, int op3, int op4) {
+  int choice = ??(2);
+  if (choice == 0) {
+    return op1;
+  }
+  if (choice == 1) {
+    return op2;
+  }
+  if (choice == 2) {
+    return op3;
+  }
+  else {
+    return op4;
+  }
+}
+
+generator int arith_op(int o1, int o2) {
+  int opcode = ??(1);
+  if (opcode == 0) {
+    return o1 + o2;
+  } 
+  else {
+    return o1 - o2;
+  }
+}
+
+generator bit rel_op(int o1, int o2) {
+  int opcode = ??(2);
+  if (opcode == 0) {
+    return o1 != o2;
+  }
+  if (opcode == 1) {
+    return o1 < o2;
+  }
+  if (opcode == 2) {
+    return o1 > o2;
+  }
+  else {
+    return o1 == o2;
+  }
+        //return {| o1 ( == | != | > | >= | < | <= ) o2 |};
+}
+
+bit bool_op(int opcode, bit o1, bit o2) {
+        if (opcode == 0) {
+                return 0;
+        }
+        if (opcode == 1) {
+                return !(o1 | o2);
+        }
+  if (opcode == 2) {
+    return (!o1) & o2;
+  }
+  if (opcode == 3) {
+    return !o1;
+  }
+  if (opcode == 4) {
+    return o1 & (!o2);
+  }
+  if (opcode == 5) {
+    return !o2;
+  }
+  if (opcode == 6) {
+    // used to be XOR; switched to AND because Tofino compiler doesn't accept it
+    return o1 & o2;
+  }
+  if (opcode == 7) {
+    return !(o1 & o2);
+  }
+  if (opcode == 8) {
+    return o1 & o2;
+  }
+  if (opcode == 9) {
+    // This used to be XOR; it's been switched to AND because the Tofino compiler doesn't accept it (issue #20).
+    return !(o1 & o2);
+  }
+  if (opcode == 10) {
+    return o2;
+  }
+  if (opcode == 11) {
+    return (!o1) | o2;
+  }
+  if (opcode == 12) {
+    return o1;
+  }
+  if (opcode == 13) {
+    return o1 | (!o2);
+  }
+  if (opcode == 14) {
+    return o1 | o2;
+  }
+        else {
+                return 1;
+        }
+}
+int salu(int state_0, int pkt_0, int pkt_1) {
+int old_state_0 = state_0;
+if (rel_op(Opt(state_0), Mux3(pkt_0, pkt_1, C()))) {
+    state_0 = Opt(state_0) + Mux3(pkt_0, pkt_1, C());
+}
+return Mux2(old_state_0, state_0);
+}
+int comp_0(int pkt_arrival0, int last_time){
+	int _out;
+	int pkt_last_time_pkt_id0_0;
+	last_time = pkt_arrival0;
+	pkt_last_time_pkt_id0_0 = last_time;
+	_out = last_time;
+	return _out;
+}
+
+harness void sketch(int pkt_arrival0, int last_time) {
+	 int impl = salu(last_time, pkt_arrival0, 0);
+	int spec = comp_0(pkt_arrival0, last_time);
+	assert(impl == spec);
+}

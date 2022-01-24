@@ -1,0 +1,45 @@
+SKETCH version 1.7.6
+Benchmark = _flowlets_domino_out/try_merge_comp_1_stateful.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*try_mer..ateful.sk:138*/
+
+void comp_1 (int last_time_0, int pkt_arrival0, ref int _out0)/*try_mer..ateful.sk:138*/
+{
+  _out0 = pkt_arrival0;
+  return;
+}
+/*try_mer..ateful.sk:131*/
+
+void salu (int state_0_0, int pkt_0, int pkt_1, ref int _out0)/*try_mer..ateful.sk:131*/
+{
+  int state_0 = state_0_0;
+  if(0 == pkt_1)/*try_mer..ateful.sk:133*/
+  {
+    state_0 = pkt_0;
+  }
+  _out0 = state_0;
+  return;
+}
+/*try_mer..ateful.sk:149*/
+
+void sketch (int last_time, int pkt_arrival0)/*try_mer..ateful.sk:149*/
+{
+  int impl_s1 = 0;
+  salu(last_time, pkt_arrival0, 0, impl_s1);
+  int spec_s3 = 0;
+  comp_1(last_time, pkt_arrival0, spec_s3);
+  assert (impl_s1 == spec_s3); //Assert at try_mer..ateful.sk:152 (2)
+}
+/*try_mer..ateful.sk:149*/
+
+void sketch__Wrapper (int last_time, int pkt_arrival0)  implements sketch__WrapperNospec/*try_mer..ateful.sk:149*/
+{
+  sketch(last_time, pkt_arrival0);
+}
+/*try_mer..ateful.sk:149*/
+
+void sketch__WrapperNospec (int last_time, int pkt_arrival0)/*try_mer..ateful.sk:149*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 234

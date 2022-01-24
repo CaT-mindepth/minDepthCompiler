@@ -1,0 +1,46 @@
+SKETCH version 1.7.6
+Benchmark = _marple_new_flow_out/comp_0_stateful.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*comp_0_..ateful.sk:138*/
+
+void comp_0 (int p_new0, int count_0, ref int _out0)/*comp_0_..ateful.sk:138*/
+{
+  int p_count2 = (count_0 == 0 ? 1 : count_0);
+  _out0 = p_count2;
+  return;
+}
+/*comp_0_..ateful.sk:131*/
+
+void salu (int state_0_0, int pkt_0, int pkt_1, ref int _out0)/*comp_0_..ateful.sk:131*/
+{
+  int state_0 = state_0_0;
+  if(state_0_0 == pkt_1)/*comp_0_..ateful.sk:133*/
+  {
+    state_0 = state_0_0 + 1;
+  }
+  _out0 = state_0;
+  return;
+}
+/*comp_0_..ateful.sk:153*/
+
+void sketch (int p_new0, int count)/*comp_0_..ateful.sk:153*/
+{
+  int impl_s1 = 0;
+  salu(count, p_new0, 0, impl_s1);
+  int spec_s3 = 0;
+  comp_0(p_new0, count, spec_s3);
+  assert (impl_s1 == spec_s3); //Assert at comp_0_..ateful.sk:156 (2)
+}
+/*comp_0_..ateful.sk:153*/
+
+void sketch__Wrapper (int p_new0, int count)  implements sketch__WrapperNospec/*comp_0_..ateful.sk:153*/
+{
+  sketch(p_new0, count);
+}
+/*comp_0_..ateful.sk:153*/
+
+void sketch__WrapperNospec (int p_new0, int count)/*comp_0_..ateful.sk:153*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 228

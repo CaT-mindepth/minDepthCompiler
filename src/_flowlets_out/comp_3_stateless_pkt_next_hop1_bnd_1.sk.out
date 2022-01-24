@@ -1,0 +1,103 @@
+SKETCH version 1.7.6
+Benchmark = _flowlets_out/comp_3_stateless_pkt_next_hop1_bnd_1.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*comp_3_.._bnd_1.sk:1*/
+
+void alu (int opcode, int operand0, int operand1, int operand2, int immediate_operand, ref int _out)/*comp_3_.._bnd_1.sk:1*/
+{
+  if(opcode == 0)/*comp_3_.._bnd_1.sk:2*/
+  {
+    _out = operand0;
+    return;
+  }
+  if(opcode == 1)/*comp_3_.._bnd_1.sk:5*/
+  {
+    _out = immediate_operand;
+    return;
+  }
+  if(opcode == 2)/*comp_3_.._bnd_1.sk:8*/
+  {
+    _out = operand0 + operand1;
+    return;
+  }
+  if(opcode == 3)/*comp_3_.._bnd_1.sk:11*/
+  {
+    _out = operand0 + immediate_operand;
+    return;
+  }
+  if(opcode == 4)/*comp_3_.._bnd_1.sk:14*/
+  {
+    _out = operand1 - operand0;
+    return;
+  }
+  if(opcode == 5)/*comp_3_.._bnd_1.sk:17*/
+  {
+    _out = operand0 == immediate_operand;
+    return;
+  }
+  if(opcode == 6)/*comp_3_.._bnd_1.sk:20*/
+  {
+    _out = immediate_operand - operand0;
+    return;
+  }
+  if(opcode == 7)/*comp_3_.._bnd_1.sk:23*/
+  {
+    _out = (operand0 > operand1 ? operand0 : operand1);
+    return;
+  }
+  if(opcode == 8)/*comp_3_.._bnd_1.sk:27*/
+  {
+    _out = (operand0 > immediate_operand ? operand0 : immediate_operand);
+    return;
+  }
+  if(opcode == 9)/*comp_3_.._bnd_1.sk:31*/
+  {
+    _out = (operand0 > operand1 ? operand1 : operand0);
+    return;
+  }
+  if(opcode == 10)/*comp_3_.._bnd_1.sk:35*/
+  {
+    _out = (operand0 != 0) && (operand1 != 0);
+    return;
+  }
+  if(opcode == 11)/*comp_3_.._bnd_1.sk:38*/
+  {
+    _out = (operand0 != 0 ? operand1 : operand2);
+    return;
+  }
+  else
+  {
+    _out = (operand0 > immediate_operand ? immediate_operand : operand0);
+    return;
+  }
+}
+/*comp_3_.._bnd_1.sk:55*/
+
+void comp_3 (int pkt_saved_hop_pkt_id0_2, ref int _out)/*comp_3_.._bnd_1.sk:55*/
+{
+  _out = pkt_saved_hop_pkt_id0_2;
+  return;
+}
+/*comp_3_.._bnd_1.sk:61*/
+
+void sketch (int pkt_saved_hop_pkt_id0_2)/*comp_3_.._bnd_1.sk:61*/
+{
+  int _out_s12 = 0;
+  alu(0, pkt_saved_hop_pkt_id0_2, pkt_saved_hop_pkt_id0_2, 1, 0, _out_s12)//{};
+  int _out_s4 = 0;
+  comp_3(pkt_saved_hop_pkt_id0_2, _out_s4);
+  assert (_out_s12 == _out_s4); //Assert at comp_3_.._bnd_1.sk:65 (0)
+}
+/*comp_3_.._bnd_1.sk:61*/
+
+void sketch__Wrapper (int pkt_saved_hop_pkt_id0_2)  implements sketch__WrapperNospec/*comp_3_.._bnd_1.sk:61*/
+{
+  sketch(pkt_saved_hop_pkt_id0_2);
+}
+/*comp_3_.._bnd_1.sk:61*/
+
+void sketch__WrapperNospec (int pkt_saved_hop_pkt_id0_2)/*comp_3_.._bnd_1.sk:61*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 200

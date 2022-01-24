@@ -1,0 +1,127 @@
+SKETCH version 1.7.6
+Benchmark = _flowlets_out/comp_1_stateless_pkt_br_tmp0_bnd_3.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*comp_1_.._bnd_3.sk:1*/
+
+void alu (int opcode, int operand0, int operand1, int operand2, int immediate_operand, ref int _out)/*comp_1_.._bnd_3.sk:1*/
+{
+  if(opcode == 0)/*comp_1_.._bnd_3.sk:2*/
+  {
+    _out = operand0;
+    return;
+  }
+  if(opcode == 1)/*comp_1_.._bnd_3.sk:5*/
+  {
+    _out = immediate_operand;
+    return;
+  }
+  if(opcode == 2)/*comp_1_.._bnd_3.sk:8*/
+  {
+    _out = operand0 + operand1;
+    return;
+  }
+  if(opcode == 3)/*comp_1_.._bnd_3.sk:11*/
+  {
+    _out = operand0 + immediate_operand;
+    return;
+  }
+  if(opcode == 4)/*comp_1_.._bnd_3.sk:14*/
+  {
+    _out = operand1 - operand0;
+    return;
+  }
+  if(opcode == 5)/*comp_1_.._bnd_3.sk:17*/
+  {
+    _out = operand0 == immediate_operand;
+    return;
+  }
+  if(opcode == 6)/*comp_1_.._bnd_3.sk:20*/
+  {
+    _out = immediate_operand - operand0;
+    return;
+  }
+  if(opcode == 7)/*comp_1_.._bnd_3.sk:23*/
+  {
+    _out = (operand0 > operand1 ? operand0 : operand1);
+    return;
+  }
+  if(opcode == 8)/*comp_1_.._bnd_3.sk:27*/
+  {
+    _out = (operand0 > immediate_operand ? operand0 : immediate_operand);
+    return;
+  }
+  if(opcode == 9)/*comp_1_.._bnd_3.sk:31*/
+  {
+    _out = (operand0 > operand1 ? operand1 : operand0);
+    return;
+  }
+  if(opcode == 10)/*comp_1_.._bnd_3.sk:35*/
+  {
+    _out = (operand0 != 0) && (operand1 != 0);
+    return;
+  }
+  if(opcode == 11)/*comp_1_.._bnd_3.sk:38*/
+  {
+    _out = (operand0 != 0 ? operand1 : operand2);
+    return;
+  }
+  else
+  {
+    _out = (operand0 > immediate_operand ? immediate_operand : operand0);
+    return;
+  }
+}
+/*comp_1_.._bnd_3.sk:55*/
+
+void comp_1 (int pkt_arrival0, int pkt_last_time_pkt_id0_0, ref int _out)/*comp_1_.._bnd_3.sk:55*/
+{
+  _out = (pkt_arrival0 - pkt_last_time_pkt_id0_0) > 2;
+  return;
+}
+/*comp_1_.._bnd_3.sk:61*/
+
+void sketch (int pkt_arrival0, int pkt_last_time_pkt_id0_0)/*comp_1_.._bnd_3.sk:61*/
+{
+  int _out_s12 = 0;
+  alu(4, pkt_last_time_pkt_id0_0, pkt_arrival0, pkt_arrival0, 2, _out_s12)//{};
+  int _out_s12_0 = 0;
+  alu(5, pkt_arrival0, pkt_arrival0, 1, 3, _out_s12_0)//{};
+  int _out_s12_1 = 0;
+  alu(5, pkt_last_time_pkt_id0_0, 1, pkt_arrival0, 3, _out_s12_1)//{};
+  int _out_s20 = 0;
+  alu(25, _out_s12, _out_s12_0, _out_s12_1, 3, _out_s20)//{};
+  int _out_s12_2 = 0;
+  alu(5, pkt_arrival0, pkt_last_time_pkt_id0_0, pkt_last_time_pkt_id0_0, 4, _out_s12_2)//{};
+  int _out_s12_3 = 0;
+  alu(6, pkt_last_time_pkt_id0_0, pkt_arrival0, pkt_last_time_pkt_id0_0, 3, _out_s12_3)//{};
+  int _out_s12_4 = 0;
+  alu(5, pkt_last_time_pkt_id0_0, pkt_last_time_pkt_id0_0, pkt_last_time_pkt_id0_0, 0, _out_s12_4)//{};
+  int _out_s20_0 = 0;
+  alu(11, _out_s12_2, _out_s12_3, _out_s12_4, 1, _out_s20_0)//{};
+  int _out_s12_5 = 0;
+  alu(14, pkt_arrival0, 1, pkt_arrival0, 4, _out_s12_5)//{};
+  int _out_s12_6 = 0;
+  alu(5, pkt_last_time_pkt_id0_0, pkt_last_time_pkt_id0_0, pkt_last_time_pkt_id0_0, 1, _out_s12_6)//{};
+  int _out_s12_7 = 0;
+  alu(6, pkt_last_time_pkt_id0_0, pkt_last_time_pkt_id0_0, pkt_last_time_pkt_id0_0, 3, _out_s12_7)//{};
+  int _out_s20_1 = 0;
+  alu(5, _out_s12_5, _out_s12_6, _out_s12_7, 4, _out_s20_1)//{};
+  int _out_s20_2 = 0;
+  alu(5, _out_s20, _out_s20_0, _out_s20_1, 3, _out_s20_2)//{};
+  int _out_s4 = 0;
+  comp_1(pkt_arrival0, pkt_last_time_pkt_id0_0, _out_s4);
+  assert (_out_s20_2 == _out_s4); //Assert at comp_1_.._bnd_3.sk:65 (0)
+}
+/*comp_1_.._bnd_3.sk:61*/
+
+void sketch__Wrapper (int pkt_arrival0, int pkt_last_time_pkt_id0_0)  implements sketch__WrapperNospec/*comp_1_.._bnd_3.sk:61*/
+{
+  sketch(pkt_arrival0, pkt_last_time_pkt_id0_0);
+}
+/*comp_1_.._bnd_3.sk:61*/
+
+void sketch__WrapperNospec (int pkt_arrival0, int pkt_last_time_pkt_id0_0)/*comp_1_.._bnd_3.sk:61*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 223707
