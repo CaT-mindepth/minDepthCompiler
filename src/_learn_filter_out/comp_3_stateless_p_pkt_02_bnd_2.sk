@@ -52,15 +52,16 @@ generator int expr(fun vars, int bnd) {
     if (t == 1) {
         return alu(??, expr(vars, bnd-1), expr(vars, bnd-1), expr(vars, bnd - 1),  ??);
     }
-}int comp_0(int p_now0){
-	int p_now_plus_free1;
-	p_now_plus_free1 = p_now0 - 1;
-	return p_now_plus_free1;
+}int comp_3(int p_state_group_2_state_00, bit p_br_tmp0, int p_state_group_1_state_00, int p_state_group_0_state_00, int p_pkt_00){
+	int p_pkt_02;
+	p_pkt_02 = p_br_tmp0 ? 1 : p_pkt_00;
+	p_br_tmp0 = (p_state_group_0_state_00 != 0 && p_state_group_1_state_00 != 0 && p_state_group_2_state_00 != 0);
+	return p_pkt_02;
 }
 
-harness void sketch(int p_now0) {
+harness void sketch(int p_state_group_2_state_00, bit p_br_tmp0, int p_state_group_1_state_00, int p_state_group_0_state_00, int p_pkt_00) {
 	generator int vars(){
-		return {| 1 | p_now0 |};
+		return {| 1 | p_state_group_2_state_00 | p_state_group_1_state_00 | p_state_group_0_state_00 | p_pkt_00 |};
 	}
-	assert expr(vars, 1) == comp_0(p_now0);
+	assert expr(vars, 2) == comp_3(p_state_group_2_state_00, p_br_tmp0, p_state_group_1_state_00, p_state_group_0_state_00, p_pkt_00);
 }

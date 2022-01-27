@@ -1148,7 +1148,7 @@ class Synthesizer:
 		outputs_comp = {} # output -> component
 		"""
 		self.comp_graph = self.scc_graph 
-		if False: # True: # self.is_tofino:
+		if True: #False: # True: # self.is_tofino:
 			print("------------------------------------------------- Merging components... ------------------------------------")
 			if self.stats != None:
 				self.stats.update_num_components(len(list(self.comp_graph.nodes)))

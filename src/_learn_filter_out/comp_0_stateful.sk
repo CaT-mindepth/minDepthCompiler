@@ -135,19 +135,17 @@ if (rel_op(Opt(state_0), Mux3(pkt_0, pkt_1, C()))) {
 }
 return Mux2(old_state_0, state_0);
 }
-int comp_2(bit pkt_br_tmp0, int pkt_new_hop0, int saved_hop){
+int comp_0(int state_group_2_state_0){
 	int _out;
-	int pkt_saved_hop_pkt_id0_0;
-	int pkt_saved_hop_pkt_id0_2;
-	pkt_saved_hop_pkt_id0_0 = saved_hop;
-	pkt_saved_hop_pkt_id0_2 = pkt_br_tmp0 ? pkt_new_hop0 : pkt_saved_hop_pkt_id0_0;
-	saved_hop = pkt_saved_hop_pkt_id0_2;
-	_out = saved_hop;
+	int p_state_group_2_state_00;
+	p_state_group_2_state_00 = state_group_2_state_0;
+	state_group_2_state_0 = 1;
+	_out = state_group_2_state_0;
 	return _out;
 }
 
-harness void sketch(bit pkt_br_tmp0, int pkt_new_hop0, int saved_hop) {
-	 int impl = salu(saved_hop, pkt_br_tmp0, pkt_new_hop0);
-	int spec = comp_2(pkt_br_tmp0, pkt_new_hop0, saved_hop);
+harness void sketch(int state_group_2_state_0) {
+	 int impl = salu(state_group_2_state_0, 0, 0);
+	int spec = comp_0(state_group_2_state_0);
 	assert(impl == spec);
 }

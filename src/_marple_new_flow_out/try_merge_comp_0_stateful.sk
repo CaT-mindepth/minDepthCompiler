@@ -135,11 +135,11 @@ if (rel_op(Opt(state_0), Mux3(pkt_0, pkt_1, C()))) {
 }
 return Mux2(old_state_0, state_0);
 }
-int comp_0(int p_new0, int count){
+int comp_0(int count, int p_new0){
 	int _out;
+	bit p_br_tmp0;
 	int p_count2;
 	int p_new2;
-	bit p_br_tmp0;
 	int p_count0;
 	p_count0 = count;
 	p_br_tmp0 = (p_count0 == 0);
@@ -150,8 +150,8 @@ int comp_0(int p_new0, int count){
 	return _out;
 }
 
-harness void sketch(int p_new0, int count) {
+harness void sketch(int count, int p_new0) {
 	 int impl = salu(count, p_new0, 0);
-	int spec = comp_0(p_new0, count);
+	int spec = comp_0(count, p_new0);
 	assert(impl == spec);
 }

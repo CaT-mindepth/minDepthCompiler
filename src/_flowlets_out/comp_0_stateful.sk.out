@@ -20,26 +20,26 @@ void salu (int state_0_0, int pkt_0, int pkt_1, ref int _out0)/*comp_0_..ateful.
   _out0 = state_0;
   return;
 }
-/*comp_0_..ateful.sk:147*/
+/*comp_0_..ateful.sk:149*/
 
-void sketch (int pkt_arrival0, int last_time)/*comp_0_..ateful.sk:147*/
+void sketch (int pkt_arrival0, int last_time)/*comp_0_..ateful.sk:149*/
 {
   int impl_s1 = 0;
   salu(last_time, pkt_arrival0, 0, impl_s1);
   int spec_s3 = 0;
   comp_0(pkt_arrival0, last_time, spec_s3);
-  assert (impl_s1 == spec_s3); //Assert at comp_0_..ateful.sk:150 (2)
+  assert (impl_s1 == spec_s3); //Assert at comp_0_..ateful.sk:152 (2)
 }
-/*comp_0_..ateful.sk:147*/
+/*comp_0_..ateful.sk:149*/
 
-void sketch__Wrapper (int pkt_arrival0, int last_time)  implements sketch__WrapperNospec/*comp_0_..ateful.sk:147*/
+void sketch__Wrapper (int pkt_arrival0, int last_time)  implements sketch__WrapperNospec/*comp_0_..ateful.sk:149*/
 {
   sketch(pkt_arrival0, last_time);
 }
-/*comp_0_..ateful.sk:147*/
+/*comp_0_..ateful.sk:149*/
 
-void sketch__WrapperNospec (int pkt_arrival0, int last_time)/*comp_0_..ateful.sk:147*/
+void sketch__WrapperNospec (int pkt_arrival0, int last_time)/*comp_0_..ateful.sk:149*/
 { }
 /* END PACKAGE ANONYMOUS*/
 [SKETCH] DONE
-Total time = 200
+Total time = 225

@@ -83,7 +83,7 @@ void comp_3 (int pkt_saved_hop_pkt_id0_2, ref int _out)/*comp_3_.._bnd_1.sk:55*/
 void sketch (int pkt_saved_hop_pkt_id0_2)/*comp_3_.._bnd_1.sk:61*/
 {
   int _out_s12 = 0;
-  alu(0, pkt_saved_hop_pkt_id0_2, pkt_saved_hop_pkt_id0_2, 1, 0, _out_s12)//{};
+  alu(8, pkt_saved_hop_pkt_id0_2, 1, 1, 0, _out_s12)//{};
   int _out_s4 = 0;
   comp_3(pkt_saved_hop_pkt_id0_2, _out_s4);
   assert (_out_s12 == _out_s4); //Assert at comp_3_.._bnd_1.sk:65 (0)
@@ -100,4 +100,4 @@ void sketch__WrapperNospec (int pkt_saved_hop_pkt_id0_2)/*comp_3_.._bnd_1.sk:61*
 { }
 /* END PACKAGE ANONYMOUS*/
 [SKETCH] DONE
-Total time = 200
+Total time = 188

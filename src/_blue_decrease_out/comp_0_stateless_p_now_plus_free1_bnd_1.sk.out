@@ -3,9 +3,8 @@ Benchmark = _blue_decrease_out/comp_0_stateless_p_now_plus_free1_bnd_1.sk
 /* BEGIN PACKAGE ANONYMOUS*/
 /*comp_0_.._bnd_1.sk:1*/
 
-void alu (int opcode, int operand0, int operand1, int immediate_operand, ref int _out)/*comp_0_.._bnd_1.sk:1*/
+void alu (int opcode, int operand0, int operand1, int operand2, int immediate_operand, ref int _out)/*comp_0_.._bnd_1.sk:1*/
 {
-  _out = 0;
   if(opcode == 0)/*comp_0_.._bnd_1.sk:2*/
   {
     _out = operand0;
@@ -33,7 +32,7 @@ void alu (int opcode, int operand0, int operand1, int immediate_operand, ref int
   }
   if(opcode == 5)/*comp_0_.._bnd_1.sk:17*/
   {
-    _out = operand0 - immediate_operand;
+    _out = operand0 == immediate_operand;
     return;
   }
   if(opcode == 6)/*comp_0_.._bnd_1.sk:20*/
@@ -41,34 +40,64 @@ void alu (int opcode, int operand0, int operand1, int immediate_operand, ref int
     _out = immediate_operand - operand0;
     return;
   }
+  if(opcode == 7)/*comp_0_.._bnd_1.sk:23*/
+  {
+    _out = (operand0 > operand1 ? operand0 : operand1);
+    return;
+  }
+  if(opcode == 8)/*comp_0_.._bnd_1.sk:27*/
+  {
+    _out = (operand0 > immediate_operand ? operand0 : immediate_operand);
+    return;
+  }
+  if(opcode == 9)/*comp_0_.._bnd_1.sk:31*/
+  {
+    _out = (operand0 > operand1 ? operand1 : operand0);
+    return;
+  }
+  if(opcode == 10)/*comp_0_.._bnd_1.sk:35*/
+  {
+    _out = (operand0 != 0) && (operand1 != 0);
+    return;
+  }
+  if(opcode == 11)/*comp_0_.._bnd_1.sk:38*/
+  {
+    _out = (operand0 != 0 ? operand1 : operand2);
+    return;
+  }
+  else
+  {
+    _out = (operand0 > immediate_operand ? immediate_operand : operand0);
+    return;
+  }
 }
-/*comp_0_.._bnd_1.sk:54*/
+/*comp_0_.._bnd_1.sk:55*/
 
-void comp_0 (int p_now0, ref int _out)/*comp_0_.._bnd_1.sk:54*/
+void comp_0 (int p_now0, ref int _out)/*comp_0_.._bnd_1.sk:55*/
 {
   _out = p_now0 - 1;
   return;
 }
-/*comp_0_.._bnd_1.sk:60*/
+/*comp_0_.._bnd_1.sk:61*/
 
-void sketch (int p_now0)/*comp_0_.._bnd_1.sk:60*/
+void sketch (int p_now0)/*comp_0_.._bnd_1.sk:61*/
 {
-  int _out_s10 = 0;
-  alu(5, p_now0, p_now0, 1, _out_s10)//{};
+  int _out_s12 = 0;
+  alu(4, 1, p_now0, 1, 30, _out_s12)//{};
   int _out_s4 = 0;
   comp_0(p_now0, _out_s4);
-  assert (_out_s10 == _out_s4); //Assert at comp_0_.._bnd_1.sk:64 (0)
+  assert (_out_s12 == _out_s4); //Assert at comp_0_.._bnd_1.sk:65 (0)
 }
-/*comp_0_.._bnd_1.sk:60*/
+/*comp_0_.._bnd_1.sk:61*/
 
-void sketch__Wrapper (int p_now0)  implements sketch__WrapperNospec/*comp_0_.._bnd_1.sk:60*/
+void sketch__Wrapper (int p_now0)  implements sketch__WrapperNospec/*comp_0_.._bnd_1.sk:61*/
 {
   sketch(p_now0);
 }
-/*comp_0_.._bnd_1.sk:60*/
+/*comp_0_.._bnd_1.sk:61*/
 
-void sketch__WrapperNospec (int p_now0)/*comp_0_.._bnd_1.sk:60*/
+void sketch__WrapperNospec (int p_now0)/*comp_0_.._bnd_1.sk:61*/
 { }
 /* END PACKAGE ANONYMOUS*/
 [SKETCH] DONE
-Total time = 206
+Total time = 194

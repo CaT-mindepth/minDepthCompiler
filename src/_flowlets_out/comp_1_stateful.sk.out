@@ -1,0 +1,46 @@
+SKETCH version 1.7.6
+Benchmark = _flowlets_out/comp_1_stateful.sk
+/* BEGIN PACKAGE ANONYMOUS*/
+/*comp_1_..ateful.sk:138*/
+
+void comp_1 (bit pkt_br_tmp0, int saved_hop_0, int pkt_new_hop0, ref int _out0)/*comp_1_..ateful.sk:138*/
+{
+  int pkt_saved_hop_pkt_id0_2 = (pkt_br_tmp0 ? pkt_new_hop0 : saved_hop_0);
+  _out0 = pkt_saved_hop_pkt_id0_2;
+  return;
+}
+/*comp_1_..ateful.sk:131*/
+
+void salu (int state_0_0, int pkt_0, int pkt_1, ref int _out0)/*comp_1_..ateful.sk:131*/
+{
+  int state_0 = state_0_0;
+  if(0 != pkt_0)/*comp_1_..ateful.sk:133*/
+  {
+    state_0 = pkt_1;
+  }
+  _out0 = state_0;
+  return;
+}
+/*comp_1_..ateful.sk:151*/
+
+void sketch (bit pkt_br_tmp0, int saved_hop, int pkt_new_hop0)/*comp_1_..ateful.sk:151*/
+{
+  int impl_s1 = 0;
+  salu(saved_hop, pkt_br_tmp0, pkt_new_hop0, impl_s1);
+  int spec_s3 = 0;
+  comp_1(pkt_br_tmp0, saved_hop, pkt_new_hop0, spec_s3);
+  assert (impl_s1 == spec_s3); //Assert at comp_1_..ateful.sk:154 (2)
+}
+/*comp_1_..ateful.sk:151*/
+
+void sketch__Wrapper (bit pkt_br_tmp0, int saved_hop, int pkt_new_hop0)  implements sketch__WrapperNospec/*comp_1_..ateful.sk:151*/
+{
+  sketch(pkt_br_tmp0, saved_hop, pkt_new_hop0);
+}
+/*comp_1_..ateful.sk:151*/
+
+void sketch__WrapperNospec (bit pkt_br_tmp0, int saved_hop, int pkt_new_hop0)/*comp_1_..ateful.sk:151*/
+{ }
+/* END PACKAGE ANONYMOUS*/
+[SKETCH] DONE
+Total time = 220
