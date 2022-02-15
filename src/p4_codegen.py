@@ -1,11 +1,14 @@
 
+from overrides import overrides
 import ILP_Gurobi
 import populate_j2
 from ply import lex # for parsing PHV vars in stateful ALUs
 import lexerRules
 import re
 
-class P4Codegen(object):
+from backend import GenericCodegen
+
+class P4Codegen(GenericCodegen):
 
     def __init__(self, table_info : ILP_Gurobi.ILP_TableInfo, ilp_output : ILP_Gurobi.ILP_Output, sketch_name, rename_packet_fields = False):
         #sketch_name, num_alus_per_stage, num_state_groups, num_pipeline_stages, stateful_alus=None, stateless_alus=None, salu_configs=None
@@ -25,7 +28,7 @@ class P4Codegen(object):
         self.generate_stateless_alu_matrix()
         self.generate_stateful_alu_matrix_and_config()
         print('salu_configs: ', self.salu_configs_matrix)
-        self.tofinop4 = populate_j2.TofinoP4(sketch_name, self.num_alus_per_stage, \
+        self.template = populate_j2.TofinoP4(sketch_name, self.num_alus_per_stage, \
             self.num_state_groups, self.num_pipeline_stages, self.stateful_alus_matrix, \
                 self.stateless_alus_matrix, self.salu_configs_matrix, self.packet_fields)
 
@@ -108,32 +111,8 @@ class P4Codegen(object):
                     x = x.replace('not =', '!=')
                     alu.var_expressions[lhs] = x
 
-    def _process_alus(self):
-        self.stateless_alus = []
-        self.stateful_alus = []
-        stateless_id = 0
-        stateful_id = 0
-        for alu in self.table_info.alus:
-            # TODO: problem: stage_status was never set!!!
-            stages_vec = [False for i in range(self.num_pipeline_stages)]
-            stages_vec[self.ilp_output.get_alu_stage(0, alu.id)] = True
-            print('alu ', alu.id, ' is of type ', alu.get_type(), '; scheduled to stage ', self.ilp_output.get_alu_stage(0, alu.id))
-            alu.set_attribute("stage_status", stages_vec)
-            if alu.get_type() == 'STATELESS':
-                alu.set_attribute("stateless_id", stateless_id)
-                self.stateless_alus.append((alu, stateless_id))
-                stateless_id += 1
-            elif alu.get_type() == 'STATEFUL':
-                alu.set_attribute("stateful_id", stateful_id)
-                self.stateful_alus.append((alu, stateful_id))
-                stateful_id += 1
-            else:
-                raise Exception("P4Codegen: _process_alus: error: invalid alu type: " + alu.get_type())
-        self.num_state_groups = stateful_id 
-        self.num_alus_per_stage = stateless_id 
-        print('Codegen processed ALUs: ', len(self.stateless_alus), ' ; ', self.stateless_alus)
-        print('Codegen processed SALUs: ', len(self.stateful_alus), ' ; ', self.stateful_alus)
 
+    @overrides
     def stateless_alu_to_dict(self, alu, stage):
         assert alu.get_type() == "STATELESS"
         return {
@@ -145,47 +124,8 @@ class P4Codegen(object):
             'immediate_operand': alu.inputs[2]
         }
 
+    @overrides
     def stateful_alu_to_dict_config_pair(self, salu, stage):
         assert salu.get_type() == "STATEFUL"
         return salu.var_expressions, salu.get_attribute('stage_status')[stage]
 
-
-    def generate_stateless_alu_matrix(self):
-        self.stateless_alus_matrix = []
-        for stage in range(self.num_pipeline_stages):
-            curr_stage = []
-            for alu, alu_id in self.stateless_alus:
-                curr_stage.append(self.stateless_alu_to_dict(alu, stage))
-            print('generate_stateless_alu_matrix: stage ', stage, ', with ALUs ', curr_stage)
-            self.stateless_alus_matrix.append(curr_stage)
-
-    def generate_stateful_alu_matrix_and_config(self):
-        self.salu_configs_matrix = []
-        self.stateful_alus_matrix = []
-        print('* generating stateful ALU matrix. num pipeline stages: ', self.num_pipeline_stages)
-        for stage in range(self.num_pipeline_stages):
-            curr_stage = []
-            curr_stage_configs = []
-            print(' - curr_stage: ', stage)
-            for salu, alu_id in self.stateful_alus:
-                print(' -* this SALU: ', salu )
-                salu_dict, enabled = self.stateful_alu_to_dict_config_pair(salu, stage)
-                curr_stage.append(salu_dict)
-                curr_stage_configs.append(1 if enabled else 0)
-            self.salu_configs_matrix.append(curr_stage_configs)
-            self.stateful_alus_matrix.append(curr_stage)
-
-    def generate_p4_output(self, filename, p4outputname):
-        print('----------------------------------------------------')
-        p4program = (self.tofinop4.render('./', filename))
-        print(p4program)
-        with open(p4outputname, 'w+') as fd:
-            fd.writelines([p4program])
-
-    def generate_json_output(self, filename, p4outputname):
-        import json
-        print('----------------------------------------------------')
-        tofino_dict = self.tofinop4.get_dict()
-        print(tofino_dict)
-        with open(p4outputname, 'w+') as fd:
-            fd.writelines(json.dumps(tofino_dict))

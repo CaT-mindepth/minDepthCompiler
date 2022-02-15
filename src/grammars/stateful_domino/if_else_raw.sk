@@ -73,7 +73,6 @@ generator bit rel_op(int o1, int o2) {
   else {
     return o1 == o2;
   }
-        //return {| o1 ( == | != | > | >= | < | <= ) o2 |};
 }
 
 bit bool_op(int opcode, bit o1, bit o2) {
@@ -130,10 +129,10 @@ bit bool_op(int opcode, bit o1, bit o2) {
 }
 
 int salu(int state_0, int pkt_0, int pkt_1) {
-int old_state_0 = state_0;
-if (rel_op(Opt(state_0), Mux3(pkt_0, pkt_1, C()))) {
+  int old_state_0 = state_0;
+  if (rel_op(Opt(state_0), Mux3(pkt_0, pkt_1, C()))) {
     state_0 = Opt(state_0) + Mux3(pkt_0, pkt_1, C());
-}
+  }
 else {
     state_0 = Opt(state_0) + Mux3(pkt_0, pkt_1, C());
 }

@@ -1,9 +1,12 @@
 # populate_j2.py: populates p4 jinja2 template via user-supplied arguments
 # Ruijie Fang <ruijief@princeton.edu>
 
+from typing import Generic
 import jinja2 
 import os 
 import json
+
+from template import GenericTemplate
 
 # list of all unused variables in tofino_j2 jinja2 template:
 # ------------------------------------------------------------
@@ -68,7 +71,7 @@ import json
 #   first construct a TofinoP4 object, populate it accordingly, and call its render() method
 #   for it to be written out to a .p4 program output with a supplied filename.
 
-class TofinoP4(object):
+class TofinoP4(GenericTemplate):
     
     def _check_array_dim(self, a, d1, d2, name_a, name_d1, name_d2):
         err1 = name_a + ' is not populated'
@@ -92,7 +95,8 @@ class TofinoP4(object):
             raise Exception('type of object supplied to _check_fields(...) is not dict')
         for field in list_of_fields:
             if not (field in d):
-                raise Exception('_check_fields(...): field ' + field + ' is not in dict\n') 
+                # raise Exception('_check_fields(...): field ' + field + ' is not in dict\n') 
+                d[field] = "0"
 
 
     def _check_stateful_alus_dim(self):

@@ -742,7 +742,7 @@ class Synthesizer:
 		if is_tofino: 
 			self.synth_output_processor = SketchOutputProcessor(self.comp_graph)
 		else:
-			from domino_processor import DominoOutputProcessor
+			from domino_postprocessor import DominoOutputProcessor
 			self.synth_output_processor = DominoOutputProcessor(self.comp_graph)
 		
 		# 

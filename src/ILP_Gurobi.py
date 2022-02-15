@@ -200,7 +200,7 @@ class ILP_Output(object):
 
     def __init__(self, num_tables):
         # tables: contains a dict mapping each ALU id to a stage
-        self.tables = [{} for i in range(num_tables)]
+        self.tables = [{} for i in range(num_tables)] # table -> [collection of alus]
         self.optimal = False 
     
     def add_stage_info(self, var_name, stage):

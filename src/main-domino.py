@@ -95,20 +95,20 @@ if __name__ == "__main__":
                                     dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes,
                                      outputfilename, p4outputname, 
                                      is_tofino = False, stateless_path = domino_stateless_grammar, 
-                                     stateful_path = "pred_raw")
+                                     stateful_path = "if_else_raw")
   
   
   # ILP
-  # self.synth_output_processor.schedule()
+  #self.synth_output_processor.schedule()
 	# TODO here
-  #print('----- starting ILP Gurobi -----')
-  #ilp_table = synth_obj.synth_output_processor.to_ILP_TableInfo(table_name = 'T0')
-  #print("# alus: = ", ilp_table.get_num_alus())
-  #ilp_output = ilp_table.ILP() 
-  #import p4_codegen 
-  #codegen = p4_codegen.P4Codegen(ilp_table, ilp_output, "test")
+  print('----- starting ILP Gurobi -----')
+  ilp_table = synth_obj.synth_output_processor.to_ILP_TableInfo(table_name = 'T0')
+  print("# alus: = ", ilp_table.get_num_alus())
+  ilp_output = ilp_table.ILP() 
+  import domino_codegen 
+  codegen = domino_codegen.DominoCodegen(ilp_table, ilp_output, "test")
   #codegen.generate_p4_output('tofino_p4.j2', p4outputname)
-  #codegen.generate_json_output('tofino_p4.j2', p4outputname)
+  codegen.generate_json_output('tofino_p4.j2', p4outputname)
   
 
   
