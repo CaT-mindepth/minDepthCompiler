@@ -1,4 +1,39 @@
 # MinDepthCompiler
+
+
+
+## Running
+
+First go to the `src/` directory:
+```
+cd src/
+```
+To use the Domino backend and generate a `.json` file: (using the `sampling` benchmark as an example)
+```
+cd src/
+python3 ./preprocessor.py ../benchmarks/sampling.c sampling.in # preprocess
+python3 ./main-domino.py ./sampling.in _sampling_out sampling.json # it will output to sampling.json with intermediate sketch files located at _sampling_out
+# cleanup:
+rm -rf _sampling_out
+```
+
+Some examples for generated output can be found in the `generated_fpga_outputs` directory.
+
+<br><br>
+
+
+To use the Tofino backend:
+```
+cd src/
+python3 ./preprocessor.py ../benchmarks/blue_decrease.c ./blue_decrease.in
+python3 ./main-single.py ./blue_decrease.in _blue_decrease_out  blue_decrease.json
+```
+
+Multi-table mode (TODO)
+
+
+## Intro
+
 This project is divided into two programs: a preprocessor (`src/preprocessor.py`) that takes in a Domino `.c` program and outputs it into a `.in` file, and a compiler (`src/main.py`) that takes in a `.in` file, an argument specifying the folder in which intermediate sketch files can be written to, and an argument specifying the output P4 program filename, and generates an optimized P4 program. To call the preprocessor, run
 ```
 cd src/ && python3 ./preprocessor.py <Domino .c file> <output .in file>

@@ -1,0 +1,38 @@
+{
+    "sketch_name" : "domino_example",
+    "num_pipeline_stages": 2,
+    "num_state_groups": 1,
+    "num_alus_per_stage": 1,
+    "stateful_alus": [
+        [{
+            "id": 0,
+            "next_alus": [1],
+            "input_pkt_fields": ["pkt_0", "pkt_1"],
+            "input_state_var": "state_0",
+            "state_0_cond": { 
+                "rel_op": 3,
+                "opt": "state_0", 
+                "mux3": "pkt_1"
+            },
+            "state_0_value_then": {
+                "opt": "0",
+                "mux3": "pkt_1"
+            },
+            "state_0_value_else": {
+                "opt": "0",
+                "mux3": "pkt_1"
+            }
+        }]
+    ],
+    "stateless_alus": [[
+        {
+            "id": 1,
+            "next_alus": [],
+            "opcode": 3,
+            "operand0": "pkt_0",
+            "operand1": "pkt_1",
+            "operand2": "pkt_2",
+            "immediate_operand": "9"
+        }
+    ]]
+}

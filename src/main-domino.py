@@ -58,6 +58,16 @@ class codeGen:
       line = f.readline()
 
 
+domino_stateful_grammars = { 
+  "if_else_raw" : "grammars/stateful_domino/if_else_raw.sk",
+  "nested_ifs" : "grammars/stateful_domino/nested_ifs.sk",
+  "pair" : "grammars/stateful_domino/pair.sk", 
+  "pred_raw" : "grammars/stateful_domino/pred_raw.sk", 
+  "sub" : "grammars/stateful_domino/sub.sk"
+}
+
+domino_stateless_grammar = "grammars/stateless_domino/stateless.sk"
+
 if __name__ == "__main__":
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument("input", help="input file (preprocessed Domino program)")
@@ -82,18 +92,21 @@ if __name__ == "__main__":
 
   dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types)
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
-                                    dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes, outputfilename, p4outputname)
-
+                                    dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes,
+                                     outputfilename, p4outputname, 
+                                     is_tofino = False, stateless_path = domino_stateless_grammar, 
+                                     stateful_path = "if_else_raw")
+  
   
   # ILP
-  # self.synth_output_processor.schedule()
+  #self.synth_output_processor.schedule()
 	# TODO here
   print('----- starting ILP Gurobi -----')
   ilp_table = synth_obj.synth_output_processor.to_ILP_TableInfo(table_name = 'T0')
   print("# alus: = ", ilp_table.get_num_alus())
   ilp_output = ilp_table.ILP() 
-  import p4_codegen 
-  codegen = p4_codegen.P4Codegen(ilp_table, ilp_output, "test")
+  import domino_codegen 
+  codegen = domino_codegen.DominoCodegen(ilp_table, ilp_output, "test")
   #codegen.generate_p4_output('tofino_p4.j2', p4outputname)
   codegen.generate_json_output('tofino_p4.j2', p4outputname)
   

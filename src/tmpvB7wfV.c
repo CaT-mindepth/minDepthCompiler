@@ -1,2 +1,0 @@
-int last_update;int p_mark;struct Packet{
-int loss;int qlen;int now;int link_idle;int cond1;int now_plus_free;int _br_tmp0;int p_mark0;int last_update0;int p_mark00;int last_update00;int now_plus_free0;int _br_tmp00;int p_mark01;int last_update01;int tmp0;int tmp1;};void func( struct Packet p) {p.p_mark00 = p_markp.last_update00 = last_updatep.now_plus_free0 = p.now - 1p._br_tmp00 = p.now_plus_free0 > p.last_update00p.tmp1 = p.p_mark00 - 2p_mark = (p._br_tmp00) ? p.tmp1 : p.p_mark00last_update = (p._br_tmp00) ? (p.now) : p.last_update00}

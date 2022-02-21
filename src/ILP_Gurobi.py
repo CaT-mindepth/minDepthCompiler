@@ -123,7 +123,9 @@ class ILP_MultiTable():
         self.alus = alus
         self.multi_table_mode = False 
         """
-    def __init__(self, table_dependencies : ILP_TableDeps, table_action_map : dict[str, list[str]], action_infos : dict[str, list[ILP_ActionInfo]]):
+    #def __init__(self, table_dependencies : ILP_TableDeps, table_action_map : dict[str, list[str]], action_infos : dict[str, list[ILP_ActionInfo]]):
+    def __init__(self, table_dependencies, table_action_map, action_infos):
+
         self.action_infos = action_infos 
         self.multi_table_mode = True 
         self.table_dependencies = table_dependencies 
@@ -198,7 +200,7 @@ class ILP_Output(object):
 
     def __init__(self, num_tables):
         # tables: contains a dict mapping each ALU id to a stage
-        self.tables = [{} for i in range(num_tables)]
+        self.tables = [{} for i in range(num_tables)] # table -> [collection of alus]
         self.optimal = False 
     
     def add_stage_info(self, var_name, stage):
