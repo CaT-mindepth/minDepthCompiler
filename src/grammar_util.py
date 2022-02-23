@@ -25,6 +25,37 @@ num_stateless_domino = {
     'sub' : 2
 }
 
+num_inputs = {
+    'if_else_raw' : 3,
+    'nested_ifs' : 3,
+    'pair' : 4,
+    'sub' : 3,
+    'pred_raw' : 3,
+    'tofino' : 4
+}
+
+num_stateful_inputs = {
+    'if_else_raw' : 1,
+    'nested_ifs' : 1,
+    'pair' : 2,
+    'sub' : 1,
+    'pred_raw' : 1,
+    'tofino' : 2
+}
+
+num_outputs = {
+    'if_else_raw' : 1,
+    'nested_ifs' : 1,
+    'pair' : 1,
+    'sub' : 1,
+    'pred_raw' : 1,
+    'tofino' : 2
+}
+
+num_outputs_domino = {
+
+}
+
 tofino_stateless_grammar = 'grammars/stateless_tofino.sk'
 tofino_stateful_grammar = 'grammars/stateful_tofino.sk'
 
