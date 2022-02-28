@@ -536,7 +536,7 @@ class StatefulComponent(object):
 			print("Failed to open stateful grammar file {}.".format(self.grammar_name))
 			exit(1)
 		
-	def write_domino_sketch_spec(self, f, var_types, comp_name):
+	def write_domino_sketch_spec(self, f, var_types, comp_name, output_idx = 0):
 		# generate list of arguments 
 		input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
 		spec_name = comp_name
@@ -554,7 +554,7 @@ class StatefulComponent(object):
 		for stmt in self.comp_stmts:
 			f.write("\t{}\n".format(stmt.get_stmt()))
 		# update output array
-		f.write("\t{} = {};\n".format(spec_ret, self.state_vars[0]))
+		f.write("\t{} = {};\n".format(spec_ret, self.outputs[output_idx]))
 		# return
 		f.write("\treturn {};\n".format(spec_ret))
 		f.write("}\n")
@@ -664,10 +664,11 @@ class StatefulComponent(object):
 		f.write("\tassert(impl == spec);\n")
 		f.write("}\n")
 
-	def write_sketch_file(self, output_path, comp_name, var_types, prefix="", stats : test_stats.Statistics = None): # TODO: remove bounds from stateful synthesis
+	def write_sketch_file(self, 
+		output_path, comp_name, var_types, prefix="", output_idx = 0, stats : test_stats.Statistics = None): 
 		if stats != None:
 			stats.start_synthesis_comp(f"stateful {comp_name}")
-		sketch_filename = os.path.join(output_path, prefix + f"{comp_name}_stateful.sk")
+		sketch_filename = os.path.join(output_path, prefix + f"{comp_name}_stateful_{self.outputs[output_idx]}.sk")
 		sketch_outfilename = os.path.join(output_path, prefix + f"{comp_name}_stateful.sk"+ ".out")
 		f = open(sketch_filename, 'w+')
 		self.set_alu_inputs()
@@ -677,7 +678,7 @@ class StatefulComponent(object):
 			f.write("\n")
 			self.write_tofino_sketch_harness(f, var_types, comp_name)
 		else:
-			self.write_domino_sketch_spec(f, var_types, comp_name)
+			self.write_domino_sketch_spec(f, var_types, comp_name, output_idx)
 			f.write('\n')
 			self.write_domino_sketch_harness(f, var_types, comp_name)
 	
@@ -1184,6 +1185,18 @@ class Synthesizer:
 			i += 1
 		self.write_comp_graph()
 
+	def synthesize_single_comp(self, comp, comp_name):
+		if comp.isStateful and not self.is_tofino:
+			files = []
+			for i in range(len(comp.outputs)):
+				files.append(comp.write_sketch_file(self.output_dir, 
+					comp_name, self.var_types, output_idx = i, stats = self.stats))
+				return files
+		elif comp.isStateful and self.is_tofino:
+			return comp.write_sketch_file(self.output_dir, comp_name, self.var_types, stats = self.stats)
+		else:
+			return comp.write_sketch_file(self.output_dir, comp_name, self.var_types, stats = self.stats)
+
 	def do_synthesis(self):
 		# Synthesize each codelet
 		print("Synthesize each codelet")
@@ -1195,11 +1208,17 @@ class Synthesizer:
 			comp_name = "comp_{}".format(self.comp_index[comp])
 			comp.set_name(comp_name)
 			print(" > codelet output directory: " + self.output_dir)
-			result_file = comp.write_sketch_file(self.output_dir, comp_name, self.var_types, stats = self.stats)
+			result_file = self.synthesize_single_comp(comp, comp_name)
 			print("processing sketch output...")
 			if comp.isStateful:
 				print("processing: output is stateful.")
-				self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[0])
+				if self.is_tofino:
+					self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[0])
+				else:
+					idx = 0
+					for file in result_file:
+						self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[idx])
+						idx += 1
 			else:
 				if comp.contains_ternary():
 					print('processing: output is ternary stateful.')
