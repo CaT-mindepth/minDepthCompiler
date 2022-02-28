@@ -129,7 +129,7 @@ bit bool_op(int opcode, bit o1, bit o2) {
         }
 }
 
-int salu(int state_0, int pkt_0, int pkt_1) {
+int[2] salu(int state_0, int pkt_0, int pkt_1) {
   int old_state_0 =  state_0;
   if (rel_op(Opt(state_0) + Mux3(pkt_0, pkt_1, 0) - Mux3(pkt_0, pkt_1, 0), C())) {
     if (rel_op(Opt(state_0) + Mux3(pkt_0, pkt_1, 0) - Mux3(pkt_0, pkt_1, 0), C())) {
@@ -144,5 +144,9 @@ int salu(int state_0, int pkt_0, int pkt_1) {
       state_0 = Opt(state_0) + arith_op(Mux3(pkt_0, pkt_1, C()),  Mux3(pkt_0, pkt_1, C()));
     }
   }
-  return Mux2(old_state_0, state_0);
+  int alu_0 = state_0;
+  int[2] result;
+  result[0] = state_0;
+  result[1] Mux2(old_state_0, state_0);
+  return result;
 }
