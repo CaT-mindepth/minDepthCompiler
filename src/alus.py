@@ -176,9 +176,9 @@ class DominoIfElseRawSALU(GenericALU):
         toks = [t for t in lexer]
         assert toks[0].value == 'salu'
         assert toks[1].type == 'LPAREN'
-        self.state_0 = toks[3].value
-        self.pkt_0 = toks[4].value
-        self.retval = toks[5].value
+        self.state_0 = toks[2].value
+        self.pkt_0 = toks[3].value
+        self.retval = toks[4].value
         while not l.strip() == '}':
             l = fd.readline()
 
