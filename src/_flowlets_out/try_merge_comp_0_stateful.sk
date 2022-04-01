@@ -142,3 +142,23 @@ else {
   result[1] = Mux2(old_state_0, state_0);
   return result;
 }
+int[2] comp_0(bit pkt_br_tmp0, int saved_hop, int pkt_new_hop0){
+	int[2] _out;
+	int pkt_saved_hop_pkt_id0_2;
+	int pkt_saved_hop_pkt_id0_0;
+	int pkt_next_hop1;
+	pkt_saved_hop_pkt_id0_0 = saved_hop;
+	pkt_saved_hop_pkt_id0_2 = pkt_br_tmp0 ? pkt_new_hop0 : pkt_saved_hop_pkt_id0_0;
+	saved_hop = pkt_saved_hop_pkt_id0_2;
+	pkt_next_hop1 = pkt_saved_hop_pkt_id0_2;
+	_out[0] = saved_hop;
+	_out[1] = saved_hop;
+	return _out;
+}
+
+harness void sketch(bit pkt_br_tmp0, int saved_hop, int pkt_new_hop0) {
+	 int[2] impl = salu(saved_hop, pkt_br_tmp0, pkt_new_hop0);
+	int[2] spec = comp_0(pkt_br_tmp0, saved_hop, pkt_new_hop0);
+	assert(impl[0] == spec[0]);
+	assert(impl[1] == spec[1]);
+}

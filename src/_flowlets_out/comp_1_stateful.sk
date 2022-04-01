@@ -142,3 +142,19 @@ else {
   result[1] = Mux2(old_state_0, state_0);
   return result;
 }
+int[2] comp_1(int pkt_arrival0, int last_time){
+	int[2] _out;
+	int pkt_last_time_pkt_id0_0;
+	pkt_last_time_pkt_id0_0 = last_time;
+	last_time = pkt_arrival0;
+	_out[0] = last_time;
+	_out[1] = pkt_last_time_pkt_id0_0;
+	return _out;
+}
+
+harness void sketch(int pkt_arrival0, int last_time) {
+	 int[2] impl = salu(last_time, pkt_arrival0, 0);
+	int[2] spec = comp_1(pkt_arrival0, last_time);
+	assert(impl[0] == spec[0]);
+	assert(impl[1] == spec[1]);
+}

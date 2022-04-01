@@ -52,9 +52,6 @@ num_outputs = {
     'tofino' : 2
 }
 
-num_outputs_domino = {
-
-}
 
 tofino_stateless_grammar = 'grammars/stateless_tofino.sk'
 tofino_stateful_grammar = 'grammars/stateful_tofino.sk'

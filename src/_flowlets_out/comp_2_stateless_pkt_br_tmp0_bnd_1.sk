@@ -1,0 +1,66 @@
+int alu(int opcode, int operand0, int operand1, int operand2, int immediate_operand) {
+        if (opcode == 0) {
+                return operand0;
+        }
+    if (opcode == 1) {
+        return immediate_operand;
+    }
+        if (opcode == 2) {
+                return operand0 + operand1;
+        }
+    if (opcode == 3) {
+        return operand0 + immediate_operand;
+    }
+        if (opcode == 4) {
+                return operand1 - operand0;
+        }
+    if (opcode == 5) {
+        return (operand0 == immediate_operand);
+    }
+    if (opcode == 6) {
+        return immediate_operand - operand0;
+    }
+    if (opcode == 7) {
+        // max(operand0, operand1)
+        return operand0 > operand1 ? operand0 : operand1;
+    }
+    if (opcode == 8) {
+        // max(operand0, immediate_operand)
+        return operand0 > immediate_operand ? operand0 : immediate_operand;
+    }
+    if (opcode == 9) {
+        // min(operand0, operand1)
+        return operand0 > operand1 ? operand1 : operand0;
+    }
+    if (opcode == 10) {
+        return ((operand0 != 0) && (operand1 != 0));
+    }
+    if (opcode == 11) {
+       return (operand0 != 0) ? operand1 : operand2;
+    } else {
+        // min(operand0, immediate_operand)
+        return operand0 > immediate_operand ? immediate_operand : operand0;
+    }
+}
+generator int expr(fun vars, int bnd) {
+  assert bnd >= 1;
+    int t = ??(1);
+
+    if (t == 0) {
+        return alu(??, vars(), vars(), vars(), ??);
+    }
+    if (t == 1) {
+        return alu(??, expr(vars, bnd-1), expr(vars, bnd-1), expr(vars, bnd - 1),  ??);
+    }
+}int comp_2(int pkt_arrival0, int pkt_last_time_pkt_id0_0){
+	bit pkt_br_tmp0;
+	pkt_br_tmp0 = (pkt_arrival0 - pkt_last_time_pkt_id0_0 > 2);
+	return pkt_br_tmp0;
+}
+
+harness void sketch(int pkt_arrival0, int pkt_last_time_pkt_id0_0) {
+	generator int vars(){
+		return {| 1 | pkt_arrival0 | pkt_last_time_pkt_id0_0 |};
+	}
+	assert expr(vars, 1) == comp_2(pkt_arrival0, pkt_last_time_pkt_id0_0);
+}

@@ -1,4 +1,3 @@
-from lib2to3.pgen2 import grammar
 from re import A
 import os
 import ply.lex as lex
@@ -54,18 +53,20 @@ def get_variable_name(v1, v2): # longest common prefix
 
 def is_branch_var(var):
 	# ruijief: updated this to make domino preprocessing input work.
-	return "br_tmp" in var #var.startswith("p_br_tmp") or var.startswith("pkt_br_tmp") 
+	return "br" in var #var.startswith("p_br_tmp") or var.startswith("pkt_br_tmp") 
+
+def is_tmp_var(var):
+	return "tmp" in var
+
 
 class Component: # group of codelets
-	def __init__(self, codelet_list, id, 
-		grammar_name = None, is_tofino = True):
+	def __init__(self, codelet_list, id, grammar_name = None, is_tofino = True):
 		self.codelets = codelet_list # topologically sorted
 		self.isStateful = False
 		self.grammar_name = grammar_name 
 		self.is_tofino = is_tofino 
 		self.get_inputs_outputs()
 		self.set_component_stmts()
-    # Here we name each component using comp_{} 
 		self.set_name("comp_" + str(id))
 		self.bci_inputs = []
 		self.bci_outputs = []
@@ -78,6 +79,12 @@ class Component: # group of codelets
 
 	def set_name(self, name):
 		self.name = name
+	
+	def is_branch_var(self):
+		for out in self.outputs:
+			if is_branch_var(out):
+				return True 
+		return False 
 
 	def get_inputs_outputs(self):
 		inputs = set()
@@ -135,6 +142,13 @@ class Component: # group of codelets
 			self.set_component_stmts()
 			self.get_inputs_outputs()
 		
+	def print(self):
+		for s in self.comp_stmts:
+			s.print()
+	
+	def __str__(self):
+		return " ".join([s.get_stmt() for s in self.comp_stmts])
+
 	def write_grammar(self, f):
 		try:
 			f_grammar = open(grammar_util.resolve_stateless(self.is_tofino))
@@ -200,17 +214,10 @@ class Component: # group of codelets
 		comp_fxn = comp_name + "(" + ", ".join(self.inputs) + ")"
 
 		output_type = var_types[o]
-		# TODO: more robust type checking; relational expression can be assigned to an integer variable (should be bool)
-		# if output_type == "int":
-		# print(' - TODO output type of ', o, ' is int? but it is ', output_type)
 		if self.is_tofino and (not (output_type == "int")):
-			print('ERROR:bit present as output type')
-			assert False
+			raise Exception('Error: Output ' + o + ' is a bit type, not an int')
+
 		f.write("\tassert expr(vars, {}) == {};\n".format(bnd, comp_fxn))
-		# else:
-		# 	assert(output_type == "bit")
-		# 	# f.write("\tassert bool_expr(bool_vars, {}) == {};\n".format(bnd, comp_fxn)
-		# 	f.write("\tassert bool_expr(vars, bool_vars, {}) == {};\n".format(bnd, comp_fxn)) # TODO: What if there are int and bool vars?
 
 		f.write("}\n")
 
@@ -218,10 +225,10 @@ class Component: # group of codelets
 		input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
 		spec_name = comp_name
 		# write function signature
-		f.write("int[2] {}({})".format(spec_name, ", ".join(input_types)) + "{\n")
+		f.write("int[3] {}({})".format(spec_name, ", ".join(input_types)) + "{\n")
 		# declare output array
 		output_array = "_out"
-		f.write("\tint[2] {};\n".format(output_array))
+		f.write("\tint[3] {};\n".format(output_array))
 		# declare defined variables
 		defines = self.codelets[0].get_outputs()
 		for v in defines:
@@ -267,7 +274,7 @@ class Component: # group of codelets
 
 		f.write(") {\n")
 		assert len(self.inputs) <= 4
-		f.write('\tint[2] impl = salu(')
+		f.write('\tint[3] impl = salu(')
 		for i in range(len(self.inputs)):
 			f.write(self.inputs[i])
 			if i < len(self.inputs) - 1:
@@ -371,14 +378,6 @@ class Component: # group of codelets
 				f_sk_out.close()
 				bnd += 1
 		return filenames
-
-	def print(self):
-		for s in self.comp_stmts:
-			s.print()
-	
-	def __str__(self):
-		return " ".join([s.get_stmt() for s in self.comp_stmts])
-
 
 
 class StatefulComponent(object):
@@ -536,15 +535,16 @@ class StatefulComponent(object):
 			print("Failed to open stateful grammar file {}.".format(self.grammar_name))
 			exit(1)
 		
-	def write_domino_sketch_spec(self, f, var_types, comp_name, output_idx = 0):
+	def write_domino_sketch_spec(self, f, var_types, comp_name):
 		# generate list of arguments 
 		input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
 		spec_name = comp_name
 		# write function signature
-		f.write("int {}({})".format(spec_name, ", ".join(input_types)) + "{\n")
+		num_rets = grammar_util.num_statefuls_domino[self.grammar_name] + 1
+		f.write("int[{}] {}({})".format(num_rets, spec_name, ", ".join(input_types)) + "{\n")
 		# declare output array
 		spec_ret = "_out"
-		f.write("\tint {};\n".format(spec_ret))
+		f.write("\tint[{}] {};\n".format(num_rets, spec_ret))
 		# declare defined variables
 		defines = self.codelet.get_outputs()
 		for v in defines:
@@ -554,7 +554,19 @@ class StatefulComponent(object):
 		for stmt in self.comp_stmts:
 			f.write("\t{}\n".format(stmt.get_stmt()))
 		# update output array
-		f.write("\t{} = {};\n".format(spec_ret, self.outputs[output_idx]))
+		si = 0
+		for state_var in self.state_vars:
+			f.write("\t{}[{}] = {};\n".format(spec_ret, si, state_var))
+			si += 1
+		output_found = False
+		for o in self.outputs:
+			if not (o in self.state_vars):
+				f.write("\t{}[{}] = {};\n".format(spec_ret, num_rets - 1, o))
+				output_found = True 
+				break
+		if not output_found:
+			f.write("\t{}[{}] = {};\n".format(spec_ret, num_rets - 1, self.state_vars[0]))
+
 		# return
 		f.write("\treturn {};\n".format(spec_ret))
 		f.write("}\n")
@@ -564,10 +576,10 @@ class StatefulComponent(object):
 		input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
 		spec_name = comp_name
 		# write function signature
-		f.write("int[2] {}({})".format(spec_name, ", ".join(input_types)) + "{\n")
+		f.write("int[3] {}({})".format(spec_name, ", ".join(input_types)) + "{\n")
 		# declare output array
 		output_array = "_out"
-		f.write("\tint[2] {};\n".format(output_array))
+		f.write("\tint[3] {};\n".format(output_array))
 		# declare defined variables
 		defines = self.codelet.get_outputs()
 		for v in defines:
@@ -576,20 +588,18 @@ class StatefulComponent(object):
 		# function body
 		for stmt in self.comp_stmts:
 			f.write("\t{}\n".format(stmt.get_stmt()))
-		# update output array
-		f.write("\t{}[0] = {};\n".format(output_array, self.state_vars[0]))
+		# update output array		
+		f.write("\t{}[0] = {};\n".format(output_array, self.salu_inputs[0]))
+		f.write("\t{}[1] = {};\n".format(output_array, self.salu_inputs[1]))
 
-		if not(len(self.outputs) <= 2): # at most 2 outputs TODO: duplicate component if > 2 outputs
-			print('ERROR: outputs are ', self.outputs, ' which is more than 2.')
-			assert False
-		found_output2 = False
+		found_output = False
 		for o in self.outputs:
-			if o != self.state_vars[0]:
-				found_output2 = True
-				f.write("\t{}[1] = {};\n".format(output_array, o))
-		
-		if not found_output2: # return state var
-			f.write("\t{}[1] = {};\n".format(output_array, self.state_vars[0]))
+			if o != self.salu_inputs[0] and o != self.inputs[1]:
+				found_output = True 
+				f.write("\t{}[2] = {};\n".format(output_array, o))
+
+		if not found_output: # return state var
+			f.write("\t{}[2] = {};\n".format(output_array, self.state_vars[0]))
 
 		# return
 		f.write("\treturn {};\n".format(output_array))
@@ -630,7 +640,8 @@ class StatefulComponent(object):
 
 		f.write(") {\n")
 
-		f.write('\t int impl = salu(')
+		num_outputs = grammar_util.num_outputs[self.grammar_name] + 1
+		f.write('\t int[{}] impl = salu('.format(num_outputs))
 
 		num_statefuls = grammar_util.num_statefuls_domino[self.grammar_name]
 		num_stateless = grammar_util.num_stateless_domino[self.grammar_name]
@@ -659,16 +670,16 @@ class StatefulComponent(object):
 				f.write('{});\n'.format( stateless_vars[len(stateless_vars) - 1]))
 
 
-		f.write("\tint spec = {}({});\n".format(comp_name, ', '.join(self.inputs)))
-
-		f.write("\tassert(impl == spec);\n")
+		f.write("\tint[{}] spec = {}({});\n".format(str(num_outputs), comp_name, ', '.join(self.inputs)))
+		for i in range(num_outputs):
+			f.write("\tassert(impl[{}] == spec[{}]);\n".format(str(i), str(i)))
 		f.write("}\n")
 
 	def write_sketch_file(self, 
-		output_path, comp_name, var_types, prefix="", output_idx = 0, stats : test_stats.Statistics = None): 
+		output_path, comp_name, var_types, prefix="", stats : test_stats.Statistics = None): 
 		if stats != None:
 			stats.start_synthesis_comp(f"stateful {comp_name}")
-		sketch_filename = os.path.join(output_path, prefix + f"{comp_name}_stateful_{self.outputs[output_idx]}.sk")
+		sketch_filename = os.path.join(output_path, prefix + f"{comp_name}_stateful.sk")
 		sketch_outfilename = os.path.join(output_path, prefix + f"{comp_name}_stateful.sk"+ ".out")
 		f = open(sketch_filename, 'w+')
 		self.set_alu_inputs()
@@ -678,7 +689,7 @@ class StatefulComponent(object):
 			f.write("\n")
 			self.write_tofino_sketch_harness(f, var_types, comp_name)
 		else:
-			self.write_domino_sketch_spec(f, var_types, comp_name, output_idx)
+			self.write_domino_sketch_spec(f, var_types, comp_name)
 			f.write('\n')
 			self.write_domino_sketch_harness(f, var_types, comp_name)
 	
@@ -954,6 +965,14 @@ class Synthesizer:
 		top.reverse() 
 		return top 
 
+	def need_duplicate(self, node):
+		if not (node.isStateful) and node.contains_ternary():
+			return False
+		if node.isStateful and len(list(self.comp_graph.successors(node))) == 0:
+			return False 
+		else:
+			return True
+
 	def recursive_merge(self):
 		nodes = self.reverse_top_order() 
 		print(' * recursive_merge strategy: nodes ordered ', list(map(lambda x: str(x), nodes)))
@@ -972,9 +991,24 @@ class Synthesizer:
 						# try calling sketch to synthesize new component. 
 						if self.try_merge(pred, node):
 							# merging successful. 
+							predpreds = list(self.comp_graph.predecessors(pred))
+							nodepreds = list(self.comp_graph.predecessors(node))
+							nd = self.need_duplicate(node)
+							pd = self.need_duplicate(pred)
+
 							self.merge_processed.add(pred)
 							self.merge_processed.add(node)
 							merged_component = self.perform_merge(pred, node)
+
+							if nd:
+								self.comp_graph.add_node(node)
+								for np in nodepreds:
+									self.comp_graph.add_edge(np, node)
+							if pd:
+								self.comp_graph.add_node(pred)
+								for pp in predpreds:
+									self.comp_graph.add_edge(pp, node)
+
 							if self.stats != None:
 								self.stats.incr_num_successful_merges()
 							self.recursive_merge() 
@@ -1125,29 +1159,6 @@ class Synthesizer:
 		self.state_vars = list(set(self.state_vars))
 		self.comp_graph = nx.DiGraph() 
 		self.compute_scc_graph()
-		#exit(1)
-		"""
-		original_dep_edges = copy.deepcopy(self.dep_graph.edges())
-
-		self.dep_graph.remove_nodes_from(self.stateful_nodes)
-		i = 0
-		codelet_component = {} # codelet repr -> component it belongs to
-
-		# create component graph
-		print("Add component graph edges")
-		#self.comp_graph = nx.DiGraph()
-		#self.comp_graph.add_nodes_from(self.components)	
-		self.compute_scc_graph() # Here
-		for u, v in original_dep_edges: # add edges between components
-			if codelet_component[str(u)] != codelet_component[str(v)]:
-				self.comp_graph.add_edge(codelet_component[str(u)], codelet_component[str(v)])
-				print(str(codelet_component[str(u)]))
-				print("->")
-				print(str(codelet_component[str(v)]))
-				print()
-		# Duplicate components to eliminate inputs of type bit (branch variables)
-		outputs_comp = {} # output -> component
-		"""
 		self.comp_graph = self.scc_graph 
 		if True: #False: # True: # self.is_tofino:
 			print("------------------------------------------------- Merging components... ------------------------------------")
@@ -1186,13 +1197,7 @@ class Synthesizer:
 		self.write_comp_graph()
 
 	def synthesize_single_comp(self, comp, comp_name):
-		if comp.isStateful and not self.is_tofino:
-			files = []
-			for i in range(len(comp.outputs)):
-				files.append(comp.write_sketch_file(self.output_dir, 
-					comp_name, self.var_types, output_idx = i, stats = self.stats))
-				return files
-		elif comp.isStateful and self.is_tofino:
+		if comp.isStateful:
 			return comp.write_sketch_file(self.output_dir, comp_name, self.var_types, stats = self.stats)
 		else:
 			return comp.write_sketch_file(self.output_dir, comp_name, self.var_types, stats = self.stats)
@@ -1212,13 +1217,8 @@ class Synthesizer:
 			print("processing sketch output...")
 			if comp.isStateful:
 				print("processing: output is stateful.")
-				if self.is_tofino:
-					self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[0])
-				else:
-					idx = 0
-					for file in result_file:
-						self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[idx])
-						idx += 1
+				self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[0])
+
 			else:
 				if comp.contains_ternary():
 					print('processing: output is ternary stateful.')
