@@ -1160,7 +1160,7 @@ class Synthesizer:
 		self.comp_graph = nx.DiGraph() 
 		self.compute_scc_graph()
 		self.comp_graph = self.scc_graph 
-		if True: #False: # True: # self.is_tofino:
+		if False: # True: #False: # True: # self.is_tofino:
 			print("------------------------------------------------- Merging components... ------------------------------------")
 			if self.stats != None:
 				self.stats.update_num_components(len(list(self.comp_graph.nodes)))
@@ -1215,6 +1215,10 @@ class Synthesizer:
 			print(" > codelet output directory: " + self.output_dir)
 			result_file = self.synthesize_single_comp(comp, comp_name)
 			print("processing sketch output...")
+			# TODO: resume processing of outputs. Right now we're just verifying whether
+			# the sketch file generated is intact.
+			print(" file name: ", result_file, " is_stateful: ", comp.isStateful)
+			continue
 			if comp.isStateful:
 				print("processing: output is stateful.")
 				self.synth_output_processor.process_single_stateful_output(result_file, comp.outputs[0])

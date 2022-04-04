@@ -150,7 +150,7 @@ if (rel_op(Mux3(state_0, state_1, 0) + Mux3(pkt_1, pkt_2, 0) - Mux3(pkt_1, pkt_2
 }
   int alu_0 = state_0;
   int alu_1 = state_1;
-  int result[3];
+  int[3] result;
   result[0] = alu_0;
   result[1] = alu_1;
   result[2] = Mux4(old_state_0, old_state_1, state_0, state_1);
