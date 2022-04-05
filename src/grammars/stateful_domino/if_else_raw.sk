@@ -138,7 +138,7 @@ else {
 }
   int alu_0 = state_0;
   int[2] result;
-  result[0] = alu_0;
-  result[1] = Mux2(old_state_0, state_0);
+  result[0] = Mux2(alu_0, 0);
+  result[1] = Mux3(old_state_0, state_0, 0);
   return result;
 }

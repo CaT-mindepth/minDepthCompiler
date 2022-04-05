@@ -46,7 +46,7 @@ num_stateful_inputs = {
 num_outputs = {
     'if_else_raw' : 1,
     'nested_ifs' : 1,
-    'pair' : 1,
+    'pair' : 2,
     'sub' : 1,
     'pred_raw' : 1,
     'tofino' : 2

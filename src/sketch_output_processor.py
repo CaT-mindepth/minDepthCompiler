@@ -94,7 +94,7 @@ class SketchOutputProcessor(GenericOutputProcessor):
 
     # process a stateful ALU from a single stateful sketch file.
     @overrides
-    def process_single_stateful_output(self, input_file, output):
+    def process_single_stateful_output(self, input_file, comp):
         with open(input_file, "r") as f:
             specname = self.filename_to_specname(input_file)
             l = f.readline()

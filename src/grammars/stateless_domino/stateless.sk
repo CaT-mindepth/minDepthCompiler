@@ -1,90 +1,47 @@
 int alu(int opcode, int pkt_0, int pkt_1, int pkt_2, int immediate_operand) {
     if (opcode == 0) {
-    return immediate_operand;
-    } elif (opcode == 1) {
-    return pkt_0 + pkt_1;
-    } elif (opcode == 2) {
-    return pkt_0 + immediate_operand;
-    } elif (opcode == 3) {
-    return pkt_0 - pkt_1;
-    } elif (opcode == 4) {
-    return pkt_0 - immediate_operand;
-    } elif (opcode == 5) {
-    return immediate_operand - pkt_0;
-    } elif (opcode == 6) {
-    return pkt_0!=pkt_1;
-    } elif (opcode == 7) {
-    return (pkt_0 != immediate_operand);
-    } elif (opcode == 8) {
-    return (pkt_0 == pkt_1);
-    } elif (opcode == 9) {
-    return (pkt_0 == immediate_operand);
-    } elif (opcode == 10) {
-    return (pkt_0 >= pkt_1);
-    } elif (opcode == 11) {
-    return (pkt_0 >= immediate_operand);
-    } elif (opcode == 12) {
-    return (pkt_0 < pkt_1);
-    } elif (opcode == 13) {
-    return (pkt_0 < immediate_operand);
-    } elif (opcode == 14) {
-    return pkt_0 != 0 ? pkt_1 : pkt_2;
-    } elif (opcode == 15) {
-    return pkt_0 != 0 ? pkt_1 : immediate_operand;
-    } elif (opcode == 16) {
-    return ((pkt_0 != 0) || (pkt_1 != 0));
-    } elif (opcode == 17) {
-    return ((pkt_0 != 0) || (immediate_operand != 0));
-    }  elif (opcode == 18) {
-    return ((pkt_0 != 0) && (pkt_1 != 0));
-    } elif (opcode == 19) {
-    return ((pkt_0 != 0) && (immediate_operand != 0));
-    } else {
-    return (pkt_0 == 0);
-    }
-/*
-   if (opcode == 0) {
-                return operand0;
-        }
-    if (opcode == 1) {
         return immediate_operand;
-    }
-        if (opcode == 2) {
-                return operand0 + operand1;
-        }
-    if (opcode == 3) {
-        return operand0 + immediate_operand;
-    }
-        if (opcode == 4) {
-                return operand1 - operand0;
-        }
-    if (opcode == 5) {
-        return (operand0 == immediate_operand);
-    }
-    if (opcode == 6) {
-        return immediate_operand - operand0;
-    }
-    if (opcode == 7) {
-        // max(operand0, operand1)
-        return operand0 > operand1 ? operand0 : operand1;
-    }
-    if (opcode == 8) {
-        // max(operand0, immediate_operand)
-        return operand0 > immediate_operand ? operand0 : immediate_operand;
-    }
-    if (opcode == 9) {
-        // min(operand0, operand1)
-        return operand0 > operand1 ? operand1 : operand0;
-    }
-    if (opcode == 10) {
-        return ((operand0 != 0) && (operand1 != 0));
-    }
-    if (opcode == 11) {
-       return (operand0 != 0) ? operand1 : operand2;
+    } else if (opcode == 1) {
+        return pkt_0 + pkt_1;
+    } else if (opcode == 2) {
+        return pkt_0 + immediate_operand;
+    } else if (opcode == 3) {
+        return pkt_0 - pkt_1;
+    } else if (opcode == 4) {
+        return pkt_0 - immediate_operand;
+    } else if (opcode == 5) {
+        return immediate_operand - pkt_0;
+    } else if (opcode == 6) {
+        return pkt_0!=pkt_1;
+    } else if (opcode == 7) {
+        return (pkt_0 != immediate_operand);
+    } else if (opcode == 8) {
+        return (pkt_0 == pkt_1);
+    } else if (opcode == 9) {
+        return (pkt_0 == immediate_operand);
+    } else if (opcode == 10) {
+        return (pkt_0 >= pkt_1);
+    } else if (opcode == 11) {
+        return (pkt_0 >= immediate_operand);
+    } else if (opcode == 12) {
+        return (pkt_0 < pkt_1);
+    } else if (opcode == 13) {
+        return (pkt_0 < immediate_operand);
+    } else if (opcode == 14) {
+        return pkt_0 != 0 ? pkt_1 : pkt_2;
+    } else if (opcode == 15) {
+        return pkt_0 != 0 ? pkt_1 : immediate_operand;
+    } else if (opcode == 16) {
+        return ((pkt_0 != 0) || (pkt_1 != 0));
+    } else if (opcode == 17) {
+        return ((pkt_0 != 0) || (immediate_operand != 0));
+    } else if (opcode == 18) {
+        return ((pkt_0 != 0) && (pkt_1 != 0));
+    } else if (opcode == 19) {
+        return ((pkt_0 != 0) && (immediate_operand != 0));
     } else {
-        // min(operand0, immediate_operand)
-        return operand0 > immediate_operand ? immediate_operand : operand0;
-    }*/
+        return (pkt_0 == 0);
+    }
 }
 
 generator int expr(fun vars, int bnd) {
@@ -98,3 +55,4 @@ generator int expr(fun vars, int bnd) {
         return alu(??, expr(vars, bnd-1), expr(vars, bnd-1), expr(vars, bnd - 1),  ??);
     }
 }
+
