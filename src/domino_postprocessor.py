@@ -22,25 +22,27 @@ class DominoOutputProcessor(GenericOutputProcessor):
     def process_stateless_output(self, input_file, output):
         print(' --------- processing stateless output --------- ')
 
+        lineno = 0
+
         def parse_sketch(fd, lineno):
             done = False
             while not done:
                 l = fd.readline().strip()
                 lineno += 1
                 if l.startswith('alu'):
-                    alu = DominoALU(self.alu_id, l, 0)
+                    alu = DominoALU(self.alu_id, l, lineno)
                     self.add_new_alu(alu, input_file)
                 elif l.startswith('}'):
-                    return
+                    return lineno
+            return lineno
 
         with open(input_file) as fd:
-            lineno = 0
             done = False
             while not done:
                 l = fd.readline().strip()
                 lineno += 1
                 if l.startswith('void sketch'):
-                    parse_sketch(fd, lineno)
+                    lineno = parse_sketch(fd, lineno)
                     done = True
 
     # process a stateful ALU from a single stateful sketch file.

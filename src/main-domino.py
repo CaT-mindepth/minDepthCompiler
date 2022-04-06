@@ -95,7 +95,7 @@ if __name__ == "__main__":
                                     dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes,
                                      outputfilename, p4outputname, 
                                      is_tofino = False, stateless_path = domino_stateless_grammar, 
-                                     stateful_path="pair")#stateful_path = "if_else_raw")
+                                     stateful_path="if_else_raw")#stateful_path = "if_else_raw")
   
   
   # ILP

@@ -85,6 +85,9 @@ class DominoGenericSALU(GenericALU):
             "body": self.synth_body
         }
 
+    def print(self):
+        print(str(self.make_dict()))
+
 
 class DominoIfElseRawSALU(GenericALU):
 
@@ -273,11 +276,8 @@ class DominoALU(GenericALU):
         self.output = output
 
     def print(self):
-        if not self.wire:
-            print("{} = DominoALU(opcode={}, inputs={})".format(
-                self.output, self.opcode, ", ".join(self.inputs), ))
-        else:
-            print("{} = {}".format(self.output, self.inputs[0]))
+        print("{} = DominoALU(opcode={}, inputs={})".format(
+            self.output, self.opcode, ", ".join(self.inputs), ))
 
 
 class SALU(GenericALU):

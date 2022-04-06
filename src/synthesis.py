@@ -830,6 +830,17 @@ class Synthesizer:
 			if self.stats != None:
 				self.stats.end_synthesis()
 				print("Domino synthesis: ended successfully.")
+
+			"""for alu in self.synth_output_processor.dependencies:
+				print("ALU: ")
+				alu.print()
+				print("----------------")
+				alus = self.synth_output_processor.dependencies[alu]
+				for adj_alu in alus:
+					print(" --> adjacent alu: ")
+					adj_alu.print()
+				print("----------------")
+			exit(1)"""
 			
 
 	def get_var_type(self, v):
