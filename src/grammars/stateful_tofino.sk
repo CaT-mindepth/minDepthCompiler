@@ -155,7 +155,7 @@ int compute_alu(int op, int o1, int o2) {
 	}
 }
 
-int[2] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) {
+int[3] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) {
     int original_lo = register_lo;
     int original_hi = register_hi;
     
@@ -221,9 +221,11 @@ int[2] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) 
     // sketch generator scripts to accomodate this.
     int output_value = Mux4(original_lo, original_hi, alu_lo, alu_hi);
     
-    int[2] result;
+    // TODO: output three things, alu_lo, alu_hi, and output_value
+    int[3] result;
     result[0] = register_lo; // register_lo is the state variable
-    result[1] = output_value; 
+    result[1] = register_hi;
+    result[2] = output_value; 
     return result;
 }
 

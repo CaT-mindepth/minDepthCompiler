@@ -4,6 +4,7 @@ from overrides import overrides
 import lexerRules
 import ply.lex as lex
 import re
+import synthesis
 
 
 class GenericALU(object):
@@ -52,10 +53,47 @@ class GenericALU(object):
         self.id = id
 
 
+class DominoGenericSALU(GenericALU):
+    def __init__(self, id, alu_filename, comp):
+        self.attributes = {}
+        self.inputs = comp.inputs
+        self.state_vars = comp.state_vars
+        self.outputs = comp.outputs
+        self.id = id
+        self.alu_filename = alu_filename
+        lexer = lex.lex(module=lexerRules)
+        self.comp = comp
+        self.synth_body = []
+        going = True
+        with open(alu_filename) as fd:
+            while going:
+                l = fd.readline()
+                if l.lstrip().rstrip().startswith('void salu'):
+                    self.synth_body.append(l)
+                    l = fd.readline()
+                    while not(l.lstrip().rstrip().startswith('return')):
+                        self.synth_body.append(l)
+                        l = fd.readline()
+                    going = False
+        self.set_type('STATEFUL')
+
+    def make_dict(self):
+        return {
+            "inputs": self.inputs,
+            "outputs": self.outputs,
+            "id": self.id,
+            "body": self.synth_body
+        }
+
+    def print(self):
+        print(str(self.make_dict()))
+
+
 class DominoIfElseRawSALU(GenericALU):
 
-    def __init__(self, id, alu_filename):
+    def __init__(self, id, alu_filename, comp):
         super().__init__()
+        self.comp = comp
         self.id = id
         self.set_type('STATEFUL')
         self.state_0_assignment = None
@@ -186,7 +224,8 @@ class DominoIfElseRawSALU(GenericALU):
         if not self.state_0_assignment:
             s = 'DominoIfElseSALU {\n'
             s += '    if ( ' + str(self.if_rel_operand1) + \
-                str(self.if_rel_operator) + str(self.if_rel_operand2) + ' ) {\n'
+                str(self.if_rel_operator) + \
+                str(self.if_rel_operand2) + ' ) {\n'
             s += '          ' + str(self.state_0) + ' = ' + str(self.if_body_state_0_value) + '+' + str(
                 self.if_body_state_0_incr_value if self.if_body_state_0_incr_value else '0') + '\n'
             s += '     } else { '
@@ -194,7 +233,8 @@ class DominoIfElseRawSALU(GenericALU):
                 self.else_body_state_0_incr_value if self.else_body_state_0_incr_value else '0') + '\n'
             return s
         else:
-            s = 'DominoIfElseSALU { ' + str(self.state_0) + ' = ' + str(self.pkt_0) + ' } '
+            s = 'DominoIfElseSALU { ' + \
+                str(self.state_0) + ' = ' + str(self.pkt_0) + ' } '
             return s
 
 
@@ -236,11 +276,8 @@ class DominoALU(GenericALU):
         self.output = output
 
     def print(self):
-        if not self.wire:
-            print("{} = DominoALU(opcode={}, inputs={})".format(
-                self.output, self.opcode, ", ".join(self.inputs), ))
-        else:
-            print("{} = {}".format(self.output, self.inputs[0]))
+        print("{} = DominoALU(opcode={}, inputs={})".format(
+            self.output, self.opcode, ", ".join(self.inputs), ))
 
 
 class SALU(GenericALU):
@@ -585,13 +622,6 @@ class GenericOutputProcessor(object):
     def process_stateless_output(self, input_file, output):
         pass
 
-    # process outputs from a list of sketch files, each containing
-    # one stateful ALU.
-
-    def process_stateful_outputs(self, input_files, output):
-        for input_file in input_files:
-            self.process_single_output(input_file, output)
-
     def filename_to_specname(self, filename):
         import re
         file = filename.split('/')[-1]
@@ -599,7 +629,7 @@ class GenericOutputProcessor(object):
         return (lambda x: x[0] + '_' + x[1])(file.split('_'))
 
     # process a stateful ALU from a single stateful sketch file.
-    def process_single_stateful_output(self, input_file, output):
+    def process_single_stateful_output(self, input_file, comp):
         pass
 
     # ruijief:

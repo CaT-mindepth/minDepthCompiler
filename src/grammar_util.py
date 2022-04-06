@@ -46,15 +46,12 @@ num_stateful_inputs = {
 num_outputs = {
     'if_else_raw' : 1,
     'nested_ifs' : 1,
-    'pair' : 1,
+    'pair' : 2,
     'sub' : 1,
     'pred_raw' : 1,
     'tofino' : 2
 }
 
-num_outputs_domino = {
-
-}
 
 tofino_stateless_grammar = 'grammars/stateless_tofino.sk'
 tofino_stateful_grammar = 'grammars/stateful_tofino.sk'
