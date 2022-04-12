@@ -1320,6 +1320,7 @@ class Synthesizer:
 			comp.set_name(comp_name)
 			print(" > codelet output directory: " + self.output_dir)
 			result_file = self.synthesize_single_comp(comp, comp_name)
+			print('result file: ', result_file)
 			print("processing sketch output...")
 			# TODO: resume processing of outputs. Right now we're just verifying whether
 			# the sketch file generated is intact.
