@@ -239,6 +239,7 @@ class DominoIfElseRawSALU(GenericALU):
 
 
 class DominoALU(GenericALU):
+    # TODO: remove 'lineno' altogether.
     def __init__(self, id, stmt, lineno):
         super().__init__()
         self.alu_type = "STATELESS"
@@ -641,16 +642,17 @@ class GenericOutputProcessor(object):
         for alu1 in self.alus:
             if alu1.get_type() == "STATELESS":
                 for alu2 in self.alus:
-                    print('alu1 id: ', alu1.id,
-                          ' ; alu1 type: ', alu1.get_type())
-                    print('alu2 id: ', alu2.id,
-                          ' ; alu2 type: ', alu2.get_type())
-                    if alu2.get_type() == "STATELESS":
-                        if alu2 != alu1 and alu1.output in alu2.inputs:  # RAW
-                            print(' *** found stateless dependency between ALU ',
-                                  alu1.id, ' and ALU ', alu2.id)
-                            self.dependencies[alu1].append(alu2)
-                            self.rev_dependencies[alu2].append(alu1)
+                    if self.alu_compnames[alu1.id] == self.alu_compnames[alu2.id]: # if they're in the same stateless component.
+                        print('alu1 id: ', alu1.id,
+                            ' ; alu1 type: ', alu1.get_type())
+                        print('alu2 id: ', alu2.id,
+                            ' ; alu2 type: ', alu2.get_type())
+                        if alu2.get_type() == "STATELESS":
+                            if alu2 != alu1 and alu1.output in alu2.inputs:  # RAW
+                                print(' *** found stateless dependency between ALU ',
+                                    alu1.id, ' and ALU ', alu2.id)
+                                self.dependencies[alu1].append(alu2)
+                                self.rev_dependencies[alu2].append(alu1)
         print(' *** done finding dependencies between stateless ALUs ***')
 
     def all_stateful_alus(self):
