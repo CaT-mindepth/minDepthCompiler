@@ -36,6 +36,19 @@ class GenericCodegen(object):
     def stateful_alu_to_dict_config_pair(self, salu, stage):
         pass
 
+    def generate_stateless_alu_list(self):
+        self.stateless_alus_list = []
+        for alu, alu_id in self.stateless_alus:
+            alu_dict = self.stateless_alu_descr(alu)
+            self.stateless_alus_list.append(alu_dict)
+    
+    def generate_stateful_alu_list(self):
+        self.stateful_alus_list = []
+        for salu, alu_id in self.stateful_alus:
+            salu_dict = self.stateful_alu_descr(salu)
+            self.stateful_alus_list.append(salu_dict)
+    
+
     def generate_stateless_alu_matrix(self):
         self.stateless_alus_matrix = []
         for stage in range(self.num_pipeline_stages):
@@ -73,7 +86,8 @@ class GenericCodegen(object):
     def generate_json_output(self, filename, p4outputname):
         import json
         print('----------------------------------------------------')
-        tofino_dict = self.template.get_dict()
-        print(tofino_dict)
+        output_dict = self.template.get_dict()
+        print(output_dict)
         with open(p4outputname, 'w+') as fd:
-            fd.writelines(json.dumps(tofino_dict))
+            fd.writelines(json.dumps(output_dict))
+    
