@@ -643,10 +643,10 @@ class GenericOutputProcessor(object):
             if alu1.get_type() == "STATELESS":
                 for alu2 in self.alus:
                     if self.alu_compnames[alu1.id] == self.alu_compnames[alu2.id]: # if they're in the same stateless component.
-                        print('alu1 id: ', alu1.id,
-                            ' ; alu1 type: ', alu1.get_type())
-                        print('alu2 id: ', alu2.id,
-                            ' ; alu2 type: ', alu2.get_type())
+                        # print('alu1 id: ', alu1.id,
+                        #     ' ; alu1 type: ', alu1.get_type())
+                        # print('alu2 id: ', alu2.id,
+                        #     ' ; alu2 type: ', alu2.get_type())
                         if alu2.get_type() == "STATELESS":
                             if alu2 != alu1 and alu1.output in alu2.inputs:  # RAW
                                 print(' *** found stateless dependency between ALU ',
@@ -685,8 +685,10 @@ class GenericOutputProcessor(object):
                             for alu1 in self.alus_in_a_component(comp1):
                                 print(' *** found stateful dependencies between ',
                                       comp.name, ' and ', comp1.name)
-                                self.dependencies[alu].append(alu1)
-                                self.rev_dependencies[alu1].append(alu)
+                                # self.dependencies[alu].append(alu1)
+                                # self.rev_dependencies[alu1].append(alu)
+                                self.dependencies[alu1].append(alu)
+                                self.rev_dependencies[alu].append(alu1)
         print(' *** Done find_stateful_dependencies ***')
 
     # Lower dependencies from/to a stateless weakly connected component.
@@ -715,8 +717,10 @@ class GenericOutputProcessor(object):
                         for alu1 in self.alus_in_a_component(comp1):
                             print(' *** found stateless dependency between ALU ',
                                   alu1.id, ' and ALU ', alu.id)
-                            self.dependencies[alu].append(alu1)
-                            self.rev_dependencies[alu1].append(alu)
+                            # self.dependencies[alu].append(alu1)
+                            self.dependencies[alu1].append(alu)
+                            # self.rev_dependencies[alu1].append(alu)
+                            self.rev_dependencies[alu].append(alu1)
                     # Find all stateful components that follows from the
                     # current weakly connected component.
                     for comp1 in self.comp_graph.successors(comp):
@@ -732,8 +736,10 @@ class GenericOutputProcessor(object):
                         for alu1 in self.alus_in_a_component(comp1):
                             print(' *** found dependency between stateless ALU ',
                                   alu.id, ' and stateful ALU ', alu1.id)
-                            self.dependencies[alu1].append(alu)
-                            self.rev_dependencies[alu].append(alu1)
+                            # self.dependencies[alu1].append(alu)
+                            # self.rev_dependencies[alu].append(alu1)
+                            self.dependencies[alu].append(alu1)
+                            self.rev_dependencies[alu1].append(alu)
             print(' *** Done finding stateless+stateful dependencies ***')
 
     # to be called after all ALUs are added.
@@ -756,9 +762,15 @@ class GenericOutputProcessor(object):
         alu_adjacency_list = [[] for i in range(num_alus)]
         for alu in self.alus:
             print('+---> dependencies of ALU ',
-                  alu.id, ': ', self.dependencies[alu])
+                  alu.id, ': ')
+            tmp_str = ""
+            for mem in self.dependencies[alu]:
+                tmp_str += str(mem.id) + ","
+            print(tmp_str)
+                #   self.dependencies[alu])
             for nbor in self.dependencies[alu]:
-                alu_adjacency_list[nbor.id].append(alu)
+                # alu_adjacency_list[nbor.id].append(alu)
+                alu_adjacency_list[alu.id].append(nbor)
         return ILP_Gurobi.ILP_TableInfo(table_name, num_alus, self.alus, alu_adjacency_list)
 
     def to_ILP_ActionInfo(self, table_name, action_name):
@@ -769,7 +781,8 @@ class GenericOutputProcessor(object):
             print('+---> dependencies of ALU ',
                   alu.id, ': ', self.dependencies[alu])
             for nbor in self.dependencies[alu]:
-                alu_adjacency_list[nbor.id].append(alu)
+                # alu_adjacency_list[nbor.id].append(alu)
+                alu_adjacency_list[alu].append(nbor.id)
         return ILP_Gurobi.ILP_ActionInfo(table_name, action_name, num_alus, self.alus, alu_adjacency_list)
 
     # return part of ILP solver configuration,
