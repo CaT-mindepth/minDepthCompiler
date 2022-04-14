@@ -73,6 +73,7 @@ if __name__ == "__main__":
   arg_parser.add_argument("input", help="input file (preprocessed Domino program)")
   arg_parser.add_argument("sketch", help="Sketch files folder")
   arg_parser.add_argument('output', help='P4 output location')
+  arg_parser.add_argument("--predPack", help="enable_predecessor_packing", action="store_true")
   arg_parser.add_argument("--stages", help="number of pipeline stages", type=int)
   arg_parser.add_argument("--ALUs", help="number of ALUs per stage", type=int)
 
@@ -83,6 +84,7 @@ if __name__ == "__main__":
   p4outputname = args.output
   max_stages = args.stages
   max_alus = args.ALUs
+  enableMerging = args.predPack
 
   start = time.time()
 
@@ -92,12 +94,12 @@ if __name__ == "__main__":
 
   dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types)
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
-                                    dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes,
-                                     outputfilename, p4outputname, 
+                                    dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
+                                     outputfilename, p4outputname, enableMerging, \
                                      is_tofino = False, stateless_path = domino_stateless_grammar, 
                                      stateful_path="if_else_raw")#stateful_path = "if_else_raw")
   
-  
+
   # ILP
   #self.synth_output_processor.schedule()
 	# TODO here

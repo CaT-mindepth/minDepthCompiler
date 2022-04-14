@@ -313,8 +313,8 @@ class DependencyGraph:
 			write_flank = read_write["write"]
 			read_c = codelets[read_flank]
 			write_c = codelets[write_flank]
-			self.read_write_edges.add((read_c, write_c))
-			self.read_write_edges.add((write_c, read_c))
+			# self.read_write_edges.add((read_c, write_c))
+			self.read_write_edges.add((write_c, read_c)) # This is the extra edge from write flank to read flank, not to be taken as a RAW dependency.
 
 
 		self.draw_graph(self.dep_graph, self.inputfilename + "_dep")
@@ -337,7 +337,7 @@ class DependencyGraph:
 			scc_edges = []
 			for v in scc:
 				for e in self.dep_graph.edges([v]):
-					if (e[0] in scc) and (e[1] in scc) and (e not in self.read_write_edges): # both nodes in scc, not a rw flank edge
+					if (e[0] in scc) and (e[1] in scc) and (e not in self.read_write_edges): # both nodes in scc, not a w flank -> r flank edge
 						scc_edges.append(e)
 
 			g.add_edges_from(scc_edges)

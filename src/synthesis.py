@@ -412,7 +412,7 @@ class StatefulComponent(object):
 		self.bci_outputs = []
 		self.is_duplicated = False
 
-	def mark_as_duplicate():
+	def mark_as_duplicate(self):
 		self.is_duplicated = True 
 
 	def add_bci_inputs(self, ins):
@@ -503,6 +503,9 @@ class StatefulComponent(object):
 			self.codelet.add_stmts_before(comp.comp_stmts)
 		else:
 			self.codelet.add_stmts(comp.comp_stmts)
+
+		# update comp_stmts
+		self.comp_stmts = self.codelet.get_stmt_list()
 
 		if comp.isStateful:
 			if len(self.state_vars) > 1:
@@ -779,8 +782,8 @@ class StatefulComponent(object):
 
 class Synthesizer:
 	def __init__(self, state_vars,
-		var_types, dep_graph, stateful_nodes,
-		filename, p4_output_name, stats: test_stats.Statistics = None,
+		var_types, dep_graph, read_write_flanks, stateful_nodes,
+		filename, p4_output_name, enableMerging, stats: test_stats.Statistics = None,
 		is_tofino=True, stateless_path=None, stateful_path=None):
 		# handle domino grammar generation.
 		self.is_tofino = is_tofino
@@ -793,6 +796,9 @@ class Synthesizer:
 		self.templates_path = "templates"
 		self.output_dir = filename
 		self.stats = stats
+
+		self.enableMerging = enableMerging
+
 		try:
 			os.mkdir(self.output_dir)
 		except OSError:
@@ -801,11 +807,14 @@ class Synthesizer:
 			print("Created output directory {}".format(self.output_dir))
 
 		self.dep_graph = dep_graph  # scc_graph in DependencyGraph
+		self.read_write_flanks = read_write_flanks
 		self.stateful_nodes = stateful_nodes
 		self.components = []
 
 		print("Synthesizer")
 		print("output dir", self.output_dir)
+
+		self.get_rw_flanks()
 
 		self.process_graph()
 
@@ -842,6 +851,17 @@ class Synthesizer:
 				print("----------------")
 			exit(1)"""
 			
+
+	def get_rw_flanks(self):
+		rw_flanks = self.read_write_flanks # dictionary
+		self.rw_flank_vars = set()
+		for state_var, rw_stmts in rw_flanks.items():
+			r_stmt = rw_stmts["read"]
+			w_stmt = rw_stmts["write"]
+			self.rw_flank_vars.add(r_stmt.state_pkt_field_init)
+			self.rw_flank_vars.add(w_stmt.state_pkt_field_final)
+		print("Stored read, write flank variables")
+		print(self.rw_flank_vars)
 
 	def get_var_type(self, v):
 		if v in self.var_types:
@@ -1015,22 +1035,25 @@ class Synthesizer:
 			print(' | state_pkt_fields of component a: ', a.state_pkt_fields)
 		if b.isStateful:
 			print(' | state_pkt_fields of component b: ', b.state_pkt_fields)
+
 		if a.isStateful:
 			new_comp = copy.deepcopy(a)
 			new_comp.merge_component(b)
 		else:  # b must be a stateful comp
 			new_comp = copy.deepcopy(b)
 			new_comp.merge_component(a, True)
-
 		# create new merged component, add edges
 		self.comp_graph.add_node(new_comp)
 		self.comp_graph.add_edges_from([(x, new_comp)
 		                               for x in self.comp_graph.predecessors(a)])
 		self.comp_graph.add_edges_from([(new_comp, y)
 		                               for y in self.comp_graph.successors(b)])
+
 		# remove two old components
+		print("removing two old components")
 		self.comp_graph.remove_node(a)
 		self.comp_graph.remove_node(b)
+
 		new_comp.update_outputs(self.comp_graph.neighbors(new_comp))
 		print('		* new component : ', new_comp)
 		print('		* new component inputs : ', new_comp.inputs)
@@ -1043,11 +1066,20 @@ class Synthesizer:
 		top.reverse()
 		return top
 
+	def all_outputs_temp(self, comp):
+		for o in comp.outputs:
+			if (not is_tmp_var(o)) and (o not in self.rw_flank_vars):
+				return False
+		return True
+
 	def need_duplicate(self, node):
 		if not (node.isStateful) and node.contains_ternary():
 			return False
-		if node.isStateful and len(list(self.comp_graph.successors(node))) == 0:
+		elif not (node.isStateful) and self.all_outputs_temp(node):
+			print("Temp stateless codelet, NOT DUPLICATING")
 			return False
+		# if node.isStateful and len(list(self.comp_graph.successors(node))) == 0:
+		# 	return False # stateful ALU can't output an arbitrary value, only original / final value of state variable
 		else:
 			return True
 
@@ -1072,22 +1104,24 @@ class Synthesizer:
 							# merging successful.
 							predpreds = list(self.comp_graph.predecessors(pred))
 							nodepreds = list(self.comp_graph.predecessors(node))
-							nd = self.need_duplicate(node)
+							# nd = self.need_duplicate(node)
 							pd = self.need_duplicate(pred)
 
 							self.merge_processed.add(pred)
 							self.merge_processed.add(node)
 							merged_component = self.perform_merge(pred, node)
 
-							if nd:
-								print("duplicating a component.... ")
-								node.mark_as_duplicate()
-								self.comp_graph.add_node(node)
-								for np in nodepreds:
-									self.comp_graph.add_edge(np, node)
+							# if nd: # We never duplicate the stateful node, only the stateless predecessor
+							# 	print("duplicating a component.... ")
+							# 	node.mark_as_duplicate()
+							# 	print(node)
+							# 	self.comp_graph.add_node(node)
+							# 	for np in nodepreds:
+							# 		self.comp_graph.add_edge(np, node)
 							if pd:
-								print("duplicating a component...")
+								print("duplicating predecessor component...")
 								node.mark_as_duplicate()
+								print(pred)
 								self.comp_graph.add_node(pred)
 								for pp in predpreds:
 									self.comp_graph.add_edge(pp, node)
@@ -1167,13 +1201,32 @@ class Synthesizer:
 			print('processing PO codelet: ', str(codelet))
 			bci_nodes, bci_inputs = self.BCI(codelet)
 			bci_nodes = list(set(bci_nodes))
+			# sort bci_nodes accd to RAW dependencies
+			print("sorting bci nodes accd to RAW dependencies")
+			g = nx.DiGraph()
+			g.add_nodes_from(bci_nodes)
+			bci_edges = []
+			for e in self.dep_graph.edges:
+				if e[0] in bci_nodes and e[1] in bci_nodes:
+					bci_edges.append(e)
+					print("adding edge from [{}] to [{}]".format(e[0], e[1]))
+			
+			g.add_edges_from(bci_edges)
+			bci_nodes_sorted = []
+			print("bci nodes sorted")
+			for node in nx.topological_sort(g):
+				node.print()
+				bci_nodes_sorted.append(node)
+
+			# print("bci_nodes_sorted", bci_nodes_sorted)
+
 			bci_inputs = list(set(bci_inputs))  # dedup.
 			if self.stateless_path != None:
 				bci_comp = Component(
-				    bci_nodes, i, grammar_name=self.stateless_path, is_tofino=self.is_tofino)
+				    bci_nodes_sorted, i, grammar_name=self.stateless_path, is_tofino=self.is_tofino)
 			else:
-				bci_comp = Component(bci_nodes, i, is_tofino=self.is_tofino)
-			for node in bci_nodes:
+				bci_comp = Component(bci_nodes_sorted, i, is_tofino=self.is_tofino)
+			for node in bci_nodes_sorted:
 				codelet_component[str(node)] = bci_comp
 			component_inputs[bci_comp] = bci_inputs
 			self.components.append(bci_comp)
@@ -1245,7 +1298,8 @@ class Synthesizer:
 		self.comp_graph = nx.DiGraph()
 		self.compute_scc_graph()
 		self.comp_graph = self.scc_graph
-		if False:  # True: #False: # True: # self.is_tofino:
+		# if False:  # True: #False: # True: # self.is_tofino:
+		if self.enableMerging:
 			print("------------------------------------------------- Merging components... ------------------------------------")
 			if self.stats != None:
 				self.stats.update_num_components(len(list(self.comp_graph.nodes)))
@@ -1267,7 +1321,7 @@ class Synthesizer:
 				self.stats.num_successful_merges = 0
 				self.stats.update_num_postmerge_components(
 				    len(list(self.comp_graph.nodes)))
-			print('Not Tofino Grammar, skipping merge components algorithm...')
+			print('Skipping merge components algorithm...')
 		self.comp_index = {}  # component -> index
 		print("comp index", self.comp_index)
 		# check for redundant outputs
