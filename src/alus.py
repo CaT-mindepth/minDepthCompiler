@@ -747,6 +747,8 @@ class GenericOutputProcessor(object):
         self.find_stateless_dependencies_intercomp()
         print("postprocessing done!")
 
+        return self.dependencies
+
     # returns a table name object
     def to_ILP_TableInfo(self, table_name):
         import ILP_Gurobi

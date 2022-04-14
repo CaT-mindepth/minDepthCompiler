@@ -72,7 +72,7 @@ if __name__ == "__main__":
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument("input", help="input file (preprocessed Domino program)")
   arg_parser.add_argument("sketch", help="Sketch files folder")
-  arg_parser.add_argument('output', help='P4 output location')
+  arg_parser.add_argument('output', help='Output location')
   arg_parser.add_argument("--predPack", help="enable_predecessor_packing", action="store_true")
   arg_parser.add_argument("--stages", help="number of pipeline stages", type=int)
   arg_parser.add_argument("--ALUs", help="number of ALUs per stage", type=int)
