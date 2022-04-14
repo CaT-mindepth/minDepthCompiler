@@ -43,13 +43,17 @@ class DominoCodegen(GenericCodegen):
 
     def stateless_alu_descr(self, alu):
         assert alu.get_type() == "STATELESS"
+        # print("---------------------len(alu.inputs) =", len(alu.inputs))
+        # for v in alu.inputs:
+        #     print("v =", v)
         return {
             'id': alu.id,
             'opcode': int(alu.opcode), # jinja template tests equality using int comparisons
             'operand0': alu.inputs[0],
             'operand1': alu.inputs[1],
+            'operand2': alu.inputs[2],
             'result': alu.output,
-            'immediate_operand': alu.inputs[2]
+            'immediate_operand': alu.inputs[3]
         }
 
     @overrides
