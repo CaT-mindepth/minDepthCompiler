@@ -63,6 +63,7 @@ domino_stateful_grammars = {
   "nested_ifs" : "grammars/stateful_domino/nested_ifs.sk",
   "pair" : "grammars/stateful_domino/pair.sk", 
   "pred_raw" : "grammars/stateful_domino/pred_raw.sk", 
+  "raw": "grammars/stateful_domino/raw.sk",
   "sub" : "grammars/stateful_domino/sub.sk"
 }
 
@@ -97,7 +98,7 @@ if __name__ == "__main__":
                                     dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
                                      outputfilename, p4outputname, enableMerging, \
                                      is_tofino = False, stateless_path = domino_stateless_grammar, 
-                                     stateful_path="if_else_raw")#stateful_path = "if_else_raw")
+                                     stateful_path="pred_raw")#stateful_path = "if_else_raw")
   
 
   # ILP

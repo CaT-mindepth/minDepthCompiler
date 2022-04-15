@@ -1,5 +1,6 @@
 
 domino_stateful_grammars = { 
+  "raw": "grammars/stateful_domino/raw.sk",
   "if_else_raw" : "grammars/stateful_domino/if_else_raw.sk",
   "nested_ifs" : "grammars/stateful_domino/nested_ifs.sk",
   "pair" : "grammars/stateful_domino/pair.sk", 
@@ -10,6 +11,7 @@ domino_stateful_grammars = {
 domino_stateless_grammar = "grammars/stateless_domino/stateless.sk"
 
 num_statefuls_domino = {
+    'raw': 1,
     'if_else_raw' : 1,
     'nested_ifs' : 1,
     'pair' : 2,
@@ -18,6 +20,7 @@ num_statefuls_domino = {
 }
 
 num_stateless_domino = {
+    'raw': 1,
     'if_else_raw' : 2,
     'nested_ifs' : 2,
     'pair' : 2,
@@ -26,6 +29,7 @@ num_stateless_domino = {
 }
 
 num_inputs = {
+    'raw': 2,
     'if_else_raw' : 3,
     'nested_ifs' : 3,
     'pair' : 4,
@@ -35,6 +39,7 @@ num_inputs = {
 }
 
 num_stateful_inputs = {
+    'raw': 1,
     'if_else_raw' : 1,
     'nested_ifs' : 1,
     'pair' : 2,
@@ -44,6 +49,7 @@ num_stateful_inputs = {
 }
 
 num_outputs = {
+    'raw': 1,
     'if_else_raw' : 1,
     'nested_ifs' : 1,
     'pair' : 2,
