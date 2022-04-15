@@ -20,19 +20,48 @@ class DominoOutputProcessor(GenericOutputProcessor):
 
     @overrides
     def process_stateless_output(self, input_file, output):
-        print(' --------- processing stateless output --------- ')
+        print(' --------- processing stateless output {} --------- '.format(output))
 
         lineno = 0
 
         def parse_sketch(fd, lineno):
             done = False
+            # temp Sketch outputs
+            comp_output = ''
+            final_output = ''
+            alus_created = []
             while not done:
                 l = fd.readline().strip()
                 lineno += 1
                 if l.startswith('alu'):
                     alu = DominoALU(self.alu_id, l, lineno)
+
                     self.add_new_alu(alu, input_file)
+                    alus_created.append(alu)
+                elif l.startswith('comp'):
+                    toks = l.strip().split()
+                    comp_output = toks[-1]
+                    comp_output = comp_output[:comp_output.find(')')]
+                elif l.startswith('assert'):
+                    toks = l.strip().split()
+                    first_var = toks[1]
+                    first_var = first_var.replace('(', '')
+                    second_var = toks[3]
+                    second_var = second_var.replace(')', '')
+                    second_var = second_var.replace(';', '')
+                    if second_var == comp_output:
+                        final_output = first_var
+                    else:
+                        final_output = second_var
                 elif l.startswith('}'):
+                    assert(comp_output != '')
+                    assert(final_output != '')
+                    replaced = False
+                    for alu in alus_created:
+                        if alu.output == final_output:
+                            alu.set_output(output)
+                            replaced = True
+                    assert(replaced)
                     return lineno
             return lineno
 
