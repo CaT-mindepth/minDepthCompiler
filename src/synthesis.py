@@ -1104,20 +1104,20 @@ class Synthesizer:
 							# merging successful.
 							predpreds = list(self.comp_graph.predecessors(pred))
 							nodepreds = list(self.comp_graph.predecessors(node))
-							# nd = self.need_duplicate(node)
+							nd = self.need_duplicate(node)
 							pd = self.need_duplicate(pred)
 
 							self.merge_processed.add(pred)
 							self.merge_processed.add(node)
 							merged_component = self.perform_merge(pred, node)
 
-							# if nd: # We never duplicate the stateful node, only the stateless predecessor
-							# 	print("duplicating a component.... ")
-							# 	node.mark_as_duplicate()
-							# 	print(node)
-							# 	self.comp_graph.add_node(node)
-							# 	for np in nodepreds:
-							# 		self.comp_graph.add_edge(np, node)
+							if nd: # We never duplicate the stateful node, only the stateless predecessor -- but nd could be stateless
+								print("duplicating a component.... ")
+								node.mark_as_duplicate()
+								print(node)
+								self.comp_graph.add_node(node)
+								for np in nodepreds:
+									self.comp_graph.add_edge(np, node)
 							if pd:
 								print("duplicating predecessor component...")
 								node.mark_as_duplicate()
@@ -1126,6 +1126,10 @@ class Synthesizer:
 								for pp in predpreds:
 									self.comp_graph.add_edge(pp, node)
 
+							if nd and pd:
+								print("Duplicating both components (shouldn't happen)")
+								assert(False)
+								
 							if self.stats != None:
 								self.stats.incr_num_successful_merges()
 							self.recursive_merge()
