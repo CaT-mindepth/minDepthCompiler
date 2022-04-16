@@ -93,6 +93,19 @@ if __name__ == "__main__":
     codeGen = codeGen(filename, outputfilename, f)
 
   dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types)
+
+  for sn in dep_graph_obj.stateful_nodes:
+    print('-----------------------------------')
+    m  = sn.get_stateless_output_partitions()
+    for k in m:
+      print('output ', k, ' type ', m[k][0])
+      idx = 0
+      for x in m[k][1]:
+        print('  ', idx, ' ', str(x))
+        idx += 1
+
+  exit(0)
+
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
                                     dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
                                      outputfilename, p4outputname, enableMerging, \

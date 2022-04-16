@@ -103,6 +103,12 @@ class Statement:
 			state_var = var_w
 
 		return state_var
+	
+	def __eq__(self, other):
+		return self.lhs == other.lhs and self.rhs == other.rhs and self.line_no == other.line_no 
+
+	def __hash__(self):
+		return str(self).__hash__()
 
 class Codelet:
 	def __init__(self, stmts=[]):
@@ -111,6 +117,84 @@ class Codelet:
 
 	def get_stmt_list(self):
 		return self.stmt_list
+
+	def get_stmt_deps(self, st1):
+		assert st1 in self.stmt_list
+		ps = []
+		print(' statement: ', st1)
+		print(' rhs_vars: ', st1.rhs_vars)
+		print(' state vars: ', self.state_vars)
+		st1_rhs_deps = st1.rhs_vars 
+		deps_ret = [ st1 ]
+		# add all statements before st1 to list
+		for st2 in self.stmt_list:
+			if st2 != st1:
+				ps.append(st2)
+			else:
+				break
+		# for every statement in list, test if it is 
+		# st1's dependency. If it is, add it and return.
+
+		 # do not return the read/write flanks themselves
+
+		if st1.read_flank:
+			return "read", []
+
+		if st1.write_flank:
+			return "write", []
+
+		ps.reverse()
+
+		for st2 in ps:
+			print('   -- looking at ', st2)
+			if st2.read_flank:
+				print('   ... is read flank')
+				return "read", deps_ret
+			if st2.write_flank:
+				print(' ... is write flank')
+				return "write", deps_ret.state_vars
+			if st2.lhs in st1_rhs_deps:
+				deps_ret.append(st2)
+		
+		print(" error: no read/write flank found for statement ", st1, ' BCI: ', deps_ret)
+		assert(False)
+	
+	def get_last_stmt_of_output(self, output):
+		stmt = None
+		for s in self.stmt_list:
+			if s.lhs == output:
+				stmt = s 
+		return stmt
+
+	def is_output_write_flank(self, output):
+		for s in self.stmt_list:
+			if s.write_flank:
+				if output in s.rhs_vars:
+					return True 
+		return False
+
+
+	def get_stateless_output_partitions(self):
+		print('codelet statements in order: ')
+		idx = 0 
+		for s in self.stmt_list:
+			print(idx, ' ', str(s))
+			idx += 1
+
+		outputs = self.get_outputs()
+		m = {}
+		for o in outputs:
+			if not (o in self.state_vars):
+				print(o, ' not in state vars')
+				# we need additional logic to decide whether
+				# an output is a write flank, since write flanks 
+				# appear as RHSes.
+				if  self.is_output_write_flank(o):
+					m[o] = 'write', []
+				else:
+					o_last_stmt = self.get_last_stmt_of_output(o)
+					m[o] = self.get_stmt_deps(o_last_stmt)
+		return m
 
 	def add_stmts(self, stmts):
 		self.stmt_list.extend(stmts)
