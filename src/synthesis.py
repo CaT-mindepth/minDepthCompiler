@@ -35,7 +35,7 @@ def is_same_var(v1, v2):
 		v1_suffix = v1[i:]
 	if i < len(v2):
 		v2_suffix = v2[i:]
-
+	print('is_same_var: ', v1, ' ? ', v2, " => ", v1_suffix.isnumeric() and v2_suffix.isnumeric())
 	# v1 and v2 represent the same variable if the suffixes are numbers
 	return v1_suffix.isnumeric() and v2_suffix.isnumeric()
 
@@ -117,7 +117,7 @@ class Component:  # group of codelets
 		max_index = max(ssa_indices)
 		var_index = int(var.replace(var_name, ''))
 
-		return var_index > max_index
+		return var_index >= max_index
 
 	def update_outputs(self, adj_comps):
 		'''
@@ -350,6 +350,12 @@ class Component:  # group of codelets
 			if is_branch_var(output):
 				return True
 		return False
+	
+	def contains_only_ternary(self):
+		for output in self.outputs:
+			if not is_branch_var(output):
+				return False 
+		return True 
 
 	def write_sketch_file(self, output_path, comp_name, var_types, stats: test_stats.Statistics = None):
 		if self.contains_ternary() and self.is_tofino:
@@ -429,7 +435,8 @@ class StatefulComponent(object):
 
 	def get_inputs_outputs(self):
 		self.inputs = self.codelet.get_inputs()
-		self.outputs = self.codelet.get_outputs()
+		self.outputs = self.codelet.get_defines()
+		
 
 	def temp_var(self, var):
 		if var in self.state_pkt_fields:
@@ -893,7 +900,7 @@ class Synthesizer:
 		return False
 
 	# calls sketch to determine if component A+B is synthesizeable.
-	def try_merge(self, a, b, k=3):
+	def try_merge(self, a, b):
 		print('try_merge: trying to merge components: ')
 		print(' | a: ', a)
 		print(' | b: ', b)
@@ -907,13 +914,14 @@ class Synthesizer:
 		else:
 			new_comp = copy.deepcopy(b)
 			new_comp.merge_component(a, True)
+		
+		new_comp.update_outputs(self.comp_graph.neighbors(b))
 		print('resultant component: ')
 		print(new_comp)
 		print('new component inputs: ', new_comp.inputs)
 		print('new component outputs: ', new_comp.outputs)
 		print('new component state_pkt_fields: ', new_comp.state_pkt_fields)
 
-		new_comp.update_outputs(self.comp_graph.neighbors(b))
 		print('-------------- Merging... -------------')
 		# try:
 		result = new_comp.write_sketch_file(self.output_dir, new_comp.name, self.var_types,
@@ -990,6 +998,7 @@ class Synthesizer:
 			if len(b.state_vars) != 1:
 				print('		~ merge_candidate: component b state_vars length != 1')
 
+
 		# self.exclude_read_write_flanks(a, filter_temporaries=False)
 		merged_output_vars = set(a.outputs)
 		# self.exclude_read_write_flanks(b, filter_temporaries=False)
@@ -1000,7 +1009,14 @@ class Synthesizer:
 		for b_succ in self.comp_graph.successors(b):
 			b_succ_inputs.update(b_succ.inputs)
 
-		merged_output_vars = list(merged_output_vars.intersection(b_succ_inputs))
+
+		output_vars = set()
+		for x in merged_output_vars:
+			if x in b_succ_inputs or (not is_tmp_var(x) and not (x in self.rw_flank_vars)):
+				output_vars.add(x)
+		
+		merged_output_vars = list(output_vars)
+
 		print('		| merge_candidate: a_output_vars : ', a.outputs)
 		print('		| merge_candidate: b_output_vars : ', b.outputs)
 		print('		| merge_candidate: merged output_vars : ', merged_output_vars)
@@ -1084,15 +1100,19 @@ class Synthesizer:
 		return True
 
 	def need_duplicate(self, node):
-		if not (node.isStateful) and node.contains_ternary():
+		print('checking whether node needs duplicate: ', str(node))
+		if not (node.isStateful) and node.contains_only_ternary():
+			print('  --- contains ternary, no need to duplicate')
 			return False
 		elif not (node.isStateful) and self.all_outputs_temp(node):
 			print("Temp stateless codelet, NOT DUPLICATING")
 			return False
 		if node.isStateful:
 		# and len(list(self.comp_graph.successors(node))) == 0:
+			print(' --- not duplicating stateful node')
 			return False # we don't need to duplicate stateful nodes
 		else:
+			print(' --- will duplicate node')
 			return True
 
 	def recursive_merge(self):
@@ -1316,6 +1336,16 @@ class Synthesizer:
 		self.comp_graph = nx.DiGraph()
 		self.compute_scc_graph()
 		self.comp_graph = self.scc_graph
+
+		# self.write_comp_graph()
+
+
+		for node in self.comp_graph:
+			print("node: ", str(node))
+			print('out-edges: ')
+			for out in self.comp_graph.successors(node):
+				print('out: ', str(out))
+		exit(1)
 		# if False:  # True: #False: # True: # self.is_tofino:
 		if self.enableMerging:
 			print("------------------------------------------------- Merging components... ------------------------------------")
