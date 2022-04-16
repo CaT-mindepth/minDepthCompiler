@@ -66,7 +66,10 @@ class DominoOutputProcessor(GenericOutputProcessor):
                         if alu.output == final_output:
                             alu.set_output(output)
                             replaced = True
-                    assert(replaced)
+                    if not replaced:
+                        assert(len(alus_created) == 0) # This must be because we did not create any ALUs
+                        # create a temporary ALU which is a wire (this is just to find dependencies, will remove it later)
+                        alu = DominoALU(self.alu_id, final_output, lineno, wire=True)
                     return lineno
             return lineno
 

@@ -243,16 +243,20 @@ class DominoIfElseRawSALU(GenericALU):
                 str(self.state_0) + ' = ' + str(self.pkt_0) + ' } '
             return s
 
-
 class DominoALU(GenericALU):
     # TODO: remove 'lineno' altogether.
-    def __init__(self, id, stmt, lineno):
+    def __init__(self, id, stmt, lineno, wire=False):
         super().__init__()
         self.alu_type = "STATELESS"
         self.id = id
         self.stmt = stmt
         self.lineno = lineno
-        self.process_stmt()
+        self.wire = wire
+        if not self.wire:
+            self.process_stmt()
+        else:
+            self.inputs = [stmt] # stmt is a variable
+            self.output = stmt
 
     def process_stmt(self):
         # parses a statement into a wire.
@@ -281,6 +285,7 @@ class DominoALU(GenericALU):
 
     def set_output(self, output):
         self.output = output
+        self.output_dst = output
 
     def print(self):
         print("{} = DominoALU(opcode={}, inputs={})".format(
