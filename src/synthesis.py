@@ -412,6 +412,9 @@ class StatefulComponent(object):
 		self.bci_outputs = []
 		self.is_duplicated = False
 
+	def get_stateful_output(self):
+		return self.codelet.get_stateful_output()
+
 	def mark_as_duplicate(self):
 		self.is_duplicated = True 
 
@@ -777,7 +780,7 @@ class StatefulComponent(object):
 			s.print()
 
 	def __str__(self):
-		return str(self.codelet)
+		return " ".join(s.get_stmt() for s in self.stateful_codelet.stmt_list)
 
 
 class Synthesizer:

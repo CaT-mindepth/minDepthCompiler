@@ -116,6 +116,7 @@ if __name__ == "__main__":
 
   dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types, stateful_grammar = stateful_alu)
 
+  """
   for sn in dep_graph_obj.stateful_nodes:
     print('-----------------------------------')
     m  = sn.get_stateless_output_partitions()
@@ -127,7 +128,7 @@ if __name__ == "__main__":
         idx += 1
       print('---')
   
-
+  """
   print("TODO: call synthesizer")
   exit(0)
 
