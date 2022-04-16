@@ -126,7 +126,9 @@ if __name__ == "__main__":
         print(idx, str(st))
         idx += 1
       print('---')
-      
+  
+
+  print("TODO: call synthesizer")
   exit(0)
 
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
