@@ -1297,6 +1297,8 @@ class Synthesizer:
 				print(comp)
 				print('-------')
 
+
+
 	def process_graph(self):
 		self.state_vars = list(set(self.state_vars))
 		self.comp_graph = nx.DiGraph()
@@ -1403,6 +1405,7 @@ class Synthesizer:
 						output_idx += 1
 		self.write_comp_graph()
 		# nx.draw(self.comp_graph)
+
 
 	def write_comp_graph(self):
 		f_deps = open(os.path.join(self.output_dir, "deps.txt"), 'w+')

@@ -114,50 +114,56 @@ class Codelet:
 	def __init__(self, stmts=[]):
 		self.stmt_list = stmts
 		self.state_vars = []
+		self.stateful_output = None # Initialized to stateful ALU output after splitting transformation (see split_SCC_graph).
 
 	def get_stmt_list(self):
 		return self.stmt_list
 
+
+	"""
+		returns 3-tuple of <stmts in BCI (in reverse order)>, <list of read flanks>, <list of write flanks>
+		The union of the two latest variables form the PI of the BCI.
+	"""
 	def get_stmt_deps(self, st1):
 		assert st1 in self.stmt_list
 		ps = []
 		print(' statement: ', st1)
 		print(' rhs_vars: ', st1.rhs_vars)
 		print(' state vars: ', self.state_vars)
-		st1_rhs_deps = st1.rhs_vars 
-		deps_ret = [ st1 ]
-		# add all statements before st1 to list
-		for st2 in self.stmt_list:
-			if st2 != st1:
-				ps.append(st2)
-			else:
-				break
-		# for every statement in list, test if it is 
-		# st1's dependency. If it is, add it and return.
 
 		 # do not return the read/write flanks themselves
-
 		if st1.read_flank:
-			return "read", []
+			return [], [st1.lhs], []
 
 		if st1.write_flank:
-			return "write", []
+			return [], [], [st1.rhs_vars[0]]
 
+		# for every statement in list, test if it is 
+		# st1's dependency. If it is, add it and return.
+		st1_rhs_deps = set(st1.rhs_vars)
+		deps_ret = [ st1 ]
+		# add all statements until (not including) st1 to list
+		for st2 in self.stmt_list:
+			if st2 == st1:
+				break
+			ps.append(st2)
 		ps.reverse()
 
+		read_flanks = []
+		write_flanks = []
+
 		for st2 in ps:
-			print('   -- looking at ', st2)
-			if st2.read_flank:
-				print('   ... is read flank')
-				return "read", deps_ret
-			if st2.write_flank:
-				print(' ... is write flank')
-				return "write", deps_ret.state_vars
 			if st2.lhs in st1_rhs_deps:
-				deps_ret.append(st2)
-		
-		print(" error: no read/write flank found for statement ", st1, ' BCI: ', deps_ret)
-		assert(False)
+				if st2.read_flank:
+					read_flanks.append(st2.lhs)
+				elif st2.write_flank:
+					write_flanks.append(st2.rhs_vars[0])
+				else:
+					deps_ret.append(st2)
+					for var in st2.rhs_vars:
+						if not (var in self.state_vars):
+							st1_rhs_deps.add(var)
+		return deps_ret, read_flanks, write_flanks
 	
 	def get_last_stmt_of_output(self, output):
 		stmt = None
@@ -166,6 +172,7 @@ class Codelet:
 				stmt = s 
 		return stmt
 
+	# decide if output var is write_flank. Also used in split_SCC_graph.
 	def is_output_write_flank(self, output):
 		for s in self.stmt_list:
 			if s.write_flank:
@@ -173,7 +180,15 @@ class Codelet:
 					return True 
 		return False
 
+	# decide if output var is read_flank. Also used in split_SCC_graph.
+	def is_output_read_flank(self, output):
+		for s in self.stmt_list:
+			if s.read_flank:
+				if output == s.lhs:
+					return True
+		return False
 
+	# get BCIs for each output variable.
 	def get_stateless_output_partitions(self):
 		print('codelet statements in order: ')
 		idx = 0 
@@ -186,14 +201,8 @@ class Codelet:
 		for o in outputs:
 			if not (o in self.state_vars):
 				print(o, ' not in state vars')
-				# we need additional logic to decide whether
-				# an output is a write flank, since write flanks 
-				# appear as RHSes.
-				if  self.is_output_write_flank(o):
-					m[o] = 'write', []
-				else:
-					o_last_stmt = self.get_last_stmt_of_output(o)
-					m[o] = self.get_stmt_deps(o_last_stmt)
+				o_last_stmt = self.get_last_stmt_of_output(o)
+				m[o] = self.get_stmt_deps(o_last_stmt)
 		return m
 
 	def add_stmts(self, stmts):
@@ -244,7 +253,7 @@ class Codelet:
 		uses = [rhs for stmt in self.stmt_list for rhs in stmt.rhs_vars]
 		# an input is a use which has no define in the codelet
 		inputs = []
-		if self.stateful: # state_var is always an input for a stateful codelet
+		if self.is_stateful: # state_var is always an input for a stateful codelet
 			# inputs.append(self.state_var)
 			inputs = list(set(self.state_vars)) # deduplicate
 		
@@ -254,7 +263,14 @@ class Codelet:
 
 	def get_outputs(self):
 		# all defines are outputs (may or may not be used by subsequent codelets)
-		return list(set([stmt.lhs for stmt in self.stmt_list]))
+		if self.stateful_output == None:
+			return list(set([stmt.lhs for stmt in self.stmt_list]))
+		else:
+			# Post split_SCC_graph operation.
+			# return set of state vars + self.stateful_output
+			# we include all state vars because this is an assumption in 
+			# the resource graph.
+			return self.state_vars + [ self.stateful_output ]
 
 	def print(self):
 		for stmt in self.stmt_list:
@@ -271,7 +287,7 @@ class Codelet:
 		return str(self).__hash__()
 
 class DependencyGraph:
-	def __init__(self, filename, state_vars, var_types):
+	def __init__(self, filename, state_vars, var_types, stateful_grammar = "tofino"):
 		self.inputfilename = filename
 		self.state_variables = state_vars
 		self.var_types = var_types
@@ -287,10 +303,14 @@ class DependencyGraph:
 		self.use_define = {} # reverse map of define_use
 		self.depends = {} # key: stmt, value: list of stmts which depend on key
 
+		self.stateful_grammar = stateful_grammar
+
 		self.process_input()
 		self.find_dependencies()
 		self.build_dependency_graph()
 		self.build_SCC_graph()
+		print('----calling split_SCC_graph---')
+		self.split_SCC_graph()
 
 	def process_input(self):
 		f = open(self.inputfilename)
@@ -403,6 +423,125 @@ class DependencyGraph:
 
 		self.draw_graph(self.dep_graph, self.inputfilename + "_dep")
 
+
+
+	"""
+	Code for splitting stateless expressions in stateful nodes
+	when necessary (this might hold, for DominoIfElseRawALU for instance.)
+	"""
+
+	# The _actual_ outputs of node u. Only includes necessary outputs
+	# Does not include e.g. stateful variables in u.
+	def get_SCC_graph_outputs(self, u):
+		successor_inputs = set()
+		used_outputs = set()
+
+		for v in self.scc_graph.successors(u):
+			for i in v.get_inputs():
+				successor_inputs.add(i)
+		
+		for o in u.get_outputs():
+			if o in successor_inputs:
+				used_outputs.add(o)
+
+		return used_outputs
+
+	def split_SCC_graph(self):
+		import grammar_util, copy
+		initial_nodes = copy.deepcopy(self.scc_graph.nodes)
+		for v in initial_nodes:
+			if v.stateful:
+				# calculate number of outputs
+				v_outputs = self.get_SCC_graph_outputs(v)
+				num_outputs = len(v_outputs) # won't include state vars, but  
+				num_statevars = len(v.state_vars)
+				
+				# query for number of stateful ALUs
+				num_stateful_registers = grammar_util.num_statefuls[self.stateful_grammar]
+
+				# Case 1: Too many stateful variables. Can't synthesize in this case
+				if num_statevars > num_stateful_registers:
+					print('Error: cannot synthesize program, too many stateful variables in a Codelet.')
+					exit(1)
+				
+				# Case 2: stateful variables == num_stateful_registers.
+				if num_statevars == num_stateful_registers:
+					# We can map every stateful register.
+					# Step 1: Gather all the flanks.
+					flanks = set()
+					bcis = v.get_stateless_output_partitions()
+					for o in v_outputs:
+						# Note that even if o is a flank, it must be in either read_flanks or write_flanks.
+						_, read_flanks, write_flanks = bcis[o]
+						flanks.update(read_flanks)
+						flanks.update(write_flanks)
+
+					# Step 2: For each additional flank, create a parallel codelet
+					# that outputs exactly that flank.
+					flanks = list(flanks)
+					# Check if current node is sink. If that happens, skip the
+					# current node. Nothing to output.
+					if len(flanks) == 0:
+						continue 
+					# Otherwise we need to output all the flanks. Assign one parallel codelet
+					# per flank for a total of len(flanks) - 1 new parallel codelets we create.
+					flank_to_codelet = {}
+					for flank in flanks[1:]:
+						# create a copy of v.
+						vp = copy.deepcopy(v)
+						self.scc_graph.add_node(vp)
+						# add edges
+						for u in self.scc_graph.predecessors(v):
+							self.scc_graph.add_edge(u, vp)
+						# only add edges to those that require flank as inputs.
+						for w in self.scc_graph.successors(v):
+							if flank in w.get_inputs():
+								self.scc_graph.add_edge(vp, w)
+						vp.stateful_output = flank
+						flank_to_codelet[flank] = vp
+					# assign current codelet to flanks[0].
+					v.stateful_output = flanks[0]
+					flank_to_codelet[flanks[0]] = v
+					# once we assigned v to flanks[0], delete out-edges to nodes that don't require flanks[0].
+					# but before we do this, memorize the existing out-neighbors of v since we'll need them in step 3.
+					v_out_neighbors = list(self.scc_graph.successors(v))
+					for w in v_out_neighbors:
+						if not (flanks[0] in w.get_inputs()):
+							self.scc_graph.remove_edge(v, w)
+					# Step 3: iterate through each output with the map `bcis`, possibly create new
+					# successors depending on which flank its PI is.
+					# By virtue of construction of v_outputs, every element in it is a stateless
+					# lhs that is used in a successor of u. 
+					#  a) o is a flank. Do not create additional nodes.
+					#  b) o is not a flank. So we create an additional node.
+					for o in v_outputs:
+						bci, read_flanks, write_flanks = bcis[o]
+						# o is a flank iff bci == [].
+						if bci == []:
+							pass # taken care of
+						else:
+							# create new codelet from BCI.
+							bci_stmts = copy.deepcopy(bci)
+							bci_stmts.reverse()
+							co = Codelet(stmts = bci_stmts)
+							co_inputs = co.get_inputs()
+							# add co to graph as successor of PIs it depends on.
+							self.scc_graph.add_node(co)
+							# add in-edges to co using flank_to_codelet.
+							flanks = set(read_flanks + write_flanks)
+							for flank in flanks:
+								self.scc_graph.add_edge(flank_to_codelet[flank], co)
+							for input in co_inputs:
+								if not (input in flanks): 
+									for pred in self.scc_graph.predecessors(v):
+										if input in pred.get_outputs():
+											self.scc_graph.add_edge(pred, co)
+											break 
+							# add out-edges
+							for u in v_out_neighbors:
+								if o in u.get_inputs():
+									self.scc_graph.add_edge(co, u)				
+		self.draw_graph(self.scc_graph, self.inputfilename + "_splitted_dag")
 
 	def build_SCC_graph(self): # strongly connected components
 		i = 0

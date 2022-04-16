@@ -19,6 +19,16 @@ num_statefuls_domino = {
     'sub' : 1
 }
 
+num_statefuls = {
+    'raw': 1,
+    'if_else_raw' : 1,
+    'nested_ifs' : 1,
+    'pair' : 2,
+    'pred_raw' : 1,
+    'sub' : 1,
+    'tofino': 2,
+}
+
 num_stateless_domino = {
     'raw': 1,
     'if_else_raw' : 2,

@@ -114,18 +114,19 @@ if __name__ == "__main__":
   with open(filename, "r") as f:
     codeGen = codeGen(filename, outputfilename, f)
 
-  dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types)
+  dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types, stateful_grammar = stateful_alu)
 
   for sn in dep_graph_obj.stateful_nodes:
     print('-----------------------------------')
     m  = sn.get_stateless_output_partitions()
     for k in m:
-      print('output ', k, ' type ', m[k][0])
+      print('output ', k, '; read_flanks = ', m[k][1], ' ; write_flanks = ', m[k][2])
       idx = 0
-      for x in m[k][1]:
-        print('  ', idx, ' ', str(x))
+      for st in m[k][0]:
+        print(idx, str(st))
         idx += 1
-
+      print('---')
+      
   exit(0)
 
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
