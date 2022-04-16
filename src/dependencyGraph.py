@@ -280,10 +280,17 @@ class Codelet:
             # we include all state vars because this is an assumption in
             # the resource graph.
             return self.state_vars + [self.stateful_output]
+    
+    # used by write_{domino|tofino}_sketch_spec in synthesis.py for getting defines.
+    def get_defines(self):
+        return list(set([stmt.lhs for stmt in self.stmt_list]))
 
     def print(self):
         for stmt in self.stmt_list:
             stmt.print()
+    
+    def __str__(self):
+        return " ".join(list(map(str, self.stmt_list))) + " [stateful output =" + str(self.stateful_output) + "]"
 
 class DependencyGraph:
     def __init__(self, filename, state_vars, var_types, stateful_grammar="tofino"):
@@ -494,6 +501,8 @@ class DependencyGraph:
                 print('   - createing a node for flank ', flank)
                 vp = copy.deepcopy(v)
                 self.scc_graph.add_node(vp)
+                self.codelets.append(vp)
+                self.stateful_nodes.add(vp)
                 # add edges
                 for u in self.scc_graph.predecessors(v):
                     self.scc_graph.add_edge(u, vp)

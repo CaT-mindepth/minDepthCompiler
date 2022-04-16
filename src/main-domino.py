@@ -64,7 +64,7 @@ domino_stateful_grammars = {
   "pair" : "grammars/stateful_domino/pair.sk", 
   "pred_raw" : "grammars/stateful_domino/pred_raw.sk", 
   "raw": "grammars/stateful_domino/raw.sk",
-  "sub" : "grammars/stateful_domino/sub.sk"
+  "sub" : "grammars/stateful_domino/sub.sk",
 }
 
 domino_stateless_grammar = "grammars/stateless_domino/stateless.sk"
@@ -130,7 +130,6 @@ if __name__ == "__main__":
   
   """
   print("TODO: call synthesizer")
-  exit(0)
 
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
                                     dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,

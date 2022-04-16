@@ -147,6 +147,6 @@ int[2] salu(int state_0, int pkt_0, int pkt_1) {
   int alu_0 = state_0;
   int[2] result;
   result[0] = Mux2(state_0, 0);
-  result[1] Mux3(old_state_0, state_0, 0);
+  result[1] = Mux3(old_state_0, state_0, 0);
   return result;
 }

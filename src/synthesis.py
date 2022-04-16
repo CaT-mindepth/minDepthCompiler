@@ -592,7 +592,7 @@ class StatefulComponent(object):
 		spec_ret = "_out"
 		f.write("\tint[{}] {};\n".format(num_rets, spec_ret))
 		# declare defined variables
-		defines = self.codelet.get_outputs()
+		defines = self.codelet.get_defines()
 		for v in defines:
 			if v not in self.inputs:
 				f.write("\t{} {};\n".format(var_types[v], v))
@@ -613,13 +613,15 @@ class StatefulComponent(object):
 			f.write("\t{}[{}] = 0;\n".format(spec_ret, si))
 			si += 1
 
-		for o in self.outputs:
-			if not (o in asserted):
-				f.write("\t{}[{}] = {};\n".format(spec_ret, si, o))
-				si += 1
+		if self.codelet.stateful_output != None:
+			f.write("\t{}[{}] = {};\n".format(spec_ret, si, self.codelet.stateful_output))
+			si += 1
+		else:
+			f.write("\t{}[{}] = 0;\n".format(spec_ret, si))
+			si += 1
 
 		while si < num_rets:
-			f.write("\t{}[{}] = 0;\n".format(spec_ret, si, o))
+			f.write("\t{}[{}] = 0;\n".format(spec_ret, si))
 			si += 1
 
 		# return
@@ -649,14 +651,20 @@ class StatefulComponent(object):
 			f.write("\t{}[1] = {};\n".format(output_array, self.state_vars[1]))
 		else:
 			f.write("\t{}[1] = 0;\n".format(output_array))
+		
+		if self.codelet.stateful_output != None:
+			f.write("\t{}[2] = {};\n".format(output_array, self.codelet.stateful_output))
+		else:
+			f.write("\t{}[2] = 0;\n".format(output_array))
+		"""
 		found_output = False
 		for o in self.outputs:
 			if o != self.salu_inputs[0] and o != self.inputs[1]:
 				found_output = True
 				f.write("\t{}[2] = {};\n".format(output_array, o))
-
 		if not found_output:  # return state var
 			f.write("\t{}[2] = 0;\n".format(output_array))
+		"""
 
 		# return
 		f.write("\treturn {};\n".format(output_array))
@@ -780,7 +788,7 @@ class StatefulComponent(object):
 			s.print()
 
 	def __str__(self):
-		return " ".join(s.get_stmt() for s in self.stateful_codelet.stmt_list)
+		return " ".join(s.get_stmt() for s in self.codelet.stmt_list)
 
 
 class Synthesizer:
