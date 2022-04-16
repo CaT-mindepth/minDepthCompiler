@@ -147,9 +147,9 @@ class Codelet:
         return read_flank, deps
 
     """
-		returns 3-tuple of <stmts in BCI (in reverse order)>, <list of read flanks>, <list of write flanks>
-		The union of the two latest variables form the PI of the BCI.
-	"""
+        returns 3-tuple of <stmts in BCI (in reverse order)>, <list of read flanks>, <list of write flanks>
+        The union of the two latest variables form the PI of the BCI.
+    """
 
     def get_stmt_deps(self, st1):
         assert st1 in self.stmt_list
@@ -297,15 +297,18 @@ class Codelet:
 
     def get_outputs(self):
         # all defines are outputs (may or may not be used by subsequent codelets)
-        if self.stateful_output == None:
+        if self.is_stateful:
+            if self.stateful_output == None:
+                return list(set([stmt.lhs for stmt in self.stmt_list]))
+            else:
+                # Post split_SCC_graph operation.
+                # return set of state vars + self.stateful_output
+                # we include all state vars because this is an assumption in
+                # the resource graph.
+                return self.state_vars + [self.stateful_output]
+        else: # stateless
             return list(set([stmt.lhs for stmt in self.stmt_list]))
-        else:
-            # Post split_SCC_graph operation.
-            # return set of state vars + self.stateful_output
-            # we include all state vars because this is an assumption in
-            # the resource graph.
-            return self.state_vars + [self.stateful_output]
-    
+
     # used by write_{domino|tofino}_sketch_spec in synthesis.py for getting defines.
     def get_defines(self):
         return list(set([stmt.lhs for stmt in self.stmt_list]))
@@ -360,6 +363,8 @@ class DependencyGraph:
 
         i = 0
         decls_end = False
+        defined_vars = set() # lhs vars
+        used_vars = set() # rhs vars
         for line in self.lines:
             if line == "# declarations end\n":
                 decls_end = True
@@ -378,6 +383,8 @@ class DependencyGraph:
             stmt = Statement(lhs, rhs, i)
             self.stmt_list.append(stmt)
             self.stmt_map[lhs] = stmt
+            defined_vars.add(lhs)
+            used_vars.update(stmt.rhs_vars)
 
             print("state_vars", self.state_variables)
 
@@ -398,6 +405,11 @@ class DependencyGraph:
             self.use_define[stmt] = set()
 
             i += 1
+        # find PIs (variables that are used but not defined)
+        self.PIs = []
+        for v in used_vars:
+            if v not in defined_vars:
+                self.PIs.append(v)
 
     def print_dependencies(self):
         for s, stmts in self.depends.items():
@@ -469,9 +481,9 @@ class DependencyGraph:
         self.draw_graph(self.dep_graph, self.inputfilename + "_dep")
 
     """
-	Code for splitting stateless expressions in stateful nodes
-	when necessary (this might hold, for DominoIfElseRawALU for instance.)
-	"""
+    Code for splitting stateless expressions in stateful nodes
+    when necessary (this might hold, for DominoIfElseRawALU for instance.)
+    """
 
     # The _actual_ outputs of node u. Only includes necessary outputs
     # Does not include e.g. stateful variables in u.

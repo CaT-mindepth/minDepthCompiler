@@ -1,6 +1,7 @@
 import re
 import os
 from collections import defaultdict
+from collections import defaultdict
 import ply.lex as lex
 import lexerRules
 import networkx as nx
@@ -239,6 +240,100 @@ class Component:  # group of codelets
                 self.grammar_name))
             exit(1)
 
+    def write_weighted_grammar_new(self, f, synth_bounds):
+        try:
+            f_grammar = open(grammar_util.resolve_stateless(self.is_tofino))
+            # copy gramar
+            lines = f_grammar.readlines()
+            for l in lines:
+                if l.strip().startswith("generator"):
+                    break # Copy only the alu definition
+                f.write(l)
+            bnd_vars = self.get_input_bounds(synth_bounds)
+            bnds_list = sorted(list(bnd_vars.keys()))
+            max_input_bnd = bnds_list[-1]
+            min_input_bnd = bnds_list[0]
+
+            # Write generator functions for every bound in [min_input_bnd, max_input_bnd)
+            bnd_to_expr = {} # bnd -> (expr name, args)
+            # min_input_bnd
+            # f.write('generator int expr{}(fun vars{})'.format(min_input_bnd, min_input_bnd) + '{\n')
+            # f.write('\treturn vars{}();\n'.format(min_input_bnd))
+            # f.write('}\n')
+            # bnd_to_expr[min_input_bnd] = (f'expr{min_input_bnd}', [f'vars{min_input_bnd}'])
+            bnd_to_expr[min_input_bnd] = (f'vars{min_input_bnd}', [])
+
+            for b in range(min_input_bnd+1, max_input_bnd):
+                args = []
+                for b1 in bnds_list:
+                    if b1 <= b:
+                        args.append(b1)
+
+                params = [f'vars{x}' for x in args]
+                bnd_to_expr[b] = (f'expr{b}', params)
+                defn_params = ', '.join([f'fun {p}' for p in params])
+                f.write('generator int expr{}({})'.format(b, defn_params) + '{\n')
+
+                if b not in bnds_list:
+                    f.write('\tint t = ??(1);\n')
+                else:
+                    f.write('\tint t = ??(2);\n')
+                # case 1: use expr with bnd b-1
+                prev_expr_name = bnd_to_expr[b-1][0]
+                prev_params = ', '.join(bnd_to_expr[b-1][1])
+                f.write('\tif (t == 0){\n')
+                f.write('\t\treturn {}({});\n'.format(prev_expr_name, prev_params))
+                f.write('\t}\n')
+            
+                # case 2: return vars with bnd b (if applicable)
+                if b in bnds_list:
+                    f.write('\telse if (t == 1){\n')
+                    f.write('\t\treturn vars{}();\n'.format(b))
+                    f.write('\t}\n')
+                # case 3: use an ALU
+                f.write('\telse {\n')
+                prev_expr_name = bnd_to_expr[b-1][0]
+                prev_params = ', '.join(bnd_to_expr[b-1][1])
+                prev_expr = '{}({})'.format(prev_expr_name, prev_params)
+                if not self.is_tofino:
+                    f.write('\t\treturn alu(??, {}, {}, {}, ??);\n'.format(prev_expr, prev_expr, prev_expr))
+                else:
+                    f.write('\t\treturn alu(??, {}, {}, ??);\n'.format(prev_expr, prev_expr))
+
+
+                f.write('\t}\n')
+                f.write('}\n\n')	
+
+            # Write final expression generator
+            vars = ', '.join(['fun vars{}'.format(i) for i in bnds_list]) + ', fun vars'
+            f.write('generator int expr({}, int bnd)'.format(vars) + '{\n')
+            for gen_bnd, gen_info in bnd_to_expr.items():
+                f.write(f'\tif (bnd == {gen_bnd})' + '{\n')
+                gen_name = gen_info[0]
+                gen_params = gen_info[1]
+                gen_params_str = ', '.join(gen_params)
+                f.write('\t\treturn {}({});\n'.format(gen_name, gen_params_str))
+                f.write('\t}\n')
+
+            f.write('\tint t = ??(1);\n')
+            f.write('\tif (t == 0){\n')
+            f.write('\t\treturn vars();\n')
+            f.write('\t}\n')
+            f.write('\telse {\n')
+            prev_args = ', '.join(['vars{}'.format(i) for i in bnds_list]) + ', vars'
+            prev_expr = 'expr({}, bnd-1)'.format(prev_args)
+            if not self.is_tofino:
+                f.write('\t\treturn alu(??, {}, {}, {}, ??);\n'.format(prev_expr, prev_expr, prev_expr))
+            else:
+                f.write('\t\treturn alu(??, {}, {}, ??);\n'.format(prev_expr, prev_expr))
+
+            f.write('\t}\n')
+            f.write('}\n')
+
+        except IOError:
+            print("Failed to open stateless grammar file {}.".format(self.grammar_name))
+            exit(1)
+
     def write_sketch_spec(self, f, var_types, comp_name, o):
         input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
         spec_name = comp_name
@@ -277,7 +372,7 @@ class Component:  # group of codelets
 
         f.write("\tgenerator int vars(){\n")
         # f.write("\t\treturn {| 1 |")
-        f.write("\t\treturn {|")
+        f.write("\t\treturn {| ")
         if "int" in [var_types[v] for v in self.inputs]:
             # f.write("|");
             for v in self.inputs:
@@ -301,6 +396,61 @@ class Component:  # group of codelets
 
         f.write("}\n")
 
+    def write_sketch_harness_weighted_new(self, f, var_types, comp_name, o, bnd, synth_bounds):
+        f.write("harness void sketch(")
+        if len(self.inputs) >= 1:
+            var_type = var_types[self.inputs[0]]
+            f.write("{} {}".format(var_type, self.inputs[0]))
+
+        for v in self.inputs[1:]:
+            var_type = var_types[v]
+            f.write(", ")
+            f.write("{} {}".format(var_type, v))
+
+        f.write(") {\n")
+
+        bnd_vars = self.get_input_bounds(synth_bounds)
+        bnds_list = sorted(list(bnd_vars.keys()))
+        max_input_bnd = bnds_list[-1]
+        for b in bnds_list:
+            f.write('\tgenerator int vars{}()'.format(b) + '{\n')
+            if b == 0:
+                # f.write('\t\treturn {| 1 | ' + ' | '.join(bnd_vars[b]) + ' |};\n')
+                f.write('\t\treturn {| ' + ' | '.join(bnd_vars[b]) + ' |};\n')
+            else:
+                f.write('\t\treturn {|' + ' | '.join(bnd_vars[b]) + '|};\n')
+            f.write("\t}\n")
+        
+        f.write('\tgenerator int vars(){\n')
+        # f.write('\t\treturn {| 1 | ' + ' | '.join(self.inputs) + '|};\n')
+        f.write('\t\treturn {| ' + ' | '.join(self.inputs) + '|};\n')
+        f.write("\t}\n")
+
+        # f.write("\tgenerator int vars(){\n")
+        # f.write("\t\treturn {| 1 |".)
+        # if "int" in [var_types[v] for v in self.inputs]:
+        # 	# f.write("|");
+        # 	for v in self.inputs:
+        # 		f.write(" {} |".format(v))
+        # f.write("};\n")
+        # f.write("\t}\n")
+
+        # no inputs of type bit
+        if self.is_tofino and not ("bit" not in [var_types[v] for v in self.inputs]):
+            print('ERROR: bit present in inputs')
+            assert False
+
+        comp_fxn = comp_name + "(" + ", ".join(self.inputs) + ")"
+
+        output_type = var_types[o]
+        if self.is_tofino and (not (output_type == "int")):
+            raise Exception('Error: Output ' + o + ' is a bit type, not an int')
+
+        f.write("\tassert expr({}, {}) == {};\n".format(
+            ', '.join(['vars{}'.format(b) for b in bnds_list] + ['vars']), bnd, comp_fxn))
+
+        f.write("}\n")
+        
     def write_sketch_spec_ternary(self, f, var_types, comp_name):
         input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
         spec_name = comp_name
@@ -373,8 +523,9 @@ class Component:  # group of codelets
         f.write("\tassert(impl[2] == spec[2]);\n")
         f.write("}\n")
 
-    def write_ternary_sketch_file(self, output_path, comp_name, var_types, stats: test_stats.Statistics = None):
+    def write_ternary_sketch_file(self, output_path, comp_name, var_types, min_bnd, stats: test_stats.Statistics = None):
         filenames = []
+        #assert self.outputs == 1
         for o in self.outputs:
             if stats != None:
                 stats.start_synthesis_comp(f"stateless {comp_name} {o}")
@@ -397,7 +548,8 @@ class Component:  # group of codelets
             print("running sketch, bnd = {}".format(bnd))
             print("sketch_filename", sketch_filename)
             ret_code = subprocess.call(
-                ["sketch", sketch_filename], stdout=f_sk_out)
+                ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+                # ["sketch", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -411,7 +563,7 @@ class Component:  # group of codelets
                 print("failed")
                 assert(False)
             f_sk_out.close()
-        return filenames
+        return filenames[0], min_bnd + 1
 
     def contains_ternary(self):
         for output in self.outputs:
@@ -432,15 +584,65 @@ class Component:  # group of codelets
                 return False
         return True
 
-    def write_sketch_file(self, output_path, comp_name, var_types, o, stats: test_stats.Statistics = None):  # o is the output
-        if self.contains_ternary() and self.is_tofino:
-            print('----------- writing ternary sketch file')
-            return self.write_ternary_sketch_file(output_path, comp_name, var_types, stats)
+    # def write_sketch_file(self, output_path, comp_name, var_types, o, stats: test_stats.Statistics = None):  # o is the output
+    #     if self.contains_ternary() and self.is_tofino:
+    #         print('----------- writing ternary sketch file')
+    #         return self.write_ternary_sketch_file(output_path, comp_name, var_types, stats)
+    #     filename = ""
+    #     if stats != None:
+    #         stats.start_synthesis_comp(f"stateless {comp_name} {o}")
+    #     # start with bound 1, since ALU cannot be a wire (which is bnd 0)
+    #     bnd = 1
+    #     while True:
+    #         # run Sketch
+    #         sketch_filename = os.path.join(
+    #             output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
+    #         sketch_outfilename = os.path.join(
+    #             output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk.out")
+    #         f = open(sketch_filename, 'w+')
+    #         self.write_grammar(f)
+    #         self.write_sketch_spec(f, var_types, comp_name, o)
+    #         f.write("\n")
+    #         self.write_sketch_harness(f, var_types, comp_name, o, bnd)
+    #         f.close()
+    #         print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
+    #         f_sk_out = open(sketch_outfilename, "w+")
+    #         print("running sketch, bnd = {}".format(bnd))
+    #         print("sketch_filename", sketch_filename)
+    #         ret_code = subprocess.call(
+    #             ["sketch", sketch_filename], stdout=f_sk_out)
+    #         print("return code", ret_code)
+    #         if ret_code == 0:  # successful
+    #             if stats != None:
+    #                 stats.end_synthesis_comp(f"stateless {comp_name} {o}")
+    #             print("solved")
+    #             result_file = sketch_outfilename
+    #             print("output is in " + result_file)
+    #             filename = result_file
+    #             break
+    #         else:
+    #             print("failed")
+
+    #         f_sk_out.close()
+    #         bnd += 1
+    #     return filename
+
+
+    def write_sketch_file(self, output_path, comp_name, var_types, o, synth_bounds, stats: test_stats.Statistics = None): # o is the output
         filename = ""
         if stats != None:
             stats.start_synthesis_comp(f"stateless {comp_name} {o}")
-        # start with bound 0, which corresponds to a variable
-        bnd = 0
+
+        bnd_vars = self.get_input_bounds(synth_bounds)
+        bnds_list = sorted(list(bnd_vars.keys()))
+        min_bnd = min(bnds_list)
+        succ_bnd = None # bound at which synthesis was successful
+
+        if self.contains_ternary() and self.is_tofino:
+            print('----------- writing ternary sketch file')
+            return self.write_ternary_sketch_file(output_path, comp_name, var_types, min_bnd, stats)
+
+        bnd = min_bnd  # start with min bnd of inputs
         while True:
             # run Sketch
             sketch_filename = os.path.join(
@@ -448,17 +650,21 @@ class Component:  # group of codelets
             sketch_outfilename = os.path.join(
                 output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk.out")
             f = open(sketch_filename, 'w+')
-            self.write_grammar(f)
+            # self.write_grammar(f)
+            # self.write_weighted_grammar(f, synth_bounds)
+            self.write_weighted_grammar_new(f, synth_bounds)
             self.write_sketch_spec(f, var_types, comp_name, o)
             f.write("\n")
-            self.write_sketch_harness(f, var_types, comp_name, o, bnd)
+            # self.write_sketch_harness(f, var_types, comp_name, o, bnd)
+            # self.write_sketch_harness_weighted(f, var_types, comp_name, o, bnd, synth_bounds)
+            self.write_sketch_harness_weighted_new(f, var_types, comp_name, o, bnd, synth_bounds)
             f.close()
             print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
             f_sk_out = open(sketch_outfilename, "w+")
             print("running sketch, bnd = {}".format(bnd))
             print("sketch_filename", sketch_filename)
-            ret_code = subprocess.call(
-                ["sketch", sketch_filename], stdout=f_sk_out)
+            ret_code = subprocess.call(["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+            # ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -473,9 +679,21 @@ class Component:  # group of codelets
 
             f_sk_out.close()
             bnd += 1
-        return filename
+        succ_bnd = bnd # record synthesis bound
+        return (filename, succ_bnd)
 
-
+    def get_input_bounds(self, synth_bounds):
+        bnd_inputs = {} # bound -> inputs
+        for i in self.inputs:
+            assert(i in synth_bounds)
+            bd = synth_bounds[i]
+            if bd not in bnd_inputs:
+                bnd_inputs[bd] = [i]
+            else:
+                bnd_inputs[bd].append(i)
+            
+        return bnd_inputs
+        
 class StatefulComponent(object):
     def __init__(self, stateful_codelet, grammar_name=None, is_tofino=True):
         self.codelet = stateful_codelet
@@ -610,6 +828,22 @@ class StatefulComponent(object):
 
         self.actual_outputs = outputs
 
+    def get_input_bounds(self, synth_bounds):
+        bnd_inputs = {} # bound -> inputs
+        print("synth_bounds", synth_bounds)
+        for i in self.inputs:
+            print(i)
+            if i in synth_bounds:
+                bd = synth_bounds[i]
+                if bd not in bnd_inputs:
+                    bnd_inputs[bd] = [i]
+                else:
+                    bnd_inputs[bd].append(i)
+            else:
+                print("{} not in synth_bounds!".format(i)) # This should only happen for state vars
+        
+        return bnd_inputs
+
     def insert_in_order(self, stmts_to_insert):
         outputs = [stmt.lhs for stmt in stmts_to_insert]
         output_stmt = {} # output -> stmt
@@ -735,7 +969,7 @@ class StatefulComponent(object):
         for s_var in self.state_vars:
             if s_var not in self.inputs:
                 self.inputs.append(s_var)
-    
+
     def merge_component_special(self, comp, reversed=False):
         print("merge component special: component is ---- ", self)
         print(' ********************** adding statements from component ',
@@ -931,14 +1165,14 @@ class StatefulComponent(object):
         else:
             f.write("\t{}[2] = 0;\n".format(output_array))
         """
-		found_output = False
-		for o in self.outputs:
-			if o != self.salu_inputs[0] and o != self.inputs[1]:
-				found_output = True
-				f.write("\t{}[2] = {};\n".format(output_array, o))
-		if not found_output:  # return state var
-			f.write("\t{}[2] = 0;\n".format(output_array))
-		"""
+        found_output = False
+        for o in self.outputs:
+            if o != self.salu_inputs[0] and o != self.inputs[1]:
+                found_output = True
+                f.write("\t{}[2] = {};\n".format(output_array, o))
+        if not found_output:  # return state var
+            f.write("\t{}[2] = 0;\n".format(output_array))
+        """
 
         # return
         f.write("\treturn {};\n".format(output_array))
@@ -1077,7 +1311,8 @@ class StatefulComponent(object):
             print("running sketch for stateful")
             print("sketch_filename", sketch_filename)
             ret_code = subprocess.call(
-                ["sketch", sketch_filename], stdout=f_sk_out)
+                ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+                # ["sketch", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -1101,7 +1336,7 @@ class StatefulComponent(object):
 
 class Synthesizer:
     def __init__(self, state_vars,
-                 var_types, pkt_vars, dep_graph, read_write_flanks, stateful_nodes,
+                 var_types, pkt_vars, PIs, dep_graph, read_write_flanks, stateful_nodes,
                  filename, p4_output_name, enableMerging, stats: test_stats.Statistics = None,
                  is_tofino=True, stateless_path=None, stateful_path=None, eval = False, fpgaVerify = False):
         # handle domino grammar generation.
@@ -1114,6 +1349,7 @@ class Synthesizer:
 
         self.state_vars = state_vars
         self.var_types = var_types
+        self.PIs = PIs
         self.pkt_vars = pkt_vars
 
         self.filename = filename
@@ -1122,6 +1358,12 @@ class Synthesizer:
         self.stats = stats
 
         self.enableMerging = enableMerging
+
+        self.synth_bounds = {} # key: variable, value: bound at which synthesis succeeded (represents earliest stage variable can be used)
+        for v in self.PIs:
+            self.synth_bounds[v] = 0
+
+        print("synth_bounds", self.synth_bounds)
 
         self.tmp_index = 0
 
@@ -1204,8 +1446,12 @@ class Synthesizer:
                     special_merge = True
                     print('try_merge: special merge')
                     break
-            
+
             new_comp = copy.deepcopy(b)
+            if special_merge:
+                new_comp.merge_component_special(a)
+            else:
+                new_comp.merge_component(a, True)
             if special_merge:
                 new_comp.merge_component_special(a)
             else:
@@ -1532,8 +1778,12 @@ class Synthesizer:
                     pred_to_remove = p
                     print('perform_merge: special merge')
                     break
-    
+
             new_comp = copy.deepcopy(b)
+            if special_merge:
+                new_comp.merge_component_special(a)
+            else:
+                new_comp.merge_component(a, True)
             if special_merge:
                 new_comp.merge_component_special(a)
             else:
@@ -2227,6 +2477,7 @@ class Synthesizer:
                     self.synth_output_processor.process_single_stateful_output(
                         result_file, node)
 
+        '''
         # Step 7: Synthesize stateless POs (every output we need to synthesize that is stateless)
         # including a) POs, b) inputs to stateful, c) pkt vars (TODO: need to add c)
         for po in self.principal_outputs:
@@ -2244,6 +2495,41 @@ class Synthesizer:
                 print("processing: output is stateless.")
                 self.synth_output_processor.process_stateless_output(
                     result_file, po)
+        '''
+        # Step 7: Synthesize stateless POs
+        # Synthesize in topological order so that synthesis bound info is available for all inputs
+        for comp in nx.topological_sort(self.comp_graph):
+            if not comp.isStateful: # stateless
+                outputs = comp.codelets[0].get_outputs() # comp should have a single codelet
+                assert(len(outputs) == 1)
+                o = outputs[0]
+                if o in self.principal_outputs:
+                    print("---------")
+                    print("Synthesizing output ", o)
+                    print("---------")
+                    bci_comp = bci_rooted_at[o]
+                    comp_name = bci_comp.name 
+                    result_file, bnd = bci_comp.write_sketch_file(self.output_dir, comp_name, self.var_types, o, self.synth_bounds, stats = self.stats)
+                    self.synth_bounds[o] = bnd
+                    print("Updated synth bound for {} to {}".format(o, bnd))
+
+                    if self.is_tofino and bci_comp.contains_ternary():
+                        print('processing: output is ternary stateful.')
+                        self.synth_output_processor.process_single_stateful_output(result_file, bci_comp)
+                    else:
+                        print("processing: output is stateless.")
+                        self.synth_output_processor.process_stateless_output(result_file, o)
+            else: # stateful -- update synth_bounds
+                assert(comp.isStateful)
+                bnd_vars = comp.get_input_bounds(self.synth_bounds)
+                input_bnds = list(bnd_vars.keys())
+                output = comp.codelet.stateful_output
+                if output != None:
+                    if len(input_bnds) > 0:
+                        self.synth_bounds[output] = max(input_bnds)+1 # stateful ALU can be scheduled only after all inputs are available
+                    else:
+                        self.synth_bounds[output] = 1 # Can be put in stage 1
+                    print("Updated synth bound for {} to {}".format(output, self.synth_bounds[output]))
 
         # do postprocessing in the postprocessor
         self.synth_output_processor.postprocessing()
