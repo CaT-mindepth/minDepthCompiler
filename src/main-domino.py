@@ -141,7 +141,7 @@ if __name__ == "__main__":
   """
   print("TODO: call synthesizer")
 
-  synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, codeGen.pkt_vars, \
+  synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, codeGen.pkt_vars, dep_graph_obj.PIs, \
                                     dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
                                      outputfilename, p4outputname, enableMerging, \
                                      is_tofino = is_tofino, stateless_path = stateless_alu, 

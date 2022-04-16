@@ -390,7 +390,6 @@ class DominoIfElseRawSALU(GenericALU):
                 str(self.state_0) + ' = ' + str(self.pkt_0) + ' } '
             return s
 
-
 class DominoALU(GenericALU):
     # TODO: remove 'lineno' altogether.
     def __init__(self, id, stmt, lineno, final_output=(False, "")):
@@ -437,6 +436,7 @@ class DominoALU(GenericALU):
 
     def set_output(self, output):
         self.output = output
+        self.output_dst = output
 
     def print(self):
         print("{} = DominoALU(opcode={}, inputs={})".format(
