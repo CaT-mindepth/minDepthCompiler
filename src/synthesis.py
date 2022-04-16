@@ -1078,8 +1078,9 @@ class Synthesizer:
 		elif not (node.isStateful) and self.all_outputs_temp(node):
 			print("Temp stateless codelet, NOT DUPLICATING")
 			return False
-		# if node.isStateful and len(list(self.comp_graph.successors(node))) == 0:
-		# 	return False # stateful ALU can't output an arbitrary value, only original / final value of state variable
+		if node.isStateful:
+		# and len(list(self.comp_graph.successors(node))) == 0:
+			return False # we don't need to duplicate stateful nodes
 		else:
 			return True
 

@@ -126,8 +126,6 @@ if __name__ == "__main__":
         print('  ', idx, ' ', str(x))
         idx += 1
 
-  exit(0)
-
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
                                     dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
                                      outputfilename, p4outputname, enableMerging, \
