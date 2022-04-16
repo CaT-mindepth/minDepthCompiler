@@ -63,16 +63,21 @@ domino_stateful_grammars = {
   "nested_ifs" : "grammars/stateful_domino/nested_ifs.sk",
   "pair" : "grammars/stateful_domino/pair.sk", 
   "pred_raw" : "grammars/stateful_domino/pred_raw.sk", 
+  "raw": "grammars/stateful_domino/raw.sk",
   "sub" : "grammars/stateful_domino/sub.sk"
 }
 
 domino_stateless_grammar = "grammars/stateless_domino/stateless.sk"
+
+tofino_stateless_grammar = 'grammars/stateless_tofino.sk'
+tofino_stateful_grammar = 'grammars/stateful_tofino.sk'
 
 if __name__ == "__main__":
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument("input", help="input file (preprocessed Domino program)")
   arg_parser.add_argument("sketch", help="Sketch files folder")
   arg_parser.add_argument('output', help='Output location')
+  arg_parser.add_argument("statefulALU", help="Stateful ALU")
   arg_parser.add_argument("--predPack", help="enable_predecessor_packing", action="store_true")
   arg_parser.add_argument("--stages", help="number of pipeline stages", type=int)
   arg_parser.add_argument("--ALUs", help="number of ALUs per stage", type=int)
@@ -82,12 +87,29 @@ if __name__ == "__main__":
   filename = args.input
   outputfilename = args.sketch
   p4outputname = args.output
+  stateful_alu = args.statefulALU
   max_stages = args.stages
   max_alus = args.ALUs
   enableMerging = args.predPack
 
   start = time.time()
 
+  try:
+    assert(stateful_alu in domino_stateful_grammars.keys() or stateful_alu == 'tofino')
+  except AssertionError:
+    print("Invalid stateful ALU")
+    exit(1)
+
+  print("Using stateful ALU {}".format(stateful_alu))
+
+  is_tofino = (stateful_alu == 'tofino')
+  stateless_alu = ''
+  if is_tofino:
+    stateless_alu = tofino_stateless_grammar
+  else:
+    stateless_alu = domino_stateless_grammar
+  
+  print("Using stateless ALU {}".format(stateless_alu))
 
   with open(filename, "r") as f:
     codeGen = codeGen(filename, outputfilename, f)
@@ -109,8 +131,8 @@ if __name__ == "__main__":
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
                                     dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
                                      outputfilename, p4outputname, enableMerging, \
-                                     is_tofino = False, stateless_path = domino_stateless_grammar, 
-                                     stateful_path="if_else_raw")#stateful_path = "if_else_raw")
+                                     is_tofino = is_tofino, stateless_path = stateless_alu, 
+                                     stateful_path=stateful_alu)
   
 
   # ILP

@@ -7,7 +7,7 @@
 To use the Domino backend and generate a `.json` file: (using the `learn_filter` benchmark as an example)
 First run the preprocessor (https://github.com/CaT-mindepth/CaT-Preprocessor) using 
 ```
-./domino learn_filter.c learn_filter.in
+./domino <input Domino program> > <output filename>
 ```
 Then run the code generator:
 ```

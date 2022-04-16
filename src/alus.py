@@ -6,7 +6,9 @@ import ply.lex as lex
 import re
 import synthesis
 
-
+def is_temp_sketch_output(s):
+    return "_out_" in s
+ 
 class GenericALU(object):
     #
     # ruijief: we maintain a dict of additional attributes
@@ -15,12 +17,16 @@ class GenericALU(object):
     #
     def __init__(self):
         self.attributes = {}  # This needs to be overridden
+        self.sketch_file = '' # sketch output filename
 
     def set_attribute(self, key, value):
         self.attributes[key] = value
 
     def get_attribute(self, key):
         return self.attributes[key]
+    
+    def set_sketch_filename(self, sketch_file):
+        self.sketch_file = sketch_file
 
     @staticmethod
     def get_default_SALU():
@@ -619,6 +625,7 @@ class GenericOutputProcessor(object):
         self.alus.append(alu)
         self.dependencies[alu] = []
         self.rev_dependencies[alu] = []
+        alu.set_sketch_filename(input_file)
 
     def process_stateless_output(self, input_file, output):
         pass
@@ -642,7 +649,8 @@ class GenericOutputProcessor(object):
         for alu1 in self.alus:
             if alu1.get_type() == "STATELESS":
                 for alu2 in self.alus:
-                    if self.alu_compnames[alu1.id] == self.alu_compnames[alu2.id]: # if they're in the same stateless component.
+                    # if self.alu_compnames[alu1.id] == self.alu_compnames[alu2.id]: # if they're in the same stateless component. -- not good enough
+                    if alu1.sketch_file == alu2.sketch_file: # correspond to the same Sketch query
                         # print('alu1 id: ', alu1.id,
                         #     ' ; alu1 type: ', alu1.get_type())
                         # print('alu2 id: ', alu2.id,
@@ -683,12 +691,15 @@ class GenericOutputProcessor(object):
                             # No need to check if alu1 is stateful, since by
                             # definition a stateful component (comp1) only includes a single stateful ALU.
                             for alu1 in self.alus_in_a_component(comp1):
-                                print(' *** found stateful dependencies between ',
-                                      comp.name, ' and ', comp1.name)
-                                # self.dependencies[alu].append(alu1)
-                                # self.rev_dependencies[alu1].append(alu)
-                                self.dependencies[alu1].append(alu)
-                                self.rev_dependencies[alu].append(alu1)
+                                print(">>>>>>>>>>ALU1 outputs", alu1.outputs)
+                                for o in alu1.outputs:
+                                    if not is_temp_sketch_output(o) and o in alu.inputs:
+                                        print(' *** found stateful dependencies between ',
+                                        alu1.id, ' and ', alu.id)
+                                        # self.dependencies[alu].append(alu1)
+                                        # self.rev_dependencies[alu1].append(alu)
+                                        self.dependencies[alu1].append(alu)
+                                        self.rev_dependencies[alu].append(alu1)
         print(' *** Done find_stateful_dependencies ***')
 
     # Lower dependencies from/to a stateless weakly connected component.
@@ -715,12 +726,14 @@ class GenericOutputProcessor(object):
                         # For each ALU in the stateful component, add dependency
                         # from that ALU into us.
                         for alu1 in self.alus_in_a_component(comp1):
-                            print(' *** found stateless dependency between ALU ',
-                                  alu1.id, ' and ALU ', alu.id)
-                            # self.dependencies[alu].append(alu1)
-                            self.dependencies[alu1].append(alu)
-                            # self.rev_dependencies[alu1].append(alu)
-                            self.rev_dependencies[alu].append(alu1)
+                            for o in alu1.outputs:
+                                if not is_temp_sketch_output(o) and o in alu.inputs:
+                                    print(' *** found stateless dependency between ALU ',
+                                     alu1.id, ' and ALU ', alu.id)
+                                    # self.dependencies[alu].append(alu1)
+                                    self.dependencies[alu1].append(alu)
+                                    # self.rev_dependencies[alu1].append(alu)
+                                    self.rev_dependencies[alu].append(alu1)
                     # Find all stateful components that follows from the
                     # current weakly connected component.
                     for comp1 in self.comp_graph.successors(comp):
@@ -734,12 +747,14 @@ class GenericOutputProcessor(object):
                         print('-------ALU in the component of ', comp1.name,
                               ': ', list(self.alus_in_a_component(comp1)))
                         for alu1 in self.alus_in_a_component(comp1):
-                            print(' *** found dependency between stateless ALU ',
-                                  alu.id, ' and stateful ALU ', alu1.id)
-                            # self.dependencies[alu1].append(alu)
-                            # self.rev_dependencies[alu].append(alu1)
-                            self.dependencies[alu].append(alu1)
-                            self.rev_dependencies[alu1].append(alu)
+                            print("Stateless ALU id {} has output {}".format(alu.id, alu.output))
+                            if not is_temp_sketch_output(alu.output) and alu.output in alu1.inputs:
+                                print(' *** found dependency between stateless ALU ',
+                                alu.id, ' and stateful ALU ', alu1.id)
+                                # self.dependencies[alu1].append(alu)
+                                # self.rev_dependencies[alu].append(alu1)
+                                self.dependencies[alu].append(alu1)
+                                self.rev_dependencies[alu1].append(alu)
             print(' *** Done finding stateless+stateful dependencies ***')
 
     # to be called after all ALUs are added.
