@@ -357,46 +357,47 @@ class Component:  # group of codelets
 				return False 
 		return True 
 
-	def write_sketch_file(self, output_path, comp_name, var_types, stats: test_stats.Statistics = None):
+	def write_sketch_file(self, output_path, comp_name, var_types, principal_outputs, stats: test_stats.Statistics = None):
 		if self.contains_ternary() and self.is_tofino:
 			print('----------- writing ternary sketch file')
 			return self.write_ternary_sketch_file(output_path, comp_name, var_types, stats)
 		filenames = []
 		for o in self.outputs:
-			if stats != None:
-				stats.start_synthesis_comp(f"stateless {comp_name} {o}")
-			bnd = 1  # start with bound 1, since ALU cannot be a wire (which is bnd 0)
-			while True:
-				# run Sketch
-				sketch_filename = os.path.join(
-				    output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
-				sketch_outfilename = os.path.join(
-				    output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk.out")
-				f = open(sketch_filename, 'w+')
-				self.write_grammar(f)
-				self.write_sketch_spec(f, var_types, comp_name, o)
-				f.write("\n")
-				self.write_sketch_harness(f, var_types, comp_name, o, bnd)
-				f.close()
-				print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
-				f_sk_out = open(sketch_outfilename, "w+")
-				print("running sketch, bnd = {}".format(bnd))
-				print("sketch_filename", sketch_filename)
-				ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
-				print("return code", ret_code)
-				if ret_code == 0:  # successful
-					if stats != None:
-						stats.end_synthesis_comp(f"stateless {comp_name} {o}")
-					print("solved")
-					result_file = sketch_outfilename
-					print("output is in " + result_file)
-					filenames.append(result_file)
-					break
-				else:
-					print("failed")
+			if o in principal_outputs:
+				if stats != None:
+					stats.start_synthesis_comp(f"stateless {comp_name} {o}")
+				bnd = 1  # start with bound 1, since ALU cannot be a wire (which is bnd 0)
+				while True:
+					# run Sketch
+					sketch_filename = os.path.join(
+						output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
+					sketch_outfilename = os.path.join(
+						output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk.out")
+					f = open(sketch_filename, 'w+')
+					self.write_grammar(f)
+					self.write_sketch_spec(f, var_types, comp_name, o)
+					f.write("\n")
+					self.write_sketch_harness(f, var_types, comp_name, o, bnd)
+					f.close()
+					print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
+					f_sk_out = open(sketch_outfilename, "w+")
+					print("running sketch, bnd = {}".format(bnd))
+					print("sketch_filename", sketch_filename)
+					ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
+					print("return code", ret_code)
+					if ret_code == 0:  # successful
+						if stats != None:
+							stats.end_synthesis_comp(f"stateless {comp_name} {o}")
+						print("solved")
+						result_file = sketch_outfilename
+						print("output is in " + result_file)
+						filenames.append(result_file)
+						break
+					else:
+						print("failed")
 
-				f_sk_out.close()
-				bnd += 1
+					f_sk_out.close()
+					bnd += 1
 		return filenames
 
 
@@ -829,20 +830,15 @@ class Synthesizer:
 		self.stateful_nodes = stateful_nodes
 		self.components = []
 
+
 		print("Synthesizer")
 		print("output dir", self.output_dir)
 
 		self.get_rw_flanks()
 
 		self.process_graph()
-
-		if is_tofino:
-			self.synth_output_processor = SketchOutputProcessor(self.comp_graph)
-		else:
-			from domino_postprocessor import DominoOutputProcessor
-			self.synth_output_processor = DominoOutputProcessor(self.comp_graph)
-
-		#
+		return 
+		"""
 		if self.stats != None:
 			self.stats.start_synthesis()
 
@@ -858,7 +854,7 @@ class Synthesizer:
 				self.stats.end_synthesis()
 				print("Domino synthesis: ended successfully.")
 
-			"""for alu in self.synth_output_processor.dependencies:
+			for alu in self.synth_output_processor.dependencies:
 				print("ALU: ")
 				alu.print()
 				print("----------------")
@@ -867,8 +863,8 @@ class Synthesizer:
 					print(" --> adjacent alu: ")
 					adj_alu.print()
 				print("----------------")
-			exit(1)"""
-			
+			exit(1)
+		"""
 
 	def get_rw_flanks(self):
 		rw_flanks = self.read_write_flanks # dictionary
@@ -1282,12 +1278,108 @@ class Synthesizer:
 
 		self.draw_graph(self.scc_graph, self.filename + "_scc_graph")
 
-		exit(1)
 		# Step 4: call merging procedure (if we choose to enable it)
+		self.comp_graph = self.scc_graph
+
 		self.merge_components()
 
+		self.draw_graph(self.comp_graph, self.filename + "_merged_graph")
+
+		# create principal outputs
+		self.principal_outputs = set()
+		for codelet in self.dep_graph.nodes:
+			if not(codelet.is_stateful(self.state_vars)):
+				if len(list(self.dep_graph.successors(codelet))) == 0:
+					# contains principal outputs. Include it in the list
+					self.principal_outputs.add(codelet.stmt_list[0].lhs)
+
+		print(self.principal_outputs)
+
+		# Step 5: Build synthesis graph
+		node_to_bci = {}
+		self.synth_graph = nx.DiGraph()
+
+		# 5a) add all stateful nodes as usual
+		for node in self.comp_graph.nodes:
+			if node.isStateful:
+				self.synth_graph.add_node(node)
+				node_to_bci[node] = node
+		
+		# 5b) add BCIs to synthesis graph
+		for node in self.comp_graph.nodes:
+			if not node.isStateful and node.codelets[0].get_stmt_list()[0].lhs in self.principal_outputs:
+				bci = nx.DiGraph()
+				def getBCI(n, visited : set, bci : nx.DiGraph):
+					if n in visited or n.isStateful:
+						return []
+					else:
+						# visit predecessors
+						visited.add(n)
+						for p in self.comp_graph.predecessors(n):
+							if not p.isStateful:
+								bci.add_edge(p, n)
+								getBCI(p, visited, bci)
+				getBCI(node, set(), bci)
+				linearized_bci = list(nx.topological_sort(bci))
+				# linearized_bci contains a number of components, each containing a codelet.
+				# map it to a single component and synthesize.
+				codelets_of_bci = list(map(lambda  c : c.codelets[0], linearized_bci))
+				bci_comp = Component(codelets_of_bci, i, grammar_name=self.stateless_path, is_tofino=self.is_tofino)
+				i += 1
+				for node in linearized_bci:
+					node_to_bci[node] = bci_comp
+				self.synth_graph.add_node(bci_comp)
+
+		for (u, v) in self.comp_graph.edges:
+			if node_to_bci[u] != node_to_bci[v]:
+				self.synth_graph.add_edge(node_to_bci[u], node_to_bci[v])
 
 
+		# Note: synth_graph may contain cycles :-)
+		self.draw_graph(self.synth_graph, self.filename + "_synth_graph")
+
+		# Create output processors using synth_graph.
+		if self.is_tofino:
+			self.synth_output_processor = SketchOutputProcessor(self.synth_graph)
+		else:
+			from domino_postprocessor import DominoOutputProcessor
+			self.synth_output_processor = DominoOutputProcessor(self.synth_graph)
+
+
+		# Step 6: Synthesize stateful nodes
+		for node in self.synth_graph.nodes:
+			if node.isStateful:
+				node_name = node.name
+				node.set_name(node_name)
+				result_file = self.synthesize_single_comp(node, node_name)
+				self.synth_output_processor.process_single_stateful_output(
+				    result_file, node)
+
+		# Step 7: Synthesize stateless nodes
+		for bci_comp in self.synth_graph.nodes:
+			if not bci_comp.isStateful:
+				# synthesizestateless node.
+				comp_name = bci_comp.name 
+				result_file = self.synthesize_single_comp(bci_comp, comp_name)
+				if self.is_tofino and bci_comp.contains_ternary():
+					print('processing: output is ternary stateful.')
+					for file in result_file:
+						self.synth_output_processor.process_single_stateful_output(
+						    file, bci_comp.outputs[0], bci_comp)
+				else:
+					print("processing: output is stateless.")
+					output_idx = 0
+					for file in result_file:
+						self.synth_output_processor.process_stateless_output(
+						    file, bci_comp.outputs[output_idx])
+						output_idx += 1
+
+		# do postprocessing in the postprocessor
+		self.synth_output_processor.postprocessing()
+
+		return # return to constructor
+
+		"""
 		for comp in self.components:
 			if comp.isStateful:
 				# stateful component contains a single (stateful) codelet.
@@ -1417,13 +1509,15 @@ class Synthesizer:
 				print(comp)
 				print('-------')
 
-
+		"""
 
 	def process_graph(self):
 		self.state_vars = list(set(self.state_vars))
 		self.comp_graph = nx.DiGraph()
 		self.compute_scc_graph()
-		self.comp_graph = self.scc_graph
+
+		return
+
 
 		# self.write_comp_graph()
 
@@ -1478,7 +1572,7 @@ class Synthesizer:
 		if comp.isStateful:
 			return comp.write_sketch_file(self.output_dir, comp_name, self.var_types, stats=self.stats)
 		else:
-			return comp.write_sketch_file(self.output_dir, comp_name, self.var_types, stats=self.stats)
+			return comp.write_sketch_file(self.output_dir, comp_name, self.var_types, self.principal_outputs, stats=self.stats)
 
 	def do_synthesis(self):
 		# Synthesize each codelet
