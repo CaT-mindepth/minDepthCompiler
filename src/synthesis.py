@@ -357,48 +357,46 @@ class Component:  # group of codelets
 				return False 
 		return True 
 
-	def write_sketch_file(self, output_path, comp_name, var_types, principal_outputs, stats: test_stats.Statistics = None):
+	def write_sketch_file(self, output_path, comp_name, var_types, o, stats: test_stats.Statistics = None): # o is the output
 		if self.contains_ternary() and self.is_tofino:
 			print('----------- writing ternary sketch file')
 			return self.write_ternary_sketch_file(output_path, comp_name, var_types, stats)
-		filenames = []
-		for o in self.outputs:
-			if o in principal_outputs:
+		filename = ""
+		if stats != None:
+			stats.start_synthesis_comp(f"stateless {comp_name} {o}")
+		bnd = 1  # start with bound 1, since ALU cannot be a wire (which is bnd 0)
+		while True:
+			# run Sketch
+			sketch_filename = os.path.join(
+				output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
+			sketch_outfilename = os.path.join(
+				output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk.out")
+			f = open(sketch_filename, 'w+')
+			self.write_grammar(f)
+			self.write_sketch_spec(f, var_types, comp_name, o)
+			f.write("\n")
+			self.write_sketch_harness(f, var_types, comp_name, o, bnd)
+			f.close()
+			print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
+			f_sk_out = open(sketch_outfilename, "w+")
+			print("running sketch, bnd = {}".format(bnd))
+			print("sketch_filename", sketch_filename)
+			ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
+			print("return code", ret_code)
+			if ret_code == 0:  # successful
 				if stats != None:
-					stats.start_synthesis_comp(f"stateless {comp_name} {o}")
-				bnd = 1  # start with bound 1, since ALU cannot be a wire (which is bnd 0)
-				while True:
-					# run Sketch
-					sketch_filename = os.path.join(
-						output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
-					sketch_outfilename = os.path.join(
-						output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk.out")
-					f = open(sketch_filename, 'w+')
-					self.write_grammar(f)
-					self.write_sketch_spec(f, var_types, comp_name, o)
-					f.write("\n")
-					self.write_sketch_harness(f, var_types, comp_name, o, bnd)
-					f.close()
-					print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
-					f_sk_out = open(sketch_outfilename, "w+")
-					print("running sketch, bnd = {}".format(bnd))
-					print("sketch_filename", sketch_filename)
-					ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
-					print("return code", ret_code)
-					if ret_code == 0:  # successful
-						if stats != None:
-							stats.end_synthesis_comp(f"stateless {comp_name} {o}")
-						print("solved")
-						result_file = sketch_outfilename
-						print("output is in " + result_file)
-						filenames.append(result_file)
-						break
-					else:
-						print("failed")
+					stats.end_synthesis_comp(f"stateless {comp_name} {o}")
+				print("solved")
+				result_file = sketch_outfilename
+				print("output is in " + result_file)
+				filename = result_file
+				break
+			else:
+				print("failed")
 
-					f_sk_out.close()
-					bnd += 1
-		return filenames
+			f_sk_out.close()
+			bnd += 1
+		return filename
 
 
 class StatefulComponent(object):
@@ -895,7 +893,9 @@ class Synthesizer:
 		# XXX: Since we implement predecessor packing check, we skip this for now.
 		return False
 
+
 	# calls sketch to determine if component A+B is synthesizeable.
+	# Note: a is always predecessor of b. a --> b
 	def try_merge(self, a, b):
 		print('try_merge: trying to merge components: ')
 		print(' | a: ', a)
@@ -918,10 +918,32 @@ class Synthesizer:
 		print('new component outputs: ', new_comp.outputs)
 		print('new component state_pkt_fields: ', new_comp.state_pkt_fields)
 
+
+		
+		# Case 1: a, b both stateful. Output is b.stateful_output
+		# Case 2: a stateless, b stateful. Output is b.stateful_output
+		if b.isStateful:
+			# handles both case 1, 2
+			new_comp.codelet.stateful_output = b.codelet.stateful_output
+			""" TODO: we can potentially not duplicate a node if b is sink and a writes out to a packet field.
+			if b.codelet.stateful_output != None:
+				new_comp.codelet.stateful_output = b.codelet.stateful_output
+			else: 
+				# b is sink. So use output of a.
+				if a.isStateful and a.stateful_output != None and a.stateful_output not in self.rw_flank_vars and not is_tmp_var(a.stateful_output):
+					new_comp.codelet.stateful_output = a.codelet.stateful_output
+				elif not is_tmp_var(a.codelets[0].stmt_list[0].lhs): # TODO: get more granular than this --- intermediate packet fields are also temp.
+					new_comp.codelet.stateful_output = a.codelets[0].stmt_list[0].lhs
+			"""
+		else:
+			# Case 3: b stateless. Output is b.codelets[0].stmt_list[0].lhs
+			new_comp.codelet.stateful_output = b.codelets[0].stmt_list[0].lhs
+
 		print('-------------- Merging... -------------')
 		# try:
-		result = new_comp.write_sketch_file(self.output_dir, new_comp.name, self.var_types,
+		result = new_comp.write_sketch_file(self.output_dir, 'query_' + str(self.merge_idx), self.var_types,
 			 prefix='try_merge_')
+		self.merge_idx += 1
 		if result == None:
 			print('---------- Merge failure. ---------')
 			return False
@@ -964,14 +986,9 @@ class Synthesizer:
 	def merge_candidate(self, a, b):
 		a.update_outputs(self.comp_graph.neighbors(a))
 		b.update_outputs(self.comp_graph.neighbors(b))
-		print(' ~ merge_candidate: a inputs : ', a.inputs)
-		print(' ~ merge_candidate: a outputs : ', a.outputs)
-		print(' ~ merge_candidate: b inputs : ', b.inputs)
-		print(' ~ merge_candidate: b outputs : ', b.outputs)
 		# PRECONDITION: a has to be predecesssor of b,
 		# i.e. a-->b is an edge.
 		# returns True if components A and B are valid merge candidates.
-
 		# Two components are stateless. Return false.
 		if not (a.isStateful or b.isStateful):  # if a and b are both stateless, return
 			print('    ~ merge_candidate: both components are stateless.')
@@ -983,16 +1000,6 @@ class Synthesizer:
 			return False
 		# else:
 		#	assert list(self.comp_graph.successors(a))[0] == b
-
-		#
-		# check outputs
-		#
-		if a.isStateful:
-			if len(a.state_vars) != 1:
-				print('		~ merge_candidate: component a state_vars length != 1')
-		if b.isStateful:
-			if len(b.state_vars) != 1:
-				print('		~ merge_candidate: component b state_vars length != 1')
 
 
 		# self.exclude_read_write_flanks(a, filter_temporaries=False)
@@ -1013,18 +1020,11 @@ class Synthesizer:
 		
 		merged_output_vars = list(output_vars)
 
-		print('		| merge_candidate: a_output_vars : ', a.outputs)
-		print('		| merge_candidate: b_output_vars : ', b.outputs)
-		print('		| merge_candidate: merged output_vars : ', merged_output_vars)
-
 		if len(merged_output_vars) > 2:
 			print('		~ merge_candidate: cannot merge a and b because too many output variables.')
 		#
 		#  check inputs size
 		#
-		print('     ~ merge_candidate: checking inputs size...')
-		print('     | a inputs: ', a.inputs)
-		print('     | b inputs: ', b.inputs)
 		# since a-->b, we filter inputs to b that are a's outputs.
 		merged_inputs = set(a.inputs)
 		merged_inputs.update(b.inputs)
@@ -1065,6 +1065,27 @@ class Synthesizer:
 		else:  # b must be a stateful comp
 			new_comp = copy.deepcopy(b)
 			new_comp.merge_component(a, True)
+
+		# Case 1: a, b both stateful. Output is b.stateful_output
+		# Case 2: a stateless, b stateful. Output is b.stateful_output
+		if b.isStateful:
+			# handles both case 1, 2
+			new_comp.codelet.stateful_output = b.codelet.stateful_output
+			""" TODO: we can potentially not duplicate a node if b is sink and a writes out to a packet field.
+			if b.codelet.stateful_output != None:
+				new_comp.codelet.stateful_output = b.codelet.stateful_output
+			else: 
+				# b is sink. So use output of a.
+				if a.isStateful and a.stateful_output != None and a.stateful_output not in self.rw_flank_vars and not is_tmp_var(a.stateful_output):
+					new_comp.codelet.stateful_output = a.codelet.stateful_output
+				elif not is_tmp_var(a.codelets[0].stmt_list[0].lhs): # TODO: get more granular than this --- intermediate packet fields are also temp.
+					new_comp.codelet.stateful_output = a.codelets[0].stmt_list[0].lhs
+			"""
+		else:
+			# Case 3: b stateless. Output is b.codelets[0].stmt_list[0].lhs
+			new_comp.codelet.stateful_output = b.codelets[0].stmt_list[0].lhs
+
+
 		# create new merged component, add edges
 		self.comp_graph.add_node(new_comp)
 		self.comp_graph.add_edges_from([(x, new_comp)
@@ -1095,21 +1116,32 @@ class Synthesizer:
 				return False
 		return True
 
-	def need_duplicate(self, node):
-		print('checking whether node needs duplicate: ', str(node))
-		if not (node.isStateful) and node.contains_only_ternary():
-			print('  --- contains ternary, no need to duplicate')
+	# decide if any of (a --> b) requires duplicate.
+	# Note that a only goes into b.
+	# precondition: synthesis query succeeds.
+	def pred_needs_duplicate(self, a, b):
+
+		# TODO: This requires more careful handling. (See above about when b is sink). For now we omit it.
+		# # Initially: if b is sink, then no need to duplicate a.
+		# if b.isStateful and b.codelet.stateful_output == None:
+		#	return False
+
+		# Case I: a, b both stateful. 
+		if a.isStateful and b.isStateful:
 			return False
-		elif not (node.isStateful) and self.all_outputs_temp(node):
-			print("Temp stateless codelet, NOT DUPLICATING")
-			return False
-		if node.isStateful:
-		# and len(list(self.comp_graph.successors(node))) == 0:
-			print(' --- not duplicating stateful node')
-			return False # we don't need to duplicate stateful nodes
-		else:
-			print(' --- will duplicate node')
-			return True
+		# Case II: a is stateless, b is stateful.
+		if (not a.isStateful) and b.isStateful:
+			if not is_tmp_var(a.codelets[0].stmt_list[0].lhs) and (a.codelets[0].stmt_list[0].lhs not in self.rw_flank_vars): # note this is conservative --- need preprocessor input to determine last_ssa_var.
+				return True
+			else: # is temporary var. return false.
+				return False
+		# Case III: a is stateful, b is stateless.
+		if a.isStateful and (not b.isStateful):
+			if a.codelet.stateful_output != None:
+				if (not is_tmp_var(a.codelet.stateful_output)) and (a.codelet.stateful_output not in self.rw_flank_vars):
+					return True
+			else:
+				return False
 
 	def recursive_merge(self):
 		nodes = self.reverse_top_order()
@@ -1129,39 +1161,34 @@ class Synthesizer:
 					if self.merge_candidate(pred, node) and not(pred.is_duplicated) and not(node.is_duplicated):
 						# try calling sketch to synthesize new component.
 						if self.try_merge(pred, node):
+							print(' mergeing two components...')
 							# merging successful.
+
+							# store predecessors of predecessor.
 							predpreds = list(self.comp_graph.predecessors(pred))
-							nodepreds = list(self.comp_graph.predecessors(node))
-							nd = self.need_duplicate(node)
-							pd = self.need_duplicate(pred)
+							# whether predecessor needs duplicating?
+							pred_needs_dup = self.pred_needs_duplicate(pred, node)
 
 							self.merge_processed.add(pred)
 							self.merge_processed.add(node)
+							# perform_merge deletes pred, node
 							merged_component = self.perform_merge(pred, node)
 
-							if nd: # We never duplicate the stateful node, only the stateless predecessor -- but nd could be stateless
-								print("duplicating a component.... ")
-								node.mark_as_duplicate()
-								print(node)
-								self.comp_graph.add_node(node)
-								for np in nodepreds:
-									self.comp_graph.add_edge(np, node)
-							if pd:
-								print("duplicating predecessor component...")
-								node.mark_as_duplicate()
+							if pred_needs_dup:
+								print("duplicating predecessor.... ")
+								pred.mark_as_duplicate()
 								print(pred)
 								self.comp_graph.add_node(pred)
-								for pp in predpreds:
-									self.comp_graph.add_edge(pp, node)
-
-							if nd and pd:
-								print("Duplicating both components (shouldn't happen)")
-								assert(False)
+								for np in predpreds:
+									self.comp_graph.add_edge(np, pred)
 								
 							if self.stats != None:
 								self.stats.incr_num_successful_merges()
 							self.recursive_merge()
 							halt = True
+						else:
+							print('   | synthesis query failed. Not merging.')
+							print('   | number of nodes in comp_graph: ', len(self.comp_graph.nodes))
 					else:
 						print('     | not a merge candidate.')
 					if halt:
@@ -1281,9 +1308,16 @@ class Synthesizer:
 		# Step 4: call merging procedure (if we choose to enable it)
 		self.comp_graph = self.scc_graph
 
+		print('number of nodes in comp_graph: ', len(self.comp_graph.nodes))
+
+		self.merge_idx = 0
 		self.merge_components()
 
 		self.draw_graph(self.comp_graph, self.filename + "_merged_graph")
+
+		# all synthesized stateful outputs
+		stateful_nodes = filter(lambda x: x.isStateful, self.comp_graph.nodes)
+		stateful_outputs = list(map(lambda x: x.codelet.stateful_output, stateful_nodes))
 
 		# create principal outputs
 		self.principal_outputs = set()
@@ -1291,19 +1325,40 @@ class Synthesizer:
 			if not(codelet.is_stateful(self.state_vars)):
 				if len(list(self.dep_graph.successors(codelet))) == 0:
 					# contains principal outputs. Include it in the list
-					self.principal_outputs.add(codelet.stmt_list[0].lhs)
+					# Except when it is synthesized as stateful output
+					if codelet.stmt_list[0].lhs not in stateful_outputs:
+						self.principal_outputs.add(codelet.stmt_list[0].lhs)
+
+		# In addition to POs, we also need to synthethize inputs to stateful nodes.
+		# add those as well.
+		for node in self.comp_graph.nodes:
+			if node.isStateful:
+				# add stateless inputs of that node as POs.
+				for pred in self.comp_graph.predecessors(node):
+					if not pred.isStateful:
+						self.principal_outputs.add(pred.codelets[0].stmt_list[0].lhs)
+
+		print(self.principal_outputs)
+
+
+		# TODO: (preprocessor input) in addition to those above we also need to synthesize
+		# last SSA'd packet fields. But can't do so without preprocessor input yet.
 
 		print(self.principal_outputs)
 
 		# Step 5: Build synthesis graph
 		node_to_bci = {}
+		bci_rooted_at = {}
 		self.synth_graph = nx.DiGraph()
+
+		for node in self.comp_graph.nodes:
+			node_to_bci[node] = []
 
 		# 5a) add all stateful nodes as usual
 		for node in self.comp_graph.nodes:
 			if node.isStateful:
 				self.synth_graph.add_node(node)
-				node_to_bci[node] = node
+				node_to_bci[node] = [ node ]
 		
 		# 5b) add BCIs to synthesis graph
 		for node in self.comp_graph.nodes:
@@ -1319,6 +1374,7 @@ class Synthesizer:
 							if not p.isStateful:
 								bci.add_edge(p, n)
 								getBCI(p, visited, bci)
+				bci.add_node(node) # corner case
 				getBCI(node, set(), bci)
 				linearized_bci = list(nx.topological_sort(bci))
 				# linearized_bci contains a number of components, each containing a codelet.
@@ -1326,13 +1382,18 @@ class Synthesizer:
 				codelets_of_bci = list(map(lambda  c : c.codelets[0], linearized_bci))
 				bci_comp = Component(codelets_of_bci, i, grammar_name=self.stateless_path, is_tofino=self.is_tofino)
 				i += 1
+				bci_rooted_at[node.codelets[0].stmt_list[0].lhs] = bci_comp
 				for node in linearized_bci:
-					node_to_bci[node] = bci_comp
+					node_to_bci[node].append(bci_comp)
 				self.synth_graph.add_node(bci_comp)
 
 		for (u, v) in self.comp_graph.edges:
-			if node_to_bci[u] != node_to_bci[v]:
-				self.synth_graph.add_edge(node_to_bci[u], node_to_bci[v])
+			print('u: ', str(u))
+			print('v: ', str(v))
+			for src_comp in node_to_bci[u]:
+				for dst_comp in node_to_bci[v]:
+					if src_comp != dst_comp and (src_comp.isStateful or dst_comp.isStateful):
+						self.synth_graph.add_edge(src_comp, dst_comp)
 
 
 		# Note: synth_graph may contain cycles :-)
@@ -1351,28 +1412,24 @@ class Synthesizer:
 			if node.isStateful:
 				node_name = node.name
 				node.set_name(node_name)
-				result_file = self.synthesize_single_comp(node, node_name)
-				self.synth_output_processor.process_single_stateful_output(
-				    result_file, node)
+				result_file = node.write_sketch_file(self.output_dir, node_name, self.var_types,  stats = self.stats)
+				self.synth_output_processor.process_single_stateful_output(result_file, node)
 
-		# Step 7: Synthesize stateless nodes
-		for bci_comp in self.synth_graph.nodes:
-			if not bci_comp.isStateful:
-				# synthesizestateless node.
-				comp_name = bci_comp.name 
-				result_file = self.synthesize_single_comp(bci_comp, comp_name)
-				if self.is_tofino and bci_comp.contains_ternary():
-					print('processing: output is ternary stateful.')
-					for file in result_file:
-						self.synth_output_processor.process_single_stateful_output(
-						    file, bci_comp.outputs[0], bci_comp)
-				else:
-					print("processing: output is stateless.")
-					output_idx = 0
-					for file in result_file:
-						self.synth_output_processor.process_stateless_output(
-						    file, bci_comp.outputs[output_idx])
-						output_idx += 1
+		# Step 7: Synthesize stateless POs (every output we need to synthesize that is stateless)
+		# including a) POs, b) inputs to stateful, c) pkt vars (TODO: need to add c)
+		for po in self.principal_outputs:
+			bci_comp = bci_rooted_at[po]
+			comp_name = bci_comp.name 
+			result_file = bci_comp.write_sketch_file(self.output_dir, comp_name, self.var_types, po, stats = self.stats)
+			(bci_comp, comp_name)
+			if self.is_tofino and bci_comp.contains_ternary():
+				print('processing: output is ternary stateful.')
+				for file in result_file:
+					self.synth_output_processor.process_single_stateful_output(file, bci_comp)
+			else:
+				print("processing: output is stateless.")
+				self.synth_output_processor.process_stateless_output(result_file, po)
+
 
 		# do postprocessing in the postprocessor
 		self.synth_output_processor.postprocessing()

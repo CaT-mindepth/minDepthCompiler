@@ -578,6 +578,7 @@ class DependencyGraph:
                 if len(v_outputs) == 1 \
                     and (v.is_output_write_flank(list(v_outputs)[0]) or v.is_output_read_flank(list(v_outputs)[0])) \
                     and num_statevars <= num_stateful_registers:
+                    v.stateful_output = list(v_outputs)[0]
                     print('everything fits within a stateful ALU. No need to do anything.')
                     continue
                 
