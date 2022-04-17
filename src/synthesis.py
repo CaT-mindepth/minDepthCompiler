@@ -256,6 +256,10 @@ class Component:  # group of codelets
 		f.write("\t{}[0] = {};\n".format(output_array, self.outputs[0]))
 		if len(self.outputs) > 1:
 			f.write("\t{}[1] = {};\n".format(output_array, self.outputs[1]))
+			f.write("\t{}[2] = {};\n".format(output_array, self.outputs[0]))
+		else:
+			f.write("\t{}[1] = 0;\n".format(output_array))
+			f.write("\t{}[2] = {};\n".format(output_array, self.outputs[0]))
 		# return
 		f.write("\treturn {};\n".format(output_array))
 		f.write("}\n")
@@ -299,11 +303,12 @@ class Component:  # group of codelets
 			f.write('0')
 		f.write(');\n')
 
-		f.write("\tint [2] spec = {}({});\n".format(
+		f.write("\tint [3] spec = {}({});\n".format(
 		    comp_name, ', '.join(self.inputs)))
 
 		f.write("\tassert(impl[0] == spec[0]);\n")
 		f.write("\tassert(impl[1] == spec[1]);\n")
+		f.write("\tassert(impl[2] == spec[2]);\n")
 		f.write("}\n")
 
 	def write_ternary_sketch_file(self, output_path, comp_name, var_types, stats: test_stats.Statistics = None):
@@ -643,7 +648,7 @@ class StatefulComponent(object):
 		output_array = "_out"
 		f.write("\tint[3] {};\n".format(output_array))
 		# declare defined variables
-		defines = self.codelet.get_outputs()
+		defines = self.codelet.get_defines()
 		for v in defines:
 			if v not in self.inputs:
 				f.write("\t{} {};\n".format(var_types[v], v))
@@ -689,14 +694,15 @@ class StatefulComponent(object):
 
 		f.write(") {\n")
 
-		f.write("\tint[2] impl = salu({}, {}, {}, {});\n".format(
+		f.write("\tint[3] impl = salu({}, {}, {}, {});\n".format(
 			self.salu_inputs['metadata_lo'], self.salu_inputs['metadata_hi'], self.salu_inputs['register_lo'], self.salu_inputs['register_hi']
 		))
-		f.write("\tint [2] spec = {}({});\n".format(
+		f.write("\tint [3] spec = {}({});\n".format(
 		    comp_name, ', '.join(self.inputs)))
 
 		f.write("\tassert(impl[0] == spec[0]);\n")
 		f.write("\tassert(impl[1] == spec[1]);\n")
+		f.write("\tassert(impl[2] == spec[2]);\n")
 		f.write("}\n")
 
 	def write_domino_sketch_harness(self, f, var_types, comp_name):

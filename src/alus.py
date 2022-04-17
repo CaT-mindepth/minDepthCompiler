@@ -328,6 +328,9 @@ class SALU(GenericALU):
                               # used for demangling register_lo / hi values
                               'register_lo',
                               'register_hi']
+        # for finding dependencies
+        self.outputs = [ output_dst ]
+        self.inputs = [metadata_lo_name, metadata_hi_name, register_lo_0_name, register_hi_1_name]
         # dict for storing expressions of synthesized variables.
         self.var_expressions = {'output_dst': self.output_dst}
         # XXX: retain register_lo and register_hi as keywords; don't process them.

@@ -79,7 +79,7 @@ def resolve_stateless(is_tofino):
         return domino_stateless_grammar
 
 def resolve_stateful(name):
-    if name == None:
+    if name == None or name == 'tofino':
         return tofino_stateful_grammar 
     else: 
         return domino_stateful_grammars[name]

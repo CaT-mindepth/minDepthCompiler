@@ -70,7 +70,7 @@ class SketchOutputProcessor(GenericOutputProcessor):
             l = f.readline()
             outs = []
             print('find_output_dst: trying to find `void ' + specname + '`')
-            while not l.startswith("int[2] " + specname):
+            while not l.startswith("int[3] " + specname):
                 #print('curr line: ' + l)
                 l = f.readline()
             print('done')
@@ -85,11 +85,11 @@ class SketchOutputProcessor(GenericOutputProcessor):
                     for tok in lexer:
                         l_toks.append(tok)
                     if l_toks[1].type == 'LBRACKET' and l_toks[3].type == 'RBRACKET':
-                        if l_toks[2].value == '1':
-                            assert (l_toks[-1].type == 'ID')
+                        if l_toks[2].value == '2':
+                            # assert (l_toks[-1].type == 'ID')
                             print("> found out variable: ", l_toks[-1].value)
                             outs.append(l_toks[-1].value)
-        #print('done ---- outs[-1] is ', outs[-1])
+        print('done ---- outs[-1] is ', outs[-1])
         return outs[-1] if len(outs) > 0 else '0'
 
     # process a stateful ALU from a single stateful sketch file.

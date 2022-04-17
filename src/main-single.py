@@ -17,6 +17,10 @@ def tokenize_expr(expr):
   return (toks, variables)
 
 
+tofino_stateless_grammar = 'grammars/stateless_tofino.sk'
+tofino_stateful_grammar = 'grammars/stateful_tofino.sk'
+
+
 class codeGen:
   var_types = {}  # key: variable, value: type
   stmt_map = {}  # key: lhs var, value: list of assignment statements
@@ -80,9 +84,15 @@ if __name__ == "__main__":
   with open(filename, "r") as f:
     codeGen = codeGen(filename, outputfilename, f)
 
-  dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types)
+  dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types, stateful_grammar="tofino")
+
+
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
-                                    dep_graph_obj.scc_graph, dep_graph_obj.stateful_nodes, outputfilename, p4outputname)
+                                    dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
+                                     outputfilename, p4outputname, enableMerging = True, \
+                                     is_tofino = True, stateless_path = 'tofino', 
+                                     stateful_path='tofino')
+
 
   
   # ILP
@@ -94,8 +104,8 @@ if __name__ == "__main__":
   ilp_output = ilp_table.ILP() 
   import p4_codegen 
   codegen = p4_codegen.P4Codegen(ilp_table, ilp_output, "test")
-  #codegen.generate_p4_output('tofino_p4.j2', p4outputname)
-  codegen.generate_json_output('tofino_p4.j2', p4outputname)
+  codegen.generate_p4_output('tofino_p4.j2', p4outputname)
+  #codegen.generate_json_output('tofino_p4.j2', p4outputname)
   
 
   

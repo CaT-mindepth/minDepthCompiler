@@ -223,9 +223,9 @@ int[3] salu(int metadata_lo, int metadata_hi, int register_lo, int register_hi) 
     
     // TODO: output three things, alu_lo, alu_hi, and output_value
     int[3] result;
-    result[0] = register_lo; // register_lo is the state variable
-    result[1] = register_hi;
-    result[2] = output_value; 
+    result[0] = Mux2(register_lo, 0); // register_lo is the state variable
+    result[1] = Mux2(register_hi, 0);
+    result[2] = Mux2(output_value, 0); 
     return result;
 }
 
