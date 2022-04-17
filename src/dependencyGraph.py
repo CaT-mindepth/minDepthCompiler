@@ -579,7 +579,13 @@ class DependencyGraph:
                     and (v.is_output_write_flank(list(v_outputs)[0]) or v.is_output_read_flank(list(v_outputs)[0])) \
                     and num_statevars <= num_stateful_registers:
                     print('everything fits within a stateful ALU. No need to do anything.')
-                    return
+                    continue
+                
+                if len(v_outputs) == 0 and num_statevars <= num_stateful_registers:
+                    print('everything fits within a stateful ALU (no outputs). No need to do anything.')
+                    continue
+
+                print("elements in v_outputs: ", v_outputs)
 
                 # Case 1: Too many stateful variables. Can't synthesize in this case
                 if num_statevars > num_stateful_registers:

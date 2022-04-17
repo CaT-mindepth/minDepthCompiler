@@ -1198,6 +1198,34 @@ class Synthesizer:
 		ret.append(codelet)
 		return ret, ret_inputs  # TODO: deduplicate
 
+
+	# Draws a scc_graph
+	def draw_graph(self, graph, graphfile):
+		dot = Digraph(comment='Component graph')
+		node_stmts = {}
+		idx = 0
+		for node in graph.nodes:
+			if node.isStateful:
+				stmt_text = str(idx) + "; " + str(node)
+				if node.codelet.stateful_output != None:
+					stmt_text += " [stateful output=" + node.codelet.stateful_output + "]"
+				stmt_text = stmt_text.replace(":", "|")
+				node_stmts[node] = stmt_text
+				dot.node(stmt_text)
+				idx += 1
+			else:
+				stmt_text = str(idx) + '; ' + str(node)
+				stmt_text = stmt_text.replace(":", "|")
+				node_stmts[node] = stmt_text
+				dot.node(stmt_text)
+				idx += 1
+
+		print('total number of nodes created: ', idx)
+		for (u, v) in graph.edges:
+			dot.edge(node_stmts[u], node_stmts[v])
+		dot.render(graphfile, view=True)
+
+
 	def compute_scc_graph(self):
 		# Step 1: Process stateful components. By processing we mean
 		# forming a graph of stateful singleton components.
@@ -1219,6 +1247,66 @@ class Synthesizer:
 			self.components.append(stateful_comp)
 			codelet_component[str(u)] = stateful_comp
 			i += 1
+
+
+		# ruijief: modification start
+
+
+		# Step 2: Add single codelets as stateless nodes
+
+		for codelet in self.dep_graph.nodes:
+			if not (codelet.is_stateful(self.state_vars)):
+				stateless_comp = Component([ codelet ], i, grammar_name = self.stateless_path, is_tofino = self.is_tofino)
+				self.components.append(stateless_comp)
+				codelet_component[str(codelet)] = stateless_comp
+				stateless_comp.set_name('comp_' + str(i))
+				i += 1
+
+
+		# print(codelet_component)
+
+		# Step 3: build graph
+		self.scc_graph = nx.DiGraph()
+		for comp in self.components:
+			self.scc_graph.add_node(comp)
+			if comp.isStateful:	
+				for u in self.dep_graph.predecessors(comp.codelet):
+					u_comp = codelet_component[str(u)]
+					self.scc_graph.add_edge(u_comp, comp)
+			else: # comp is stateless
+				for u in self.dep_graph.predecessors(comp.codelets[0]):
+					u_comp = codelet_component[str(u)]
+					self.scc_graph.add_edge(u_comp, comp)
+
+		print('number of nodes on SCC_GRAPH: ', len(self.scc_graph.nodes))
+
+		self.draw_graph(self.scc_graph, self.filename + "_scc_graph")
+
+		exit(1)
+		# Step 4: call merging procedure (if we choose to enable it)
+		self.merge_components()
+
+
+
+		for comp in self.components:
+			if comp.isStateful:
+				# stateful component contains a single (stateful) codelet.
+				for pred_codelet in self.dep_graph.predecessors(comp.codelet):
+					pred_codelet_comp = codelet_component[str(pred_codelet)]
+					self.scc_graph.add_edge(pred_codelet_comp, comp)
+					print(': ', pred_codelet_comp.name, ' ->', comp.name)
+			else:
+				# stateless component. their predecessors come from
+				# corresponding codelets in components_inputs[.] map.
+				for pred_codelet in component_inputs[comp]:
+					pred_codelet_comp = codelet_component[str(pred_codelet)]
+					self.scc_graph.add_edge(pred_codelet_comp, comp)
+					print('! ', pred_codelet_comp.name, ' ->', comp.name)
+
+
+
+		# ruijief: modification end
+
 		# Step 2: Process stateless components. By processing
 		# we mean for each principal stateless output, compute its BCI
 		# and include everything in its BCI in the stateless component.
