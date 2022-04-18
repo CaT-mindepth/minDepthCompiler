@@ -122,6 +122,7 @@ class Codelet:
         self.state_vars = []
         # Initialized to stateful ALU output after splitting transformation (see split_SCC_graph).
         self.stateful_output = None
+        self.stateful = False # initially make this false
 
     def get_stmt_list(self):
         return self.stmt_list
@@ -262,7 +263,7 @@ class Codelet:
         uses = [rhs for stmt in self.stmt_list for rhs in stmt.rhs_vars]
         # an input is a use which has no define in the codelet
         inputs = []
-        if self.is_stateful:  # state_var is always an input for a stateful codelet
+        if self.stateful:  # state_var is always an input for a stateful codelet
             # inputs.append(self.state_var)
             inputs = list(set(self.state_vars))  # deduplicate
 
@@ -290,7 +291,8 @@ class Codelet:
             stmt.print()
     
     def __str__(self):
-        if self.is_stateful:
+        if self.stateful:
+            print('codelet ', " ".join(list(map(str, self.stmt_list))), ' is stateful')
             return " ".join(list(map(str, self.stmt_list))) + " [stateful output =" + str(self.stateful_output) + "]"
         else:
             return " ".join(list(map(str, self.stmt_list)))
@@ -563,6 +565,7 @@ class DependencyGraph:
 
 
         def find_codelet(codelet):
+            print('finding node for codelet: ', str(codelet))
             for node in self.scc_graph:
                 if str(node) == str(codelet):
                     return node
@@ -591,14 +594,18 @@ class DependencyGraph:
                     # add nodes in stmt_subgraph to self.scc_graph
                     for stmt_codelet in stmt_subgraph:
                         node = find_codelet(stmt_codelet)
+                        print('adding stmt : ', stmt_codelet)
+                        print('find_codelet for stmt : ', node)
                         if node == None:
                             self.scc_graph.add_node(stmt_codelet)
                             stmt_nodes[stmt_codelet] = stmt_codelet
                         else:
                             stmt_nodes[stmt_codelet] = node
+                    print('-----------number of nodes in the graph: ', len(self.scc_graph.nodes))
                     # add edges in stmt_subgraph to self.scc_graph
                     for (u_stmt, v_stmt) in stmt_subgraph.edges:
                         self.scc_graph.add_edge(stmt_nodes[u_stmt], stmt_nodes[v_stmt])
+                    print('---------------number of nodes in the graph: ', len(self.scc_graph.nodes))
 
                     # create inputs/outputs from added region via a helper codelet
                     co = Codelet(stmts=bci_stmts)
@@ -621,7 +628,7 @@ class DependencyGraph:
                     # add out-edges
                     for u in v_out_neighbors:
                         if o in u.get_inputs():
-                            self.scc_graph.add_edge(lhs_to_node[o], u)
+                            self.scc_graph.add_edge(stmt_nodes[lhs_to_node[o]], u)
 
 
         print(' ---- split_SCC_graph ----- ')

@@ -568,6 +568,9 @@ class StatefulComponent(object):
     def set_alu_inputs(self):
         if len(self.inputs) > 4:
             print("Error: stateful update does not fit in the stateful ALU.")
+            print('node: ', str(self))
+            print('inputs: ', self.inputs)
+            print('outputs: ', self.outputs)
             exit(1)
 
         print("~~~~~~~~~~set_alu_inputs: ", self.inputs)
