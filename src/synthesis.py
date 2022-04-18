@@ -828,11 +828,13 @@ class Synthesizer:
     def __init__(self, state_vars,
                  var_types, pkt_vars, dep_graph, read_write_flanks, stateful_nodes,
                  filename, p4_output_name, enableMerging, stats: test_stats.Statistics = None,
-                 is_tofino=True, stateless_path=None, stateful_path=None):
+                 is_tofino=True, stateless_path=None, stateful_path=None, eval = False):
         # handle domino grammar generation.
         self.is_tofino = is_tofino
         self.stateless_path = stateless_path
         self.stateful_path = stateful_path
+
+        self.eval = eval
 
         self.state_vars = state_vars
         self.var_types = var_types
@@ -1524,193 +1526,11 @@ class Synthesizer:
 
         return  # return to constructor
 
-        """
-		for comp in self.components:
-			if comp.isStateful:
-				# stateful component contains a single (stateful) codelet.
-				for pred_codelet in self.dep_graph.predecessors(comp.codelet):
-					pred_codelet_comp = codelet_component[str(pred_codelet)]
-					self.scc_graph.add_edge(pred_codelet_comp, comp)
-					print(': ', pred_codelet_comp.name, ' ->', comp.name)
-			else:
-				# stateless component. their predecessors come from
-				# corresponding codelets in components_inputs[.] map.
-				for pred_codelet in component_inputs[comp]:
-					pred_codelet_comp = codelet_component[str(pred_codelet)]
-					self.scc_graph.add_edge(pred_codelet_comp, comp)
-					print('! ', pred_codelet_comp.name, ' ->', comp.name)
-
-
-
-		# ruijief: modification end
-
-		# Step 2: Process stateless components. By processing
-		# we mean for each principal stateless output, compute its BCI
-		# and include everything in its BCI in the stateless component.
-
-		# 2a: process principal outputs (POs).
-		principal_outputs = []
-		for codelet in self.dep_graph.nodes:
-			if not(codelet.is_stateful(self.state_vars)):
-				if len(list(self.dep_graph.successors(codelet))) == 0:
-					# contains principal outputs. Include it in the list
-					principal_outputs.append(codelet)
-
-		print('number of POs: ', len(principal_outputs))
-
-		for codelet in principal_outputs:
-			print('processing PO codelet: ', str(codelet))
-			bci_nodes, bci_inputs = self.BCI(codelet)
-			bci_nodes = list(set(bci_nodes))
-			# sort bci_nodes accd to RAW dependencies
-			print("sorting bci nodes accd to RAW dependencies")
-			g = nx.DiGraph()
-			g.add_nodes_from(bci_nodes)
-			bci_edges = []
-			for e in self.dep_graph.edges:
-				if e[0] in bci_nodes and e[1] in bci_nodes:
-					bci_edges.append(e)
-					print("adding edge from [{}] to [{}]".format(e[0], e[1]))
-			
-			g.add_edges_from(bci_edges)
-			bci_nodes_sorted = []
-			print("bci nodes sorted")
-			for node in nx.topological_sort(g):
-				node.print()
-				bci_nodes_sorted.append(node)
-
-			# print("bci_nodes_sorted", bci_nodes_sorted)
-
-			bci_inputs = list(set(bci_inputs))  # dedup.
-			if self.stateless_path != None:
-				bci_comp = Component(
-				    bci_nodes_sorted, i, grammar_name=self.stateless_path, is_tofino=self.is_tofino)
-			else:
-				bci_comp = Component(bci_nodes_sorted, i, is_tofino=self.is_tofino)
-			for node in bci_nodes_sorted:
-				codelet_component[str(node)] = bci_comp
-			component_inputs[bci_comp] = bci_inputs
-			self.components.append(bci_comp)
-			print(' -> stateless PO component: ', bci_comp, ' | id = ', bci_comp.name)
-			i += 1
-
-		for comp in self.components:
-			if comp.isStateful:
-				print(' # state_vars : ', comp.state_vars)
-
-		# 2b:
-		# calculate BCIs for stateless outputs that aren't POs.
-		# They occur because as inputs to stateful components.
-		for codelet in self.dep_graph.nodes:
-			if not(codelet.is_stateful(self.state_vars)) and not (str(codelet) in codelet_component):
-				bci_nodes, bci_inputs = self.BCI(codelet)
-				bci_nodes = list(set(bci_nodes))
-				bci_inputs = list(set(bci_inputs))
-				if self.stateless_path != None:
-					bci_comp = Component(
-					    bci_nodes, i, grammar_name=self.stateless_path, is_tofino=self.is_tofino)
-				else:
-					bci_comp = Component(bci_nodes, i, is_tofino=self.is_tofino)
-				for node in bci_nodes:
-					codelet_component[str(node)] = bci_comp
-				self.components.append(bci_comp)
-				component_inputs[bci_comp] = bci_inputs
-				i += 1
-		# Finally: Build the actual components graph by adding predecessor relations.
-		# Stateful components: Add their predecessor codelets' corresponding
-		# components as in-neighbors.
-		# Stateless components: Add their input codelets' corresponding components
-		# as in-neighbors.
-		self.scc_graph = nx.DiGraph()
-		for comp in self.components:
-			self.scc_graph.add_node(comp)
-
-		for comp in self.components:
-			if comp.isStateful:
-				# stateful component contains a single (stateful) codelet.
-				for pred_codelet in self.dep_graph.predecessors(comp.codelet):
-					pred_codelet_comp = codelet_component[str(pred_codelet)]
-					self.scc_graph.add_edge(pred_codelet_comp, comp)
-					print(': ', pred_codelet_comp.name, ' ->', comp.name)
-			else:
-				# stateless component. their predecessors come from
-				# corresponding codelets in components_inputs[.] map.
-				for pred_codelet in component_inputs[comp]:
-					pred_codelet_comp = codelet_component[str(pred_codelet)]
-					self.scc_graph.add_edge(pred_codelet_comp, comp)
-					print('! ', pred_codelet_comp.name, ' ->', comp.name)
-
-		# we leave it to the postprocessor to figure out dependencies between
-		# stateless and stateful components.
-		print('--------------------- stateless components from BCI --------------------')
-		for comp in self.components:
-			if comp.isStateful:
-				print('------- Stateful Component: ', comp.name)
-				print(comp)
-				print('# state_vars: ', comp.state_vars)
-				print('-------')
-			else:
-				print('------- Stateless Component: ', comp.name)
-				print(comp)
-				print('-------')
-
-		"""
-
     def process_graph(self):
         self.state_vars = list(set(self.state_vars))
         self.comp_graph = nx.DiGraph()
         self.compute_scc_graph()
-
         return
-
-        # self.write_comp_graph()
-
-        for node in self.comp_graph:
-            print("node: ", str(node))
-            print('out-edges: ')
-            for out in self.comp_graph.successors(node):
-                print('out: ', str(out))
-        exit(1)
-        # if False:  # True: #False: # True: # self.is_tofino:
-        if self.enableMerging:
-            print("------------------------------------------------- Merging components... ------------------------------------")
-            if self.stats != None:
-                self.stats.update_num_components(
-                    len(list(self.comp_graph.nodes)))
-                self.stats.start_merging()
-            self.merge_components()
-            if self.stats != None:
-                self.stats.end_merging()
-            print("------------------------------------------------- Merge components end. ------------------------------------")
-            print(' * number of components in current graph: ',
-                  len(list(self.comp_graph.nodes)))
-            if self.stats != None:
-                self.stats.update_num_postmerge_components(
-                    len(list(self.comp_graph.nodes)))
-            print('----------------------------------')
-        else:
-            if self.stats != None:
-                self.stats.start_merging()
-                self.stats.end_merging()
-                self.stats.num_successful_merges = 0
-                self.stats.update_num_postmerge_components(
-                    len(list(self.comp_graph.nodes)))
-            print('Skipping merge components algorithm...')
-        self.comp_index = {}  # component -> index
-        print("comp index", self.comp_index)
-        # check for redundant outputs
-        print("Eliminate redundant outputs after merging")
-        i = 0
-        for comp in nx.topological_sort(self.comp_graph):
-            print(' -------- component ', i, ' is this: ', str(comp))
-            self.comp_index[comp] = i
-            print(i)
-            comp.print()
-            comp.update_outputs(self.comp_graph.neighbors(comp))
-            print("inputs", comp.inputs)
-            print("outputs", comp.outputs)
-            i += 1
-        self.write_comp_graph()
 
     def synthesize_single_comp(self, comp, comp_name):
         if comp.isStateful:
@@ -1775,9 +1595,10 @@ class Synthesizer:
         # nx.draw(self.comp_graph)
 
     def write_comp_graph(self):
-        f_deps = open(os.path.join(self.output_dir, "deps.txt"), 'w+')
-        num_nodes = len(self.comp_graph.nodes)
-        f_deps.write("{}\n".format(num_nodes))
-        for u, v in self.comp_graph.edges:
-            f_deps.write("{} {}\n".format(
-                self.comp_index[u], self.comp_index[v]))
+        if not self.eval:
+            f_deps = open(os.path.join(self.output_dir, "deps.txt"), 'w+')
+            num_nodes = len(self.comp_graph.nodes)
+            f_deps.write("{}\n".format(num_nodes))
+            for u, v in self.comp_graph.edges:
+                f_deps.write("{} {}\n".format(
+                    self.comp_index[u], self.comp_index[v]))

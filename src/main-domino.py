@@ -84,6 +84,7 @@ if __name__ == "__main__":
   arg_parser.add_argument('output', help='Output location')
   arg_parser.add_argument("statefulALU", help="Stateful ALU")
   arg_parser.add_argument("--predPack", help="enable_predecessor_packing", action="store_true")
+  arg_parser.add_argument("--eval", help="enable eval mode", action="store_true")
   arg_parser.add_argument("--stages", help="number of pipeline stages", type=int)
   arg_parser.add_argument("--ALUs", help="number of ALUs per stage", type=int)
 
@@ -120,7 +121,7 @@ if __name__ == "__main__":
     codeGen = codeGen(filename, outputfilename, f)
 
 
-  dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types, stateful_grammar = stateful_alu)
+  dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types, stateful_grammar = stateful_alu, eval = args.eval)
 
   """
   for sn in dep_graph_obj.stateful_nodes:
@@ -141,7 +142,7 @@ if __name__ == "__main__":
                                     dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
                                      outputfilename, p4outputname, enableMerging, \
                                      is_tofino = is_tofino, stateless_path = stateless_alu, 
-                                     stateful_path=stateful_alu)
+                                     stateful_path=stateful_alu, eval = args.eval)
   
 
   # ILP

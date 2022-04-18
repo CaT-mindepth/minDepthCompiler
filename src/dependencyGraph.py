@@ -293,11 +293,13 @@ class Codelet:
         return " ".join(list(map(str, self.stmt_list))) + " [stateful output =" + str(self.stateful_output) + "]"
 
 class DependencyGraph:
-    def __init__(self, filename, state_vars, var_types, stateful_grammar="tofino"):
+    def __init__(self, filename, state_vars, var_types, stateful_grammar="tofino", eval = False):
         self.inputfilename = filename
         self.state_variables = state_vars
         self.var_types = var_types
         self.outputfilename = filename + "_3addr_code"
+
+        self.eval = eval
 
         self.stmt_list = []  # list of statements
         # key: lhs var, value: stmt (value is unique since input is in SSA)
@@ -720,7 +722,8 @@ class DependencyGraph:
         for (u, v) in graph.edges:
             dot.edge(node_stmts[u], node_stmts[v])
 
-        dot.render(graphfile, view=True)
+        if not self.eval:
+            dot.render(graphfile, view=True)
 
 
 if __name__ == "__main__":
