@@ -1277,10 +1277,11 @@ class Synthesizer:
                 dot.node(stmt_text)
                 idx += 1
 
-        print('total number of nodes created: ', idx)
-        for (u, v) in graph.edges:
-            dot.edge(node_stmts[u], node_stmts[v])
-        dot.render(graphfile, view=True)
+        if not self.eval:
+            print('total number of nodes created: ', idx)
+            for (u, v) in graph.edges:
+                dot.edge(node_stmts[u], node_stmts[v])
+            dot.render(graphfile, view=True)
 
     def compute_scc_graph(self):
         # Step 1: Process stateful components. By processing we mean
@@ -1595,10 +1596,9 @@ class Synthesizer:
         # nx.draw(self.comp_graph)
 
     def write_comp_graph(self):
-        if not self.eval:
-            f_deps = open(os.path.join(self.output_dir, "deps.txt"), 'w+')
-            num_nodes = len(self.comp_graph.nodes)
-            f_deps.write("{}\n".format(num_nodes))
-            for u, v in self.comp_graph.edges:
-                f_deps.write("{} {}\n".format(
-                    self.comp_index[u], self.comp_index[v]))
+        f_deps = open(os.path.join(self.output_dir, "deps.txt"), 'w+')
+        num_nodes = len(self.comp_graph.nodes)
+        f_deps.write("{}\n".format(num_nodes))
+        for u, v in self.comp_graph.edges:
+            f_deps.write("{} {}\n".format(
+                self.comp_index[u], self.comp_index[v]))
