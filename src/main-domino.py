@@ -98,6 +98,7 @@ if __name__ == "__main__":
   max_alus = args.ALUs
   enableMerging = args.predPack
 
+
   start = time.time()
 
   try:
