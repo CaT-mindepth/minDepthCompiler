@@ -433,6 +433,7 @@ class StatefulComponent(object):
         self.bci_inputs = []
         self.bci_outputs = []
         self.is_duplicated = False
+        self.sort_inputs()
 
     def get_stateful_output(self):
         return self.codelet.get_stateful_output()
@@ -452,6 +453,18 @@ class StatefulComponent(object):
     def get_inputs_outputs(self):
         self.inputs = self.codelet.get_inputs()
         self.outputs = self.codelet.get_defines()
+        self.sort_inputs()
+
+    # state vars need to come first.
+    def sort_inputs(self):
+        stateful_inputs = []
+        stateless_inputs = []
+        for input in self.inputs:
+            if input in self.state_vars:
+                stateful_inputs.append(input)
+            else:
+                stateless_inputs.append(input)
+        self.inputs = stateful_inputs + stateless_inputs
 
     def temp_var(self, var):
         if var in self.state_pkt_fields:
@@ -778,6 +791,8 @@ class StatefulComponent(object):
 
     def write_sketch_file(self,
                           output_path, comp_name, var_types, prefix="", stats: test_stats.Statistics = None):
+        #make sure stateful inputs appear before stateless ones.
+        self.sort_inputs()
         if stats != None:
             stats.start_synthesis_comp(f"stateful {comp_name}")
         sketch_filename = os.path.join(
