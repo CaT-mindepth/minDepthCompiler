@@ -29,14 +29,14 @@ class codeGen:
     self.filename = filename
     self.outputfilename = outputfilename
     self.tmp_cnt = 0
-
+    self.pkt_vars = set()
     self.get_type_info(f)
 
   def get_type_info(self, f):
     decls_end = False
     line_no = 0
     state_var = False
-
+    pkt_var = False
     line = f.readline()
     while line != "# declarations end\n":
       # store type information
@@ -44,6 +44,11 @@ class codeGen:
         state_var = True
       elif line == "# state variables end\n":
         state_var = False
+      elif line == "# packet vars start\n":
+        pkt_var = True
+      elif pkt_var:
+        line = line.rstrip()
+        self.pkt_vars.add(line)
       else:
         line = line.rstrip()
         line = line.replace(";", "")
@@ -114,6 +119,7 @@ if __name__ == "__main__":
   with open(filename, "r") as f:
     codeGen = codeGen(filename, outputfilename, f)
 
+
   dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types, stateful_grammar = stateful_alu)
 
   """
@@ -131,7 +137,7 @@ if __name__ == "__main__":
   """
   print("TODO: call synthesizer")
 
-  synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, \
+  synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, codeGen.pkt_vars, \
                                     dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
                                      outputfilename, p4outputname, enableMerging, \
                                      is_tofino = is_tofino, stateless_path = stateless_alu, 

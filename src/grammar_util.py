@@ -38,6 +38,17 @@ num_stateless_domino = {
     'sub' : 2
 }
 
+
+num_stateless = {
+    'raw': 1,
+    'if_else_raw' : 2,
+    'nested_ifs' : 2,
+    'pair' : 2,
+    'pred_raw' : 2,
+    'sub' : 2,
+    'tofino': 2,
+}
+
 num_inputs = {
     'raw': 2,
     'if_else_raw' : 3,
