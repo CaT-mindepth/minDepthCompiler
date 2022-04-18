@@ -1344,46 +1344,56 @@ class Synthesizer:
         self.draw_graph(self.comp_graph, self.filename + "_merged_graph")
 
         # fold branch temporaries
-        for node in self.comp_graph.nodes:
-            if node.isStateful:
-                preds = list(self.comp_graph.predecessors(node))
-                for pred in preds:
-                    if (not pred.isStateful) and pred.contains_only_ternary():
-                        # pred is br_tmp.
-                        # We can try folding predecessor into current node and synthesize.
-                        print('trying to fold node: ', str(node))
-                        print('trying to fold predecessor: ', str(pred))
+        folded_node = True
+        folding_idx = 0
+        while folded_node:
+            print(' ----------------- iteratively folding node. folding_idx = ', folding_idx)
+            folded_node = False
+            folding_idx += 1
+            for node in self.comp_graph.nodes:
+                if node.isStateful:
+                    preds = list(self.comp_graph.predecessors(node))
+                    for pred in preds:
+                        if (not pred.isStateful) and pred.contains_only_ternary():
+                            # pred is br_tmp.
+                            # We can try folding predecessor into current node and synthesize.
+                            print('trying to fold node: ', str(node))
+                            print('trying to fold predecessor: ', str(pred))
 
-                        # check inputs
-                        merged_inputs = set(pred.inputs)
-                        merged_inputs.update(node.inputs)
-                        merged_inputs = list(merged_inputs)
-                        merged_inputs = list(filter(
-                            lambda x: x not in pred.outputs and x not in self.state_vars, merged_inputs))
+                            # check inputs
+                            merged_inputs = set(pred.inputs)
+                            merged_inputs.update(node.inputs)
+                            merged_inputs = list(merged_inputs)
+                            merged_inputs = list(filter(
+                                lambda x: x not in pred.outputs and x not in self.state_vars, merged_inputs))
 
-                        if self.is_tofino:
-                            if len(merged_inputs) > grammar_util.num_stateless['tofino']:
-                                print(
-                                    ' --- cannot fold. too many stateless inputs: ', merged_inputs)
-                                continue
-                        else:
-                            if len(merged_inputs) > grammar_util.num_stateless[self.stateful_path]:
-                                print(
-                                    ' --- cannot fold. too many stateless inputs: ', merged_inputs)
-                                continue
+                            if self.is_tofino:
+                                if len(merged_inputs) > grammar_util.num_stateless['tofino']:
+                                    print(
+                                        ' --- cannot fold. too many stateless inputs: ', merged_inputs)
+                                    continue
+                            else:
+                                if len(merged_inputs) > grammar_util.num_stateless[self.stateful_path]:
+                                    print(
+                                        ' --- cannot fold. too many stateless inputs: ', merged_inputs)
+                                    continue
 
-                        if self.try_merge(pred, node):
-                            print(' --- can fold. performing folding...')
-                            # add br_tmp statement into stateful node
-                            node.codelet.add_stmts_before(
-                                pred.codelets[0].stmt_list)
-                            node.comp_stmts = node.codelet.get_stmt_list()
-                            # delete edge from pred to node
-                            self.comp_graph.remove_edge(pred, node)
-                            node.get_inputs_outputs()
+                            if self.try_merge(pred, node):
+                                print(' --- can fold. performing folding...')
+                                folded_node = True
+                                # add br_tmp statement into stateful node
+                                node.codelet.add_stmts_before(
+                                    pred.codelets[0].stmt_list)
+                                node.comp_stmts = node.codelet.get_stmt_list()
+                                # delete edge from pred to node
+                                self.comp_graph.remove_edge(pred, node)
+                                # inherit predecessor's in-edges
+                                for predpred in self.comp_graph.predecessors(pred):
+                                    self.comp_graph.add_edge(predpred, node)
+                                node.get_inputs_outputs()
 
-                        else:
-                            print(' --- cannot fold.')
+                            else:
+                                print(' --- cannot fold.')
 
         self.draw_graph(self.comp_graph, self.filename + "_folded_graph")
 
@@ -1420,10 +1430,15 @@ class Synthesizer:
                 # add stateless inputs of that node as POs.
                 for pred in self.comp_graph.predecessors(node):
                     if not pred.isStateful:
-                        self.principal_outputs.add(
-                            pred.codelets[0].stmt_list[0].lhs)
+                        pred_output = pred.codelets[0].stmt_list[0].lhs
+                        if pred_output in node.inputs:
+                            self.principal_outputs.add(pred_output)
+        #        for node_input in node.inputs:
+        #            if (node_input not in self.state_vars) and (node_input not in self.rw_flank_vars):
+        #                self.principal_outputs.add(node_input)
 
-        print(self.principal_outputs)
+        print('Principal Outputs: ', self.principal_outputs)
+
 
         # TODO: (preprocessor input) in addition to those above we also need to synthesize
         # last SSA'd packet fields. But can't do so without preprocessor input yet.

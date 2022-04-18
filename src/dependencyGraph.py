@@ -290,7 +290,10 @@ class Codelet:
             stmt.print()
     
     def __str__(self):
-        return " ".join(list(map(str, self.stmt_list))) + " [stateful output =" + str(self.stateful_output) + "]"
+        if self.is_stateful:
+            return " ".join(list(map(str, self.stmt_list))) + " [stateful output =" + str(self.stateful_output) + "]"
+        else:
+            return " ".join(list(map(str, self.stmt_list)))
 
 class DependencyGraph:
     def __init__(self, filename, state_vars, var_types, stateful_grammar="tofino", eval = False):
@@ -528,6 +531,43 @@ class DependencyGraph:
             print('size of SCC graph post-duplicate: ', len(self.scc_graph.nodes))
             return flank_to_codelet, v_out_neighbors
 
+
+        def parse_bci_deps(stmts):
+            g = nx.DiGraph()
+            
+            lhs_to_node = {}
+            stmt_to_codelet = {}
+            node_inputs = {}
+
+            # add stmt to graph as nodes
+            for stmt in stmts:
+                stmt_codelet = Codelet([ stmt ])                
+                g.add_node(stmt_codelet)
+                lhs_to_node[stmt.lhs] = stmt_codelet 
+                stmt_to_codelet[stmt] = stmt_codelet
+
+                # add stmt_codelet to node_inputs[rhs] for every rhs
+                for rhs in stmt.rhs_vars:
+                    if rhs in node_inputs:
+                        node_inputs[rhs].append(stmt_codelet)
+                    else:
+                        node_inputs[rhs] = [ stmt_codelet ]
+
+            # add dependencies based on stmt rhs
+            for stmt in stmts:
+                for rhs in stmt.rhs_vars:
+                    if rhs in lhs_to_node: # otherwise rhs is an input
+                        g.add_edge(lhs_to_node[rhs], stmt_to_codelet[stmt])
+
+            return g, node_inputs, lhs_to_node
+
+
+        def find_codelet(codelet):
+            for node in self.scc_graph:
+                if str(node) == str(codelet):
+                    return node
+            return None
+
         # Function for assigning stateless logic in node `v` into predecessor nodes after step 2 of case 3 (see above).
         def split_stateless_bcis(v, v_outputs, v_out_neighbors, flank_to_codelet, fake_flanks=set()):
             # Step 3: iterate through each output with the map `bcis`, possibly create new
@@ -542,27 +582,46 @@ class DependencyGraph:
                 if bci == [] or o in fake_flanks:
                     pass  # taken care of
                 else:
-                    # create new codelet from BCI.
+                    # create new codelets from BCI.
                     bci_stmts = copy.deepcopy(bci)
                     bci_stmts.reverse()
+
+                    stmt_subgraph, node_inputs, lhs_to_node = parse_bci_deps(bci_stmts)
+                    stmt_nodes = {}
+                    # add nodes in stmt_subgraph to self.scc_graph
+                    for stmt_codelet in stmt_subgraph:
+                        node = find_codelet(stmt_codelet)
+                        if node == None:
+                            self.scc_graph.add_node(stmt_codelet)
+                            stmt_nodes[stmt_codelet] = stmt_codelet
+                        else:
+                            stmt_nodes[stmt_codelet] = node
+                    # add edges in stmt_subgraph to self.scc_graph
+                    for (u_stmt, v_stmt) in stmt_subgraph.edges:
+                        self.scc_graph.add_edge(stmt_nodes[u_stmt], stmt_nodes[v_stmt])
+
+                    # create inputs/outputs from added region via a helper codelet
                     co = Codelet(stmts=bci_stmts)
                     co_inputs = co.get_inputs()
-                    # add co to graph as successor of PIs it depends on.
-                    self.scc_graph.add_node(co)
                     # add in-edges to co using flank_to_codelet.
                     flanks = set(read_flanks + write_flanks)
+                    # add edge from stateful copy of v outputting flank, to stateless node depending on it.
                     for flank in flanks:
-                        self.scc_graph.add_edge(flank_to_codelet[flank], co)
+                        for stmt_codelet in node_inputs[flank]:
+                            self.scc_graph.add_edge(flank_to_codelet[flank], stmt_nodes[stmt_codelet])
+                    
+                    # add an edge for every required input from v's predecessors.
                     for input in co_inputs:
                         if not (input in flanks):
                             for pred in self.scc_graph.predecessors(v):
                                 if input in pred.get_outputs():
-                                    self.scc_graph.add_edge(pred, co)
-                                    break
+                                    for stmt_codelet in node_inputs[input]:
+                                        self.scc_graph.add_edge(pred, stmt_nodes[stmt_codelet])
+
                     # add out-edges
                     for u in v_out_neighbors:
                         if o in u.get_inputs():
-                            self.scc_graph.add_edge(co, u)
+                            self.scc_graph.add_edge(lhs_to_node[o], u)
 
 
         print(' ---- split_SCC_graph ----- ')
@@ -644,6 +703,7 @@ class DependencyGraph:
                     v, v_outputs, v_out_neighbors, flank_to_codelet, fake_flanks=fake_flanks)
         print('number of SCC nodes post splitting: ', len(self.scc_graph.nodes))
         self.draw_graph(self.scc_graph, self.inputfilename + "_splitted_dag")
+
 
     def build_SCC_graph(self):  # strongly connected components
         i = 0
