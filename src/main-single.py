@@ -87,7 +87,6 @@ if __name__ == "__main__":
   start = time.time()
 
   print('enabling predecessor packing? ', args.predPack)
-  exit(1)
   with open(filename, "r") as f:
     codeGen = codeGen(filename, outputfilename, f)
 
