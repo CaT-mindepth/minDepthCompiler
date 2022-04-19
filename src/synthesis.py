@@ -462,6 +462,8 @@ class StatefulComponent(object):
                 stateful_inputs.append(input)
             else:
                 stateless_inputs.append(input)
+        stateful_inputs.sort()
+        stateless_inputs.sort()
         self.inputs = stateful_inputs + stateless_inputs
 
     def temp_var(self, var):
@@ -622,6 +624,7 @@ class StatefulComponent(object):
 
     def write_domino_sketch_spec(self, f, var_types, comp_name):
         # generate list of arguments
+        self.sort_inputs()
         input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
         spec_name = comp_name
         # write function signature
@@ -739,6 +742,7 @@ class StatefulComponent(object):
         f.write("}\n")
 
     def write_domino_sketch_harness(self, f, var_types, comp_name):
+        self.sort_inputs()
         f.write("harness void sketch(")
         if len(self.inputs) >= 1:
             var_type = var_types[self.inputs[0]]
