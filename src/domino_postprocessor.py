@@ -30,6 +30,7 @@ class DominoOutputProcessor(GenericOutputProcessor):
             comp_output = ''
             final_output = ''
             alus_created = []
+            lexer = lex.lex(module=lexerRules)
             while not done:
                 l = fd.readline().strip()
                 lineno += 1
@@ -39,16 +40,18 @@ class DominoOutputProcessor(GenericOutputProcessor):
                     self.add_new_alu(alu, input_file)
                     alus_created.append(alu)
                 elif l.startswith('comp'):
-                    toks = l.strip().split()
-                    comp_output = toks[-1]
-                    comp_output = comp_output[:comp_output.find(')')]
+                    lexer.input(l)
+                    toks = list(lexer)
+                    assert toks[-1].type == 'RPAREN'
+                    comp_output = toks[-2].value 
                 elif l.startswith('assert'):
-                    toks = l.strip().split()
-                    first_var = toks[1]
-                    first_var = first_var.replace('(', '')
-                    second_var = toks[3]
-                    second_var = second_var.replace(')', '')
-                    second_var = second_var.replace(';', '')
+                    lexer.input(l)
+                    toks = list(lexer)
+                    assert toks[0].value == 'assert'
+                    assert toks[1].type == 'LPAREN'
+                    first_var = toks[2].value
+                    assert toks[3].value == '=='
+                    second_var = toks[4].value
                     if second_var == comp_output:
                         final_output = first_var
                     else:
@@ -57,7 +60,9 @@ class DominoOutputProcessor(GenericOutputProcessor):
                     assert(comp_output != '')
                     assert(final_output != '')
                     replaced = False
+                    print('final_output: ', final_output)
                     for alu in alus_created:
+                        print('   alu output: ', alu.output)
                         if alu.output == final_output:
                             alu.set_output(output)
                             replaced = True
