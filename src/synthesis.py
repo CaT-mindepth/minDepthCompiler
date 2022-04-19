@@ -1359,9 +1359,8 @@ class Synthesizer:
 
         print('number of nodes in comp_graph: ', len(self.comp_graph.nodes))
 
-        
+        self.merge_idx = 0
         if self.enableMerging:
-                self.merge_idx = 0
                 self.merge_components()
 
         self.draw_graph(self.comp_graph, self.filename + "_merged_graph")
