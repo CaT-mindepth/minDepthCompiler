@@ -248,7 +248,9 @@ class Component:  # group of codelets
         output_array = "_out"
         f.write("\tint[3] {};\n".format(output_array))
         # declare defined variables
-        defines = self.codelets[0].get_outputs()
+        defines = []
+        for codelet in self.codelets:
+            defines += codelet.get_defines()
         for v in defines:
             if v not in self.inputs:
                 f.write("\t{} {};\n".format(var_types[v], v))
