@@ -143,8 +143,8 @@ class Codelet:
         if st1.read_flank:
             return [], [st1.lhs], []
 
-        if st1.write_flank:
-            return [], [], [st1.rhs_vars[0]]
+        if self.is_output_write_flank(st1.lhs):
+            return [], [], [st1.lhs]
 
         # for every statement in list, test if it is
         # st1's dependency. If it is, add it and return.
@@ -164,8 +164,8 @@ class Codelet:
             if st2.lhs in st1_rhs_deps:
                 if st2.read_flank:
                     read_flanks.append(st2.lhs)
-                elif st2.write_flank:
-                    write_flanks.append(st2.rhs_vars[0])
+                elif self.is_output_write_flank(st2.lhs):
+                    write_flanks.append(st2.lhs)
                 else:
                     deps_ret.append(st2)
                     for var in st2.rhs_vars:
@@ -484,6 +484,9 @@ class DependencyGraph:
             for o in v_outputs:
                 # Note that even if o is a flank, it must be in either read_flanks or write_flanks.
                 _, read_flanks, write_flanks = bcis[o]
+                
+                print('output ', o, '   read_flanks: ', read_flanks, '  write_flanks: ', write_flanks)
+
                 flanks.update(read_flanks)
                 flanks.update(write_flanks)
 
@@ -492,6 +495,8 @@ class DependencyGraph:
             # some of the stateless output variables as flanks by doing
             # their computation in a stateful register.
             flanks.update(fake_flanks)
+
+            print('flanks: ', flanks)
 
             # Step 2: For each additional flank, create a parallel codelet
             # that outputs exactly that flank.
@@ -639,6 +644,13 @@ class DependencyGraph:
                 num_outputs = len(v_outputs)  # won't include state vars, but
                 num_statevars = len(v.state_vars)
 
+                print(' -------------- v_outputs: ', v_outputs)
+                for out in v_outputs:
+                    if v.is_output_read_flank(out):
+                        print(out, ' is read flank')
+                    if v.is_output_write_flank(out):
+                        print(out, ' is write flank')
+
                 # query for number of stateful ALUs
                 num_stateful_registers = grammar_util.num_statefuls[self.stateful_grammar]
 
@@ -710,7 +722,6 @@ class DependencyGraph:
                     v, v_outputs, v_out_neighbors, flank_to_codelet, fake_flanks=fake_flanks)
         print('number of SCC nodes post splitting: ', len(self.scc_graph.nodes))
         self.draw_graph(self.scc_graph, self.inputfilename + "_splitted_dag")
-
 
     def build_SCC_graph(self):  # strongly connected components
         i = 0

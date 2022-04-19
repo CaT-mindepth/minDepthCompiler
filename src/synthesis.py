@@ -258,6 +258,7 @@ class Component:  # group of codelets
         # update output array
         if not(len(self.outputs) <= 2):
             print('ERROR: outputs are ', self.outputs, ' which is more than 2.')
+            print('node: ', str(self))
             assert False
         f.write("\t{}[0] = {};\n".format(output_array, self.outputs[0]))
         if len(self.outputs) > 1:
