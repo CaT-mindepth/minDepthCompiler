@@ -625,6 +625,7 @@ class StatefulComponent(object):
     def write_domino_sketch_spec(self, f, var_types, comp_name):
         # generate list of arguments
         self.sort_inputs()
+        self.state_vars.sort()
         input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
         spec_name = comp_name
         # write function signature
@@ -646,10 +647,8 @@ class StatefulComponent(object):
 
         # update output array
         si = 0
-        asserted = set()
 
         for state_var in self.state_vars:
-            asserted.add(state_var)
             f.write("\t{}[{}] = {};\n".format(spec_ret, si, state_var))
             si += 1
 
