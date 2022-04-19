@@ -333,6 +333,8 @@ class DependencyGraph:
 
         i = 0
         decls_end = False
+        defined_vars = set() # lhs vars
+        used_vars = set() # rhs vars
         for line in self.lines:
             if line == "# declarations end\n":
                 decls_end = True
@@ -351,6 +353,8 @@ class DependencyGraph:
             stmt = Statement(lhs, rhs, i)
             self.stmt_list.append(stmt)
             self.stmt_map[lhs] = stmt
+            defined_vars.add(lhs)
+            used_vars.update(stmt.rhs_vars)
 
             print("state_vars", self.state_variables)
 
@@ -371,6 +375,12 @@ class DependencyGraph:
             self.use_define[stmt] = set()
 
             i += 1
+            
+        # find PIs (variables that are used but not defined)
+        self.PIs = []
+        for v in used_vars:
+            if v not in defined_vars:
+                self.PIs.append(v)
 
     def print_dependencies(self):
         for s, stmts in self.depends.items():
