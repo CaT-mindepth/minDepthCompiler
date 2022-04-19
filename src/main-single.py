@@ -74,7 +74,8 @@ if __name__ == "__main__":
   arg_parser.add_argument('output', help='P4 output location')
   arg_parser.add_argument("--stages", help="number of pipeline stages", type=int)
   arg_parser.add_argument("--ALUs", help="number of ALUs per stage", type=int)
-
+  arg_parser.add_argument("--predPack", help="enable_predecessor_packing", action="store_true")
+  arg_parser.add_argument('--eval', help="evaluation mode", action="store_true")
   args = arg_parser.parse_args()
 
   filename = args.input
@@ -85,18 +86,19 @@ if __name__ == "__main__":
 
   start = time.time()
 
-
+  print('enabling predecessor packing? ', args.predPack)
+  exit(1)
   with open(filename, "r") as f:
     codeGen = codeGen(filename, outputfilename, f)
 
-  dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types, stateful_grammar="tofino")
+  dep_graph_obj = depG.DependencyGraph(filename, codeGen.state_variables, codeGen.var_types, stateful_grammar="tofino", eval = args.eval)
 
 
   synth_obj = synthesis.Synthesizer(codeGen.state_variables, codeGen.var_types, codeGen.pkt_vars, \
                                     dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
-                                     outputfilename, p4outputname, enableMerging = True, \
+                                     outputfilename, p4outputname, enableMerging = args.predPack, \
                                      is_tofino = True, stateless_path = 'tofino', 
-                                     stateful_path='tofino')
+                                     stateful_path='tofino', eval = args.eval)
 
 
   
