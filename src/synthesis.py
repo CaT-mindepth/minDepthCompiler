@@ -223,9 +223,9 @@ class Component:  # group of codelets
         f.write("\t}\n")
 
         # no inputs of type bit
-        if self.is_tofino and not ("bit" not in [var_types[v] for v in self.inputs]):
-            print('ERROR: bit present in inputs')
-            assert False
+        # if self.is_tofino and not ("bit" not in [var_types[v] for v in self.inputs]):
+        #    print('ERROR: bit present in inputs')
+        #    assert False
 
         comp_fxn = comp_name + "(" + ", ".join(self.inputs) + ")"
 
@@ -296,14 +296,14 @@ class Component:  # group of codelets
             var_type = var_types[v]
             f.write(", ")
             f.write("{} {}".format(var_type, v))
-
+        f.write(') {\n')
         assert len(self.inputs) <= 2
         if len(self.inputs) == 1:
             f.write('\tint[3] impl = salu({}, 0, 0, 0);\n'.format(self.inputs[0]))
-            f.write('\tint[3] spec = {}({}, 0, 0, 0);\n'.format(comp_name, self.inputs[0]))
+            f.write('\tint[3] spec = {}({});\n'.format(comp_name, self.inputs[0]))
         else:
             f.write('\tint[3] impl = salu({}, {}, 0, 0);\n'.format(self.inputs[0], self.inputs[1]))
-            f.write('\tint[3] spec = {}({}, {}, 0, 0);\n'.format(comp_name, self.inputs[0], self.inputs[1]))
+            f.write('\tint[3] spec = {}({}, {});\n'.format(comp_name, self.inputs[0], self.inputs[1]))
 
         f.write("\tassert(impl[0] == spec[0]);\n")
         f.write("\tassert(impl[1] == spec[1]);\n")
@@ -317,45 +317,50 @@ class Component:  # group of codelets
                 stats.start_synthesis_comp(f"stateless {comp_name} {o}")
             # start with bound 1, since ALU cannot be a wire (which is bnd 0)
             bnd = 1
-            while True:
-                # run Sketch
-                sketch_filename = os.path.join(
-                    output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
-                sketch_outfilename = os.path.join(
-                    output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk.out")
-                f = open(sketch_filename, 'w+')
-                self.write_grammar_ternary(f)
-                self.write_sketch_spec_ternary(f, var_types, comp_name)
-                f.write("\n")
-                self.write_sketch_harness_ternary(f, var_types, comp_name)
-                f.close()
-                print("sketch {} > {}".format(
-                    sketch_filename, sketch_outfilename))
-                f_sk_out = open(sketch_outfilename, "w+")
-                print("running sketch, bnd = {}".format(bnd))
-                print("sketch_filename", sketch_filename)
-                ret_code = subprocess.call(
-                    ["sketch", sketch_filename], stdout=f_sk_out)
-                print("return code", ret_code)
-                if ret_code == 0:  # successful
-                    if stats != None:
-                        stats.end_synthesis_comp(f"stateless {comp_name} {o}")
-                    print("solved")
-                    result_file = sketch_outfilename
-                    print("output is in " + result_file)
-                    filenames.append(result_file)
-                    break
-                else:
-                    print("failed")
-
-                f_sk_out.close()
-                bnd += 1
+            # run Sketch
+            sketch_filename = os.path.join(
+                output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
+            sketch_outfilename = os.path.join(
+                output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk.out")
+            f = open(sketch_filename, 'w+')
+            self.write_grammar_ternary(f)
+            self.write_sketch_spec_ternary(f, var_types, comp_name)
+            f.write("\n")
+            self.write_sketch_harness_ternary(f, var_types, comp_name)
+            f.close()
+            print("sketch {} > {}".format(
+                sketch_filename, sketch_outfilename))
+            f_sk_out = open(sketch_outfilename, "w+")
+            print("running sketch, bnd = {}".format(bnd))
+            print("sketch_filename", sketch_filename)
+            ret_code = subprocess.call(
+                ["sketch", sketch_filename], stdout=f_sk_out)
+            print("return code", ret_code)
+            if ret_code == 0:  # successful
+                if stats != None:
+                    stats.end_synthesis_comp(f"stateless {comp_name} {o}")
+                print("solved")
+                result_file = sketch_outfilename
+                print("output is in " + result_file)
+                filenames.append(result_file)
+                break
+            else:
+                print("failed")
+                assert(False)
+            f_sk_out.close()
         return filenames
 
     def contains_ternary(self):
         for output in self.outputs:
             if is_branch_var(output):
                 return True
+        for input in self.inputs:
+            if is_branch_var(input):
+                return True
+        for codelet in self.codelets:
+            for var in codelet.get_defines():
+                if is_branch_var(var):
+                    return True
         return False
 
     def contains_only_ternary(self):
@@ -1356,7 +1361,8 @@ class Synthesizer:
         self.draw_graph(self.comp_graph, self.filename + "_merged_graph")
 
         # fold branch temporaries
-        folded_node = True
+        # if merging is disabled, we don't run folding.
+        folded_node = self.enableMerging
         folding_idx = 0
         while folded_node:
             print(' ----------------- iteratively folding node. folding_idx = ', folding_idx)
