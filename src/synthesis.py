@@ -297,23 +297,13 @@ class Component:  # group of codelets
             f.write(", ")
             f.write("{} {}".format(var_type, v))
 
-        f.write(") {\n")
-        assert len(self.inputs) <= 4
-        f.write('\tint[3] impl = salu(')
-        for i in range(len(self.inputs)):
-            f.write(self.inputs[i])
-            if i < len(self.inputs) - 1:
-                f.write(', ')
-        if len(self.inputs) < 4:
-            fill = 4 - len(self.inputs)
-            f.write(', ')
-            for _ in range(fill - 1):
-                f.write('0, ')
-            f.write('0')
-        f.write(');\n')
-
-        f.write("\tint [3] spec = {}({});\n".format(
-            comp_name, ', '.join(self.inputs)))
+        assert len(self.inputs) <= 2
+        if len(self.inputs) == 1:
+            f.write('\tint[3] impl = salu({}, 0, 0, 0);\n'.format(self.inputs[0]))
+            f.write('\tint[3] spec = {}({}, 0, 0, 0);\n'.format(comp_name, self.inputs[0]))
+        else:
+            f.write('\tint[3] impl = salu({}, {}, 0, 0);\n'.format(self.inputs[0], self.inputs[1]))
+            f.write('\tint[3] spec = {}({}, {}, 0, 0);\n'.format(comp_name, self.inputs[0], self.inputs[1]))
 
         f.write("\tassert(impl[0] == spec[0]);\n")
         f.write("\tassert(impl[1] == spec[1]);\n")
