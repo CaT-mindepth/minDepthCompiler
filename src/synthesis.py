@@ -743,6 +743,7 @@ class StatefulComponent(object):
 
     def write_domino_sketch_harness(self, f, var_types, comp_name):
         self.sort_inputs()
+        self.state_vars.sort()
         f.write("harness void sketch(")
         if len(self.inputs) >= 1:
             var_type = var_types[self.inputs[0]]
@@ -763,30 +764,25 @@ class StatefulComponent(object):
 
         num_statefuls = grammar_util.num_statefuls_domino[self.grammar_name]
         num_stateless = grammar_util.num_stateless_domino[self.grammar_name]
-        for i in self.input_statevars:
-            f.write('{}, '.format(i))
 
-        if len(self.input_statevars) < num_statefuls:
-            numfill = num_statefuls - len(self.input_statevars)
-            for _ in range(numfill):
-                f.write('0, ')
-
-        stateless_vars = list(self.input_stateless_vars)
-        for i in range(len(stateless_vars)-1):
-            f.write('{}, '.format(stateless_vars[i]))
-
-        if len(self.input_stateless_vars) < num_stateless:
-            if len(stateless_vars) > 0:
-                f.write('{}, '.format(stateless_vars[len(stateless_vars) - 1]))
-            numfill = num_stateless - len(self.input_stateless_vars)
-            if numfill > 1:
-                for _ in range(numfill - 1):
-                    f.write('0, ')
-            f.write('0);\n')
-        else:
-            if len(stateless_vars) > 0:
-                f.write('{});\n'.format(
-                    stateless_vars[len(stateless_vars) - 1]))
+        stateful_inputs = []
+        stateless_inputs = []
+        for input in self.inputs:
+            if input in self.state_vars:
+                stateful_inputs.append(input)
+            else:
+                stateless_inputs.append(input)
+        
+        if len(stateful_inputs) < num_statefuls:
+            for _ in range(num_statefuls - len(stateful_inputs)):
+                stateful_inputs.append('0')
+        
+        if len(stateless_inputs) < num_stateless:
+            for _ in range(num_stateless - len(stateless_inputs)):
+                stateless_inputs.append('0')
+        
+        f.write(','.join(stateful_inputs) + ',')
+        f.write(','.join(stateless_inputs) + ');\n')
 
         f.write("\tint[{}] spec = {}({});\n".format(
             str(num_outputs), comp_name, ', '.join(self.inputs)))
