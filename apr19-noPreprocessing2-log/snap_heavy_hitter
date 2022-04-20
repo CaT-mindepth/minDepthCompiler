@@ -1,0 +1,2910 @@
+running mutation 1
+directory: /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter, program name: snap_heavy_hitter_equivalent_1_canonicalizer. Grammar: pair. Continue?
+------------------------------
+Preprocessing done. Continuing
+Using stateful ALU pair
+Using stateless ALU grammars/stateless_domino/stateless.sk
+p_state_000 = state_0;
+
+lhs p_state_000 rhs state_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_000 = state_0;
+
+ is_read_flank: processing rhs_vars =  ['state_0']
+read flank
+p_state_100 = state_1;
+
+lhs p_state_100 rhs state_1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_100 = state_1;
+
+ is_read_flank: processing rhs_vars =  ['state_1']
+read flank
+p_pkt_00 = p_pkt_0;
+
+lhs p_pkt_00 rhs p_pkt_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_pkt_00 = p_pkt_0;
+
+ is_read_flank: processing rhs_vars =  ['p_pkt_0']
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+
+lhs p__br_tmp00 rhs 1==1&&p_state_100==0&&1==1&&1==1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_100']
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+lhs p_state_001 rhs (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p_state_000', 'p_state_000']
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+
+lhs p__br_tmp10 rhs 1==1&&p_state_001==1000&&1==1&&1==1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+lhs p_state_101 rhs (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p__br_tmp10', 'p_state_100']
+state_0 = p_state_001;
+
+lhs state_0 rhs p_state_001
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_0 = p_state_001;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+write flank
+state_1 = p_state_101;
+
+lhs state_1 rhs p_state_101
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_1 = p_state_101;
+
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+write flank
+finding dependencies
+RAW p_state_000 = state_0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+RAW p_state_100 = state_1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); state_0 = p_state_001;
+RAW p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+read_write_flanks {'state_1': {'read': <dependencyGraph.Statement object at 0x7fba21115700>, 'write': <dependencyGraph.Statement object at 0x7fba211158e0>}, 'state_0': {'read': <dependencyGraph.Statement object at 0x7fba22137bb0>, 'write': <dependencyGraph.Statement object at 0x7fba211155b0>}}
+var:  state_1
+{'read': <dependencyGraph.Statement object at 0x7fba21115700>, 'write': <dependencyGraph.Statement object at 0x7fba211158e0>}
+state_var  state_1
+read_flank p_state_100 = state_1
+write_flank state_1 = p_state_101
+var:  state_0
+{'read': <dependencyGraph.Statement object at 0x7fba22137bb0>, 'write': <dependencyGraph.Statement object at 0x7fba211155b0>}
+state_var  state_0
+read_flank p_state_000 = state_0
+write_flank state_0 = p_state_001
+total number of nodes created:  9
+SCC 0
+v p_state_000 = state_0 stmts len 1
+p_state_000 = state_0;
+v p_state_100 = state_1 stmts len 1
+p_state_100 = state_1;
+v p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1 stmts len 1
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+v p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) stmts len 1
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+v p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1 stmts len 1
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+v state_0 = p_state_001 stmts len 1
+state_0 = p_state_001;
+v p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) stmts len 1
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+v state_1 = p_state_101 stmts len 1
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+SCC 1
+v p_pkt_00 = p_pkt_0 stmts len 1
+p_pkt_00 = p_pkt_0;
+SCC graph nodes
+[<dependencyGraph.Codelet object at 0x7fba211159a0>, <dependencyGraph.Codelet object at 0x7fba21115910>]
+p_state_000 = state_0;
+p_state_100 = state_1;
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+state_0 = p_state_001;
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+stateful
+p_pkt_00 = p_pkt_0;
+SCC graph stateful nodes {<dependencyGraph.Codelet object at 0x7fba211159a0>}
+total number of nodes created:  2
+state vars {'state_1', 'state_0'}
+----calling split_SCC_graph---
+ ---- split_SCC_graph ----- 
+ -------------- v_outputs:  set()
+everything fits within a stateful ALU (no outputs). No need to do anything.
+number of SCC nodes post splitting:  2
+total number of nodes created:  2
+TODO: call synthesizer
+Output directory /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_1_canonicalizer_out could not be created
+Synthesizer
+output dir /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_1_canonicalizer_out
+Stored read, write flank variables
+{'p_state_101', 'p_state_100', 'p_state_000', 'p_state_001'}
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+-------------------------------------- stateful codelet vars :  ['state_1', 'state_0'] --------------***
+compute_scc_graph: StatefulComponent( comp_0 ): state vars:  ['state_1', 'state_0']
+codelet  p_state_000 = state_0 p_state_100 = state_1 p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1 p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1 state_0 = p_state_001 p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) state_1 = p_state_101  is stateful
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+number of nodes on SCC_GRAPH:  2
+number of nodes in comp_graph:  2
+ * recursive_merge strategy: nodes ordered  ['p_pkt_00 = p_pkt_0;', 'p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;']
+ * recursive_merge: node ::  p_pkt_00 = p_pkt_0;
+ node outputs:  ['p_pkt_00']
+ node inputs:  ['p_pkt_0']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_pkt_00 = p_pkt_0;
+ * recursive_merge: node ::  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ node outputs:  ['p_state_000', 'p_state_101', 'p_state_100', 'state_1', 'p_state_001', 'p__br_tmp00', 'p__br_tmp10', 'state_0']
+ node inputs:  ['state_0', 'state_1']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ ----------------- iteratively folding node. folding_idx =  0
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+Principal Outputs:  {'p_pkt_00'}
+{'p_pkt_00'}
+~~~~~~~~~~set_alu_inputs:  ['state_0', 'state_1']
+ ~~~| state var:  ['state_1', 'state_0']
+salu_inputs {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 'state_0', 'register_hi': 'state_1'}
+number of outputs for  pair :  3
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_1_canonicalizer_out/comp_0_stateful.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_1_canonicalizer_out/comp_0_stateful.sk.out
+running sketch for stateful
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_1_canonicalizer_out/comp_0_stateful.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_1_canonicalizer_out/comp_0_stateful.sk.out
+ --------- processing stateful output ---------
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+>>>>>>>>>> add_new_alu: adding ALU with id  0  and component  comp_0 , type?  STATEFUL
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_1_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_1_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_1_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_1_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+processing: output is stateless.
+ --------- processing stateless output p_pkt_00 --------- 
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+>>>>>>>>>> add_new_alu: adding ALU with id  1  and component  comp_2 , type?  STATELESS
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+final_output:  _out_s12
+   alu output:  _out_s12
+postprocessing sketch output: finding stateful dependencies
+ *** find_stateful_dependencies ***
+ *** Done find_stateful_dependencies ***
+postprocessing sketch output: finding stateless dependencies in each component
+ *** finding dependencies between stateless ALUs ***
+ *** done finding dependencies between stateless ALUs ***
+postprocessing sketch output: finding stateless dependencies between components
+ *** find stateless dependencies between components *** 
+ *** Done finding stateless+stateful dependencies ***
+postprocessing done!
+----- starting ILP Gurobi -----
++---> dependencies of ALU  0 : 
+
++---> dependencies of ALU  1 : 
+
+# alus: =  2
+Set parameter Username
+Academic license - for non-commercial use only - expires 2022-10-14
+ILP_Gurobi: alu_dic =  {'T0': 2}
+ILP_Gurobi: Adding var  T0_A_0
+ILP_Gurobi: Adding var  T0_A_1
+ILP_Gurobi: alu_dep_dic:  {'T0': []}
+Come here------------------------
+Gurobi Optimizer version 9.5.0 build v9.5.0rc5 (linux64)
+Thread count: 28 physical cores, 56 logical processors, using up to 28 threads
+Optimize a model with 47 rows, 28 columns and 84 nonzeros
+Model fingerprint: 0xe2ade813
+Model has 24 general constraints
+Variable types: 0 continuous, 28 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+01]
+  GenCon rhs range [1e+00, 1e+01]
+  GenCon coe range [1e+00, 1e+00]
+Presolve added 1 rows and 0 columns
+Presolve removed 0 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 48 rows, 27 columns, 116 nonzeros
+Variable types: 0 continuous, 27 integer (24 binary)
+Found heuristic solution: objective 9.0000000
+Found heuristic solution: objective 0.0000000
+
+Explored 0 nodes (0 simplex iterations) in 0.01 seconds (0.00 work units)
+Thread count was 28 (of 56 available processors)
+
+Solution count 2: 0 9 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 0.000000000000e+00, best bound 0.000000000000e+00, gap 0.0000%
+Optimal objective: 0
+Following is the result we want:*****************
+T0_A_0 -0
+T0_A_1 -0
+************************************************
+Obj: 0
+number of stages:  1
+stage:  -0.0
+action:  0
+num stages:  1
+stage:  -0.0
+action:  1
+num stages:  1
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+alu  0  is of type  STATEFUL ; scheduled to stage  0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+alu  1  is of type  STATELESS ; scheduled to stage  0
+Codegen processed ALUs:  1  ;  [(<alus.DominoALU object at 0x7fba211157f0>, 0)]
+Codegen processed SALUs:  1  ;  [(<alus.DominoGenericSALU object at 0x7fba21115e20>, 0)]
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p_state_000', 'p_state_101', 'p_state_100', 'state_1', 'p_state_001', 'p__br_tmp00', 'p__br_tmp10', 'state_0'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) > 0)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + 10;\n', '      state_1 = 2;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = state_1_1;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if((pkt_1 - pkt_1) == 3)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if(((state_0_0 + pkt_1) - pkt_1) > 0)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + (pkt_1 - 1);\n', '        state_1 = state_1_1 + (pkt_2 + 16);\n', '      }\n', '      else\n', '      {\n', '        state_0 = pkt_1 + 16;\n', '        state_1 = state_1_1 + (pkt_1 + 12);\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 14, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '10'}]}
+----------------------------------------------------
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p_state_000', 'p_state_101', 'p_state_100', 'state_1', 'p_state_001', 'p__br_tmp00', 'p__br_tmp10', 'state_0'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) > 0)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + 10;\n', '      state_1 = 2;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = state_1_1;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if((pkt_1 - pkt_1) == 3)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if(((state_0_0 + pkt_1) - pkt_1) > 0)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + (pkt_1 - 1);\n', '        state_1 = state_1_1 + (pkt_2 + 16);\n', '      }\n', '      else\n', '      {\n', '        state_0 = pkt_1 + 16;\n', '        state_1 = state_1_1 + (pkt_1 + 12);\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 14, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '10'}]}
+Time taken: 1.1468100547790527 s
+preprocessor time:
+running mutation 2
+directory: /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter, program name: snap_heavy_hitter_equivalent_2_canonicalizer. Grammar: pair. Continue?
+------------------------------
+Preprocessing done. Continuing
+Using stateful ALU pair
+Using stateless ALU grammars/stateless_domino/stateless.sk
+p_state_000 = state_0;
+
+lhs p_state_000 rhs state_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_000 = state_0;
+
+ is_read_flank: processing rhs_vars =  ['state_0']
+read flank
+p_state_100 = state_1;
+
+lhs p_state_100 rhs state_1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_100 = state_1;
+
+ is_read_flank: processing rhs_vars =  ['state_1']
+read flank
+p_pkt_00 = p_pkt_0;
+
+lhs p_pkt_00 rhs p_pkt_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_pkt_00 = p_pkt_0;
+
+ is_read_flank: processing rhs_vars =  ['p_pkt_0']
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+
+lhs p__br_tmp00 rhs 1==1&&p_state_100==0&&1==1&&1==1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_100']
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+lhs p_state_001 rhs (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p_state_000', 'p_state_000']
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+
+lhs p__br_tmp10 rhs 1==1&&p_state_001==1000&&1==1&&1==1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+lhs p_state_101 rhs (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p__br_tmp10', 'p_state_100']
+state_0 = p_state_001;
+
+lhs state_0 rhs p_state_001
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_0 = p_state_001;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+write flank
+state_1 = p_state_101;
+
+lhs state_1 rhs p_state_101
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_1 = p_state_101;
+
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+write flank
+finding dependencies
+RAW p_state_000 = state_0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+RAW p_state_100 = state_1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); state_0 = p_state_001;
+RAW p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+read_write_flanks {'state_1': {'read': <dependencyGraph.Statement object at 0x7f3fdac05700>, 'write': <dependencyGraph.Statement object at 0x7f3fdac058e0>}, 'state_0': {'read': <dependencyGraph.Statement object at 0x7f3fdbc28bb0>, 'write': <dependencyGraph.Statement object at 0x7f3fdac055b0>}}
+var:  state_1
+{'read': <dependencyGraph.Statement object at 0x7f3fdac05700>, 'write': <dependencyGraph.Statement object at 0x7f3fdac058e0>}
+state_var  state_1
+read_flank p_state_100 = state_1
+write_flank state_1 = p_state_101
+var:  state_0
+{'read': <dependencyGraph.Statement object at 0x7f3fdbc28bb0>, 'write': <dependencyGraph.Statement object at 0x7f3fdac055b0>}
+state_var  state_0
+read_flank p_state_000 = state_0
+write_flank state_0 = p_state_001
+total number of nodes created:  9
+SCC 0
+v p_state_000 = state_0 stmts len 1
+p_state_000 = state_0;
+v p_state_100 = state_1 stmts len 1
+p_state_100 = state_1;
+v p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1 stmts len 1
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+v p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) stmts len 1
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+v p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1 stmts len 1
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+v state_0 = p_state_001 stmts len 1
+state_0 = p_state_001;
+v p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) stmts len 1
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+v state_1 = p_state_101 stmts len 1
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+SCC 1
+v p_pkt_00 = p_pkt_0 stmts len 1
+p_pkt_00 = p_pkt_0;
+SCC graph nodes
+[<dependencyGraph.Codelet object at 0x7f3fdac059a0>, <dependencyGraph.Codelet object at 0x7f3fdac05910>]
+p_state_000 = state_0;
+p_state_100 = state_1;
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+state_0 = p_state_001;
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+stateful
+p_pkt_00 = p_pkt_0;
+SCC graph stateful nodes {<dependencyGraph.Codelet object at 0x7f3fdac059a0>}
+total number of nodes created:  2
+state vars {'state_1', 'state_0'}
+----calling split_SCC_graph---
+ ---- split_SCC_graph ----- 
+ -------------- v_outputs:  set()
+everything fits within a stateful ALU (no outputs). No need to do anything.
+number of SCC nodes post splitting:  2
+total number of nodes created:  2
+TODO: call synthesizer
+Output directory /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_2_canonicalizer_out could not be created
+Synthesizer
+output dir /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_2_canonicalizer_out
+Stored read, write flank variables
+{'p_state_101', 'p_state_001', 'p_state_000', 'p_state_100'}
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+-------------------------------------- stateful codelet vars :  ['state_1', 'state_0'] --------------***
+compute_scc_graph: StatefulComponent( comp_0 ): state vars:  ['state_1', 'state_0']
+codelet  p_state_000 = state_0 p_state_100 = state_1 p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1 p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1 state_0 = p_state_001 p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) state_1 = p_state_101  is stateful
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+number of nodes on SCC_GRAPH:  2
+number of nodes in comp_graph:  2
+ * recursive_merge strategy: nodes ordered  ['p_pkt_00 = p_pkt_0;', 'p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;']
+ * recursive_merge: node ::  p_pkt_00 = p_pkt_0;
+ node outputs:  ['p_pkt_00']
+ node inputs:  ['p_pkt_0']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_pkt_00 = p_pkt_0;
+ * recursive_merge: node ::  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ node outputs:  ['p_state_001', 'state_0', 'p_state_000', 'p_state_101', 'state_1', 'p__br_tmp10', 'p_state_100', 'p__br_tmp00']
+ node inputs:  ['state_0', 'state_1']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ ----------------- iteratively folding node. folding_idx =  0
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+Principal Outputs:  {'p_pkt_00'}
+{'p_pkt_00'}
+~~~~~~~~~~set_alu_inputs:  ['state_0', 'state_1']
+ ~~~| state var:  ['state_1', 'state_0']
+salu_inputs {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 'state_0', 'register_hi': 'state_1'}
+number of outputs for  pair :  3
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_2_canonicalizer_out/comp_0_stateful.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_2_canonicalizer_out/comp_0_stateful.sk.out
+running sketch for stateful
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_2_canonicalizer_out/comp_0_stateful.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_2_canonicalizer_out/comp_0_stateful.sk.out
+ --------- processing stateful output ---------
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+>>>>>>>>>> add_new_alu: adding ALU with id  0  and component  comp_0 , type?  STATEFUL
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_2_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_2_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_2_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_2_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+processing: output is stateless.
+ --------- processing stateless output p_pkt_00 --------- 
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+>>>>>>>>>> add_new_alu: adding ALU with id  1  and component  comp_2 , type?  STATELESS
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+final_output:  _out_s12
+   alu output:  _out_s12
+postprocessing sketch output: finding stateful dependencies
+ *** find_stateful_dependencies ***
+ *** Done find_stateful_dependencies ***
+postprocessing sketch output: finding stateless dependencies in each component
+ *** finding dependencies between stateless ALUs ***
+ *** done finding dependencies between stateless ALUs ***
+postprocessing sketch output: finding stateless dependencies between components
+ *** find stateless dependencies between components *** 
+ *** Done finding stateless+stateful dependencies ***
+postprocessing done!
+----- starting ILP Gurobi -----
++---> dependencies of ALU  0 : 
+
++---> dependencies of ALU  1 : 
+
+# alus: =  2
+Set parameter Username
+Academic license - for non-commercial use only - expires 2022-10-14
+ILP_Gurobi: alu_dic =  {'T0': 2}
+ILP_Gurobi: Adding var  T0_A_0
+ILP_Gurobi: Adding var  T0_A_1
+ILP_Gurobi: alu_dep_dic:  {'T0': []}
+Come here------------------------
+Gurobi Optimizer version 9.5.0 build v9.5.0rc5 (linux64)
+Thread count: 28 physical cores, 56 logical processors, using up to 28 threads
+Optimize a model with 47 rows, 28 columns and 84 nonzeros
+Model fingerprint: 0xe2ade813
+Model has 24 general constraints
+Variable types: 0 continuous, 28 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+01]
+  GenCon rhs range [1e+00, 1e+01]
+  GenCon coe range [1e+00, 1e+00]
+Presolve added 1 rows and 0 columns
+Presolve removed 0 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 48 rows, 27 columns, 116 nonzeros
+Variable types: 0 continuous, 27 integer (24 binary)
+Found heuristic solution: objective 9.0000000
+Found heuristic solution: objective 0.0000000
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 28 (of 56 available processors)
+
+Solution count 2: 0 9 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 0.000000000000e+00, best bound 0.000000000000e+00, gap 0.0000%
+Optimal objective: 0
+Following is the result we want:*****************
+T0_A_0 -0
+T0_A_1 -0
+************************************************
+Obj: 0
+number of stages:  1
+stage:  -0.0
+action:  0
+num stages:  1
+stage:  -0.0
+action:  1
+num stages:  1
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+alu  0  is of type  STATEFUL ; scheduled to stage  0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+alu  1  is of type  STATELESS ; scheduled to stage  0
+Codegen processed ALUs:  1  ;  [(<alus.DominoALU object at 0x7f3fdac057f0>, 0)]
+Codegen processed SALUs:  1  ;  [(<alus.DominoGenericSALU object at 0x7f3fdac05e20>, 0)]
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p_state_001', 'state_0', 'p_state_000', 'p_state_101', 'state_1', 'p__br_tmp10', 'p_state_100', 'p__br_tmp00'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if((pkt_1 - pkt_1) != 0)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) != 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (pkt_2 + 21);\n', '      state_1 = state_1_1;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + (pkt_2 - 25);\n', '      state_1 = 5;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) < 2)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if(((state_1_1 + pkt_1) - pkt_1) != 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + (pkt_1 + 1);\n', '        state_1 = state_1_1 + (pkt_2 + pkt_2);\n', '      }\n', '      else\n', '      {\n', '        state_0 = state_0_0 + (pkt_2 + pkt_1);\n', '        state_1 = 1;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': 'p_pkt_0', 'result': 'p_pkt_00', 'immediate_operand': '31'}]}
+----------------------------------------------------
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p_state_001', 'state_0', 'p_state_000', 'p_state_101', 'state_1', 'p__br_tmp10', 'p_state_100', 'p__br_tmp00'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if((pkt_1 - pkt_1) != 0)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) != 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (pkt_2 + 21);\n', '      state_1 = state_1_1;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + (pkt_2 - 25);\n', '      state_1 = 5;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) < 2)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if(((state_1_1 + pkt_1) - pkt_1) != 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + (pkt_1 + 1);\n', '        state_1 = state_1_1 + (pkt_2 + pkt_2);\n', '      }\n', '      else\n', '      {\n', '        state_0 = state_0_0 + (pkt_2 + pkt_1);\n', '        state_1 = 1;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': 'p_pkt_0', 'result': 'p_pkt_00', 'immediate_operand': '31'}]}
+Time taken: 1.237070083618164 s
+preprocessor time:
+running mutation 3
+directory: /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter, program name: snap_heavy_hitter_equivalent_3_canonicalizer. Grammar: pair. Continue?
+------------------------------
+Preprocessing done. Continuing
+Using stateful ALU pair
+Using stateless ALU grammars/stateless_domino/stateless.sk
+p_state_000 = state_0;
+
+lhs p_state_000 rhs state_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_000 = state_0;
+
+ is_read_flank: processing rhs_vars =  ['state_0']
+read flank
+p_state_100 = state_1;
+
+lhs p_state_100 rhs state_1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_100 = state_1;
+
+ is_read_flank: processing rhs_vars =  ['state_1']
+read flank
+p_pkt_00 = p_pkt_0;
+
+lhs p_pkt_00 rhs p_pkt_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_pkt_00 = p_pkt_0;
+
+ is_read_flank: processing rhs_vars =  ['p_pkt_0']
+p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1;
+
+lhs p__br_tmp00 rhs 1==1&&1==1&&p_state_100==0&&1==1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_100']
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+lhs p_state_001 rhs (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p_state_000', 'p_state_000']
+p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1;
+
+lhs p__br_tmp10 rhs 1==1&&1==1&&p_state_001==1000&&1==1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+lhs p_state_101 rhs (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p__br_tmp10', 'p_state_100']
+state_0 = p_state_001;
+
+lhs state_0 rhs p_state_001
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_0 = p_state_001;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+write flank
+state_1 = p_state_101;
+
+lhs state_1 rhs p_state_101
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_1 = p_state_101;
+
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+write flank
+finding dependencies
+RAW p_state_000 = state_0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1;
+RAW p_state_100 = state_1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1;
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); state_0 = p_state_001;
+RAW p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+read_write_flanks {'state_1': {'read': <dependencyGraph.Statement object at 0x7fbcead81700>, 'write': <dependencyGraph.Statement object at 0x7fbcead818e0>}, 'state_0': {'read': <dependencyGraph.Statement object at 0x7fbcebda4bb0>, 'write': <dependencyGraph.Statement object at 0x7fbcead815b0>}}
+var:  state_1
+{'read': <dependencyGraph.Statement object at 0x7fbcead81700>, 'write': <dependencyGraph.Statement object at 0x7fbcead818e0>}
+state_var  state_1
+read_flank p_state_100 = state_1
+write_flank state_1 = p_state_101
+var:  state_0
+{'read': <dependencyGraph.Statement object at 0x7fbcebda4bb0>, 'write': <dependencyGraph.Statement object at 0x7fbcead815b0>}
+state_var  state_0
+read_flank p_state_000 = state_0
+write_flank state_0 = p_state_001
+total number of nodes created:  9
+SCC 0
+v p_state_000 = state_0 stmts len 1
+p_state_000 = state_0;
+v p_state_100 = state_1 stmts len 1
+p_state_100 = state_1;
+v p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1 stmts len 1
+p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1;
+v p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) stmts len 1
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+v p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1 stmts len 1
+p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1;
+v state_0 = p_state_001 stmts len 1
+state_0 = p_state_001;
+v p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) stmts len 1
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+v state_1 = p_state_101 stmts len 1
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+SCC 1
+v p_pkt_00 = p_pkt_0 stmts len 1
+p_pkt_00 = p_pkt_0;
+SCC graph nodes
+[<dependencyGraph.Codelet object at 0x7fbcead819a0>, <dependencyGraph.Codelet object at 0x7fbcead81910>]
+p_state_000 = state_0;
+p_state_100 = state_1;
+p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1;
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1;
+state_0 = p_state_001;
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+stateful
+p_pkt_00 = p_pkt_0;
+SCC graph stateful nodes {<dependencyGraph.Codelet object at 0x7fbcead819a0>}
+total number of nodes created:  2
+state vars {'state_1', 'state_0'}
+----calling split_SCC_graph---
+ ---- split_SCC_graph ----- 
+ -------------- v_outputs:  set()
+everything fits within a stateful ALU (no outputs). No need to do anything.
+number of SCC nodes post splitting:  2
+total number of nodes created:  2
+TODO: call synthesizer
+Output directory /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_3_canonicalizer_out could not be created
+Synthesizer
+output dir /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_3_canonicalizer_out
+Stored read, write flank variables
+{'p_state_000', 'p_state_001', 'p_state_100', 'p_state_101'}
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+-------------------------------------- stateful codelet vars :  ['state_1', 'state_0'] --------------***
+compute_scc_graph: StatefulComponent( comp_0 ): state vars:  ['state_1', 'state_0']
+codelet  p_state_000 = state_0 p_state_100 = state_1 p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1 p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1 state_0 = p_state_001 p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) state_1 = p_state_101  is stateful
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+number of nodes on SCC_GRAPH:  2
+number of nodes in comp_graph:  2
+ * recursive_merge strategy: nodes ordered  ['p_pkt_00 = p_pkt_0;', 'p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;']
+ * recursive_merge: node ::  p_pkt_00 = p_pkt_0;
+ node outputs:  ['p_pkt_00']
+ node inputs:  ['p_pkt_0']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_pkt_00 = p_pkt_0;
+ * recursive_merge: node ::  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ node outputs:  ['p_state_000', 'state_1', 'p__br_tmp10', 'p_state_001', 'p_state_100', 'p__br_tmp00', 'p_state_101', 'state_0']
+ node inputs:  ['state_0', 'state_1']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ ----------------- iteratively folding node. folding_idx =  0
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+Principal Outputs:  {'p_pkt_00'}
+{'p_pkt_00'}
+~~~~~~~~~~set_alu_inputs:  ['state_0', 'state_1']
+ ~~~| state var:  ['state_1', 'state_0']
+salu_inputs {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 'state_0', 'register_hi': 'state_1'}
+number of outputs for  pair :  3
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_3_canonicalizer_out/comp_0_stateful.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_3_canonicalizer_out/comp_0_stateful.sk.out
+running sketch for stateful
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_3_canonicalizer_out/comp_0_stateful.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_3_canonicalizer_out/comp_0_stateful.sk.out
+ --------- processing stateful output ---------
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+>>>>>>>>>> add_new_alu: adding ALU with id  0  and component  comp_0 , type?  STATEFUL
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_3_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_3_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_3_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_3_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+processing: output is stateless.
+ --------- processing stateless output p_pkt_00 --------- 
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+>>>>>>>>>> add_new_alu: adding ALU with id  1  and component  comp_2 , type?  STATELESS
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+final_output:  _out_s12
+   alu output:  _out_s12
+postprocessing sketch output: finding stateful dependencies
+ *** find_stateful_dependencies ***
+ *** Done find_stateful_dependencies ***
+postprocessing sketch output: finding stateless dependencies in each component
+ *** finding dependencies between stateless ALUs ***
+ *** done finding dependencies between stateless ALUs ***
+postprocessing sketch output: finding stateless dependencies between components
+ *** find stateless dependencies between components *** 
+ *** Done finding stateless+stateful dependencies ***
+postprocessing done!
+----- starting ILP Gurobi -----
++---> dependencies of ALU  0 : 
+
++---> dependencies of ALU  1 : 
+
+# alus: =  2
+Set parameter Username
+Academic license - for non-commercial use only - expires 2022-10-14
+ILP_Gurobi: alu_dic =  {'T0': 2}
+ILP_Gurobi: Adding var  T0_A_0
+ILP_Gurobi: Adding var  T0_A_1
+ILP_Gurobi: alu_dep_dic:  {'T0': []}
+Come here------------------------
+Gurobi Optimizer version 9.5.0 build v9.5.0rc5 (linux64)
+Thread count: 28 physical cores, 56 logical processors, using up to 28 threads
+Optimize a model with 47 rows, 28 columns and 84 nonzeros
+Model fingerprint: 0xe2ade813
+Model has 24 general constraints
+Variable types: 0 continuous, 28 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+01]
+  GenCon rhs range [1e+00, 1e+01]
+  GenCon coe range [1e+00, 1e+00]
+Presolve added 1 rows and 0 columns
+Presolve removed 0 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 48 rows, 27 columns, 116 nonzeros
+Variable types: 0 continuous, 27 integer (24 binary)
+Found heuristic solution: objective 9.0000000
+Found heuristic solution: objective 0.0000000
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 28 (of 56 available processors)
+
+Solution count 2: 0 9 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 0.000000000000e+00, best bound 0.000000000000e+00, gap 0.0000%
+Optimal objective: 0
+Following is the result we want:*****************
+T0_A_0 -0
+T0_A_1 -0
+************************************************
+Obj: 0
+number of stages:  1
+stage:  -0.0
+action:  0
+num stages:  1
+stage:  -0.0
+action:  1
+num stages:  1
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+alu  0  is of type  STATEFUL ; scheduled to stage  0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+alu  1  is of type  STATELESS ; scheduled to stage  0
+Codegen processed ALUs:  1  ;  [(<alus.DominoALU object at 0x7fbcead817f0>, 0)]
+Codegen processed SALUs:  1  ;  [(<alus.DominoGenericSALU object at 0x7fbcead81e20>, 0)]
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p_state_000', 'state_1', 'p__br_tmp10', 'p_state_001', 'p_state_100', 'p__br_tmp00', 'p_state_101', 'state_0'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = pkt_1 + 22;\n', '      state_1 = 0;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = pkt_1 + pkt_2;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = -1;\n', '        state_1 = -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = 1;\n', '        state_1 = pkt_1 + 16;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+----------------------------------------------------
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p_state_000', 'state_1', 'p__br_tmp10', 'p_state_001', 'p_state_100', 'p__br_tmp00', 'p_state_101', 'state_0'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = pkt_1 + 22;\n', '      state_1 = 0;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = pkt_1 + pkt_2;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = -1;\n', '        state_1 = -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = 1;\n', '        state_1 = pkt_1 + 16;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+Time taken: 1.2367711067199707 s
+preprocessor time:
+running mutation 4
+directory: /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter, program name: snap_heavy_hitter_equivalent_4_canonicalizer. Grammar: pair. Continue?
+------------------------------
+Preprocessing done. Continuing
+Using stateful ALU pair
+Using stateless ALU grammars/stateless_domino/stateless.sk
+p_state_000 = state_0;
+
+lhs p_state_000 rhs state_0
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_000 = state_0;
+
+ is_read_flank: processing rhs_vars =  ['state_0']
+read flank
+p_state_100 = state_1;
+
+lhs p_state_100 rhs state_1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_100 = state_1;
+
+ is_read_flank: processing rhs_vars =  ['state_1']
+read flank
+p_pkt_00 = p_pkt_0;
+
+lhs p_pkt_00 rhs p_pkt_0
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_pkt_00 = p_pkt_0;
+
+ is_read_flank: processing rhs_vars =  ['p_pkt_0']
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+
+lhs p__br_tmp00 rhs 1==1&&p_state_100==0&&1==1&&1==1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_100']
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+lhs p_state_001 rhs (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000)
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p_state_000', 'p_state_000']
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+
+lhs p__br_tmp10 rhs 1==1&&p_state_001==1000&&1==1&&1==1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+lhs p_state_101 rhs (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100)
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p__br_tmp10', 'p_state_100']
+state_0 = p_state_001;
+
+lhs state_0 rhs p_state_001
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  state_0 = p_state_001;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+write flank
+state_1 = p_state_101;
+
+lhs state_1 rhs p_state_101
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  state_1 = p_state_101;
+
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+write flank
+finding dependencies
+RAW p_state_000 = state_0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+RAW p_state_100 = state_1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); state_0 = p_state_001;
+RAW p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+read_write_flanks {'state_0': {'read': <dependencyGraph.Statement object at 0x7f58c4e83bb0>, 'write': <dependencyGraph.Statement object at 0x7f58c3e605b0>}, 'state_1': {'read': <dependencyGraph.Statement object at 0x7f58c3e60700>, 'write': <dependencyGraph.Statement object at 0x7f58c3e608e0>}}
+var:  state_0
+{'read': <dependencyGraph.Statement object at 0x7f58c4e83bb0>, 'write': <dependencyGraph.Statement object at 0x7f58c3e605b0>}
+state_var  state_0
+read_flank p_state_000 = state_0
+write_flank state_0 = p_state_001
+var:  state_1
+{'read': <dependencyGraph.Statement object at 0x7f58c3e60700>, 'write': <dependencyGraph.Statement object at 0x7f58c3e608e0>}
+state_var  state_1
+read_flank p_state_100 = state_1
+write_flank state_1 = p_state_101
+total number of nodes created:  9
+SCC 0
+v p_state_000 = state_0 stmts len 1
+p_state_000 = state_0;
+v p_state_100 = state_1 stmts len 1
+p_state_100 = state_1;
+v p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1 stmts len 1
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+v p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) stmts len 1
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+v p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1 stmts len 1
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+v state_0 = p_state_001 stmts len 1
+state_0 = p_state_001;
+v p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) stmts len 1
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+v state_1 = p_state_101 stmts len 1
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+SCC 1
+v p_pkt_00 = p_pkt_0 stmts len 1
+p_pkt_00 = p_pkt_0;
+SCC graph nodes
+[<dependencyGraph.Codelet object at 0x7f58c3e609a0>, <dependencyGraph.Codelet object at 0x7f58c3e60910>]
+p_state_000 = state_0;
+p_state_100 = state_1;
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+state_0 = p_state_001;
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+stateful
+p_pkt_00 = p_pkt_0;
+SCC graph stateful nodes {<dependencyGraph.Codelet object at 0x7f58c3e609a0>}
+total number of nodes created:  2
+state vars {'state_0', 'state_1'}
+----calling split_SCC_graph---
+ ---- split_SCC_graph ----- 
+ -------------- v_outputs:  set()
+everything fits within a stateful ALU (no outputs). No need to do anything.
+number of SCC nodes post splitting:  2
+total number of nodes created:  2
+TODO: call synthesizer
+Output directory /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_4_canonicalizer_out could not be created
+Synthesizer
+output dir /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_4_canonicalizer_out
+Stored read, write flank variables
+{'p_state_100', 'p_state_001', 'p_state_000', 'p_state_101'}
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+-------------------------------------- stateful codelet vars :  ['state_0', 'state_1'] --------------***
+compute_scc_graph: StatefulComponent( comp_0 ): state vars:  ['state_0', 'state_1']
+codelet  p_state_000 = state_0 p_state_100 = state_1 p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1 p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1 state_0 = p_state_001 p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) state_1 = p_state_101  is stateful
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+number of nodes on SCC_GRAPH:  2
+number of nodes in comp_graph:  2
+ * recursive_merge strategy: nodes ordered  ['p_pkt_00 = p_pkt_0;', 'p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;']
+ * recursive_merge: node ::  p_pkt_00 = p_pkt_0;
+ node outputs:  ['p_pkt_00']
+ node inputs:  ['p_pkt_0']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_pkt_00 = p_pkt_0;
+ * recursive_merge: node ::  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ node outputs:  ['state_1', 'p_state_101', 'p__br_tmp00', 'p_state_100', 'p_state_001', 'p__br_tmp10', 'p_state_000', 'state_0']
+ node inputs:  ['state_0', 'state_1']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ ----------------- iteratively folding node. folding_idx =  0
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+Principal Outputs:  {'p_pkt_00'}
+{'p_pkt_00'}
+~~~~~~~~~~set_alu_inputs:  ['state_0', 'state_1']
+ ~~~| state var:  ['state_0', 'state_1']
+salu_inputs {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 'state_0', 'register_hi': 'state_1'}
+number of outputs for  pair :  3
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_4_canonicalizer_out/comp_0_stateful.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_4_canonicalizer_out/comp_0_stateful.sk.out
+running sketch for stateful
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_4_canonicalizer_out/comp_0_stateful.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_4_canonicalizer_out/comp_0_stateful.sk.out
+ --------- processing stateful output ---------
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+>>>>>>>>>> add_new_alu: adding ALU with id  0  and component  comp_0 , type?  STATEFUL
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_4_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_4_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_4_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_4_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+processing: output is stateless.
+ --------- processing stateless output p_pkt_00 --------- 
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+>>>>>>>>>> add_new_alu: adding ALU with id  1  and component  comp_2 , type?  STATELESS
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+final_output:  _out_s12
+   alu output:  _out_s12
+postprocessing sketch output: finding stateful dependencies
+ *** find_stateful_dependencies ***
+ *** Done find_stateful_dependencies ***
+postprocessing sketch output: finding stateless dependencies in each component
+ *** finding dependencies between stateless ALUs ***
+ *** done finding dependencies between stateless ALUs ***
+postprocessing sketch output: finding stateless dependencies between components
+ *** find stateless dependencies between components *** 
+ *** Done finding stateless+stateful dependencies ***
+postprocessing done!
+----- starting ILP Gurobi -----
++---> dependencies of ALU  0 : 
+
++---> dependencies of ALU  1 : 
+
+# alus: =  2
+Set parameter Username
+Academic license - for non-commercial use only - expires 2022-10-14
+ILP_Gurobi: alu_dic =  {'T0': 2}
+ILP_Gurobi: Adding var  T0_A_0
+ILP_Gurobi: Adding var  T0_A_1
+ILP_Gurobi: alu_dep_dic:  {'T0': []}
+Come here------------------------
+Gurobi Optimizer version 9.5.0 build v9.5.0rc5 (linux64)
+Thread count: 28 physical cores, 56 logical processors, using up to 28 threads
+Optimize a model with 47 rows, 28 columns and 84 nonzeros
+Model fingerprint: 0xe2ade813
+Model has 24 general constraints
+Variable types: 0 continuous, 28 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+01]
+  GenCon rhs range [1e+00, 1e+01]
+  GenCon coe range [1e+00, 1e+00]
+Presolve added 1 rows and 0 columns
+Presolve removed 0 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 48 rows, 27 columns, 116 nonzeros
+Variable types: 0 continuous, 27 integer (24 binary)
+Found heuristic solution: objective 9.0000000
+Found heuristic solution: objective 0.0000000
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 28 (of 56 available processors)
+
+Solution count 2: 0 9 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 0.000000000000e+00, best bound 0.000000000000e+00, gap 0.0000%
+Optimal objective: 0
+Following is the result we want:*****************
+T0_A_0 -0
+T0_A_1 -0
+************************************************
+Obj: 0
+number of stages:  1
+stage:  -0.0
+action:  0
+num stages:  1
+stage:  -0.0
+action:  1
+num stages:  1
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+alu  0  is of type  STATEFUL ; scheduled to stage  0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+alu  1  is of type  STATELESS ; scheduled to stage  0
+Codegen processed ALUs:  1  ;  [(<alus.DominoALU object at 0x7f58c3e607f0>, 0)]
+Codegen processed SALUs:  1  ;  [(<alus.DominoGenericSALU object at 0x7f58c3e60e20>, 0)]
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['state_1', 'p_state_101', 'p__br_tmp00', 'p_state_100', 'p_state_001', 'p__br_tmp10', 'p_state_000', 'state_0'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) > 31)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_0_0 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (pkt_1 + 22);\n', '      state_1 = state_1_1;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + pkt_2;\n', '      state_1 = state_1_1 + (pkt_1 + 1);\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = -1;\n', '        state_1 = state_1_1 + -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = state_0_0 + 1;\n', '        state_1 = state_1_1;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+----------------------------------------------------
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['state_1', 'p_state_101', 'p__br_tmp00', 'p_state_100', 'p_state_001', 'p__br_tmp10', 'p_state_000', 'state_0'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) > 31)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_0_0 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (pkt_1 + 22);\n', '      state_1 = state_1_1;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + pkt_2;\n', '      state_1 = state_1_1 + (pkt_1 + 1);\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = -1;\n', '        state_1 = state_1_1 + -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = state_0_0 + 1;\n', '        state_1 = state_1_1;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+Time taken: 1.2078948020935059 s
+preprocessor time:
+running mutation 5
+directory: /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter, program name: snap_heavy_hitter_equivalent_5_canonicalizer. Grammar: pair. Continue?
+------------------------------
+Preprocessing done. Continuing
+Using stateful ALU pair
+Using stateless ALU grammars/stateless_domino/stateless.sk
+p_state_000 = state_0;
+
+lhs p_state_000 rhs state_0
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_000 = state_0;
+
+ is_read_flank: processing rhs_vars =  ['state_0']
+read flank
+p_state_100 = state_1;
+
+lhs p_state_100 rhs state_1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_100 = state_1;
+
+ is_read_flank: processing rhs_vars =  ['state_1']
+read flank
+p_pkt_00 = p_pkt_0;
+
+lhs p_pkt_00 rhs p_pkt_0
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_pkt_00 = p_pkt_0;
+
+ is_read_flank: processing rhs_vars =  ['p_pkt_0']
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+
+lhs p__br_tmp00 rhs 1==1&&p_state_100==0&&1==1&&1==1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_100']
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+lhs p_state_001 rhs (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000)
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p_state_000', 'p_state_000']
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+
+lhs p__br_tmp10 rhs 1==1&&p_state_001==1000&&1==1&&1==1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+lhs p_state_101 rhs (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100)
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p__br_tmp10', 'p_state_100']
+state_0 = p_state_001;
+
+lhs state_0 rhs p_state_001
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  state_0 = p_state_001;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+write flank
+state_1 = p_state_101;
+
+lhs state_1 rhs p_state_101
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  state_1 = p_state_101;
+
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+write flank
+finding dependencies
+RAW p_state_000 = state_0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+RAW p_state_100 = state_1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); state_0 = p_state_001;
+RAW p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+read_write_flanks {'state_0': {'read': <dependencyGraph.Statement object at 0x7f021975abb0>, 'write': <dependencyGraph.Statement object at 0x7f02187385b0>}, 'state_1': {'read': <dependencyGraph.Statement object at 0x7f0218738700>, 'write': <dependencyGraph.Statement object at 0x7f02187388e0>}}
+var:  state_0
+{'read': <dependencyGraph.Statement object at 0x7f021975abb0>, 'write': <dependencyGraph.Statement object at 0x7f02187385b0>}
+state_var  state_0
+read_flank p_state_000 = state_0
+write_flank state_0 = p_state_001
+var:  state_1
+{'read': <dependencyGraph.Statement object at 0x7f0218738700>, 'write': <dependencyGraph.Statement object at 0x7f02187388e0>}
+state_var  state_1
+read_flank p_state_100 = state_1
+write_flank state_1 = p_state_101
+total number of nodes created:  9
+SCC 0
+v p_state_000 = state_0 stmts len 1
+p_state_000 = state_0;
+v p_state_100 = state_1 stmts len 1
+p_state_100 = state_1;
+v p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1 stmts len 1
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+v p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) stmts len 1
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+v p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1 stmts len 1
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+v state_0 = p_state_001 stmts len 1
+state_0 = p_state_001;
+v p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) stmts len 1
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+v state_1 = p_state_101 stmts len 1
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+SCC 1
+v p_pkt_00 = p_pkt_0 stmts len 1
+p_pkt_00 = p_pkt_0;
+SCC graph nodes
+[<dependencyGraph.Codelet object at 0x7f02187389a0>, <dependencyGraph.Codelet object at 0x7f0218738910>]
+p_state_000 = state_0;
+p_state_100 = state_1;
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1;
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1;
+state_0 = p_state_001;
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+stateful
+p_pkt_00 = p_pkt_0;
+SCC graph stateful nodes {<dependencyGraph.Codelet object at 0x7f02187389a0>}
+total number of nodes created:  2
+state vars {'state_0', 'state_1'}
+----calling split_SCC_graph---
+ ---- split_SCC_graph ----- 
+ -------------- v_outputs:  set()
+everything fits within a stateful ALU (no outputs). No need to do anything.
+number of SCC nodes post splitting:  2
+total number of nodes created:  2
+TODO: call synthesizer
+Output directory /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_5_canonicalizer_out could not be created
+Synthesizer
+output dir /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_5_canonicalizer_out
+Stored read, write flank variables
+{'p_state_001', 'p_state_101', 'p_state_000', 'p_state_100'}
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+-------------------------------------- stateful codelet vars :  ['state_0', 'state_1'] --------------***
+compute_scc_graph: StatefulComponent( comp_0 ): state vars:  ['state_0', 'state_1']
+codelet  p_state_000 = state_0 p_state_100 = state_1 p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1 p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1 state_0 = p_state_001 p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) state_1 = p_state_101  is stateful
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+number of nodes on SCC_GRAPH:  2
+number of nodes in comp_graph:  2
+ * recursive_merge strategy: nodes ordered  ['p_pkt_00 = p_pkt_0;', 'p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;']
+ * recursive_merge: node ::  p_pkt_00 = p_pkt_0;
+ node outputs:  ['p_pkt_00']
+ node inputs:  ['p_pkt_0']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_pkt_00 = p_pkt_0;
+ * recursive_merge: node ::  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ node outputs:  ['p__br_tmp10', 'p__br_tmp00', 'state_1', 'p_state_001', 'p_state_100', 'state_0', 'p_state_101', 'p_state_000']
+ node inputs:  ['state_0', 'state_1']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ ----------------- iteratively folding node. folding_idx =  0
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+Principal Outputs:  {'p_pkt_00'}
+{'p_pkt_00'}
+~~~~~~~~~~set_alu_inputs:  ['state_0', 'state_1']
+ ~~~| state var:  ['state_0', 'state_1']
+salu_inputs {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 'state_0', 'register_hi': 'state_1'}
+number of outputs for  pair :  3
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_5_canonicalizer_out/comp_0_stateful.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_5_canonicalizer_out/comp_0_stateful.sk.out
+running sketch for stateful
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_5_canonicalizer_out/comp_0_stateful.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_5_canonicalizer_out/comp_0_stateful.sk.out
+ --------- processing stateful output ---------
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+>>>>>>>>>> add_new_alu: adding ALU with id  0  and component  comp_0 , type?  STATEFUL
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_5_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_5_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_5_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_5_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+processing: output is stateless.
+ --------- processing stateless output p_pkt_00 --------- 
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+>>>>>>>>>> add_new_alu: adding ALU with id  1  and component  comp_2 , type?  STATELESS
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+final_output:  _out_s12
+   alu output:  _out_s12
+postprocessing sketch output: finding stateful dependencies
+ *** find_stateful_dependencies ***
+ *** Done find_stateful_dependencies ***
+postprocessing sketch output: finding stateless dependencies in each component
+ *** finding dependencies between stateless ALUs ***
+ *** done finding dependencies between stateless ALUs ***
+postprocessing sketch output: finding stateless dependencies between components
+ *** find stateless dependencies between components *** 
+ *** Done finding stateless+stateful dependencies ***
+postprocessing done!
+----- starting ILP Gurobi -----
++---> dependencies of ALU  0 : 
+
++---> dependencies of ALU  1 : 
+
+# alus: =  2
+Set parameter Username
+Academic license - for non-commercial use only - expires 2022-10-14
+ILP_Gurobi: alu_dic =  {'T0': 2}
+ILP_Gurobi: Adding var  T0_A_0
+ILP_Gurobi: Adding var  T0_A_1
+ILP_Gurobi: alu_dep_dic:  {'T0': []}
+Come here------------------------
+Gurobi Optimizer version 9.5.0 build v9.5.0rc5 (linux64)
+Thread count: 28 physical cores, 56 logical processors, using up to 28 threads
+Optimize a model with 47 rows, 28 columns and 84 nonzeros
+Model fingerprint: 0xe2ade813
+Model has 24 general constraints
+Variable types: 0 continuous, 28 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+01]
+  GenCon rhs range [1e+00, 1e+01]
+  GenCon coe range [1e+00, 1e+00]
+Presolve added 1 rows and 0 columns
+Presolve removed 0 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 48 rows, 27 columns, 116 nonzeros
+Variable types: 0 continuous, 27 integer (24 binary)
+Found heuristic solution: objective 9.0000000
+Found heuristic solution: objective 0.0000000
+
+Explored 0 nodes (0 simplex iterations) in 0.01 seconds (0.00 work units)
+Thread count was 28 (of 56 available processors)
+
+Solution count 2: 0 9 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 0.000000000000e+00, best bound 0.000000000000e+00, gap 0.0000%
+Optimal objective: 0
+Following is the result we want:*****************
+T0_A_0 -0
+T0_A_1 -0
+************************************************
+Obj: 0
+number of stages:  1
+stage:  -0.0
+action:  0
+num stages:  1
+stage:  -0.0
+action:  1
+num stages:  1
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+alu  0  is of type  STATEFUL ; scheduled to stage  0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+alu  1  is of type  STATELESS ; scheduled to stage  0
+Codegen processed ALUs:  1  ;  [(<alus.DominoALU object at 0x7f02187387f0>, 0)]
+Codegen processed SALUs:  1  ;  [(<alus.DominoGenericSALU object at 0x7f0218738e20>, 0)]
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p__br_tmp10', 'p__br_tmp00', 'state_1', 'p_state_001', 'p_state_100', 'state_0', 'p_state_101', 'p_state_000'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if((pkt_1 - pkt_1) == 3)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = pkt_1 + 22;\n', '      state_1 = 0;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = pkt_1 + pkt_2;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) == 25)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + -1;\n', '        state_1 = -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = 1;\n', '        state_1 = state_1_1 + (pkt_1 - 8);\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '30'}]}
+----------------------------------------------------
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p__br_tmp10', 'p__br_tmp00', 'state_1', 'p_state_001', 'p_state_100', 'state_0', 'p_state_101', 'p_state_000'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if((pkt_1 - pkt_1) == 3)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = pkt_1 + 22;\n', '      state_1 = 0;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = pkt_1 + pkt_2;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) == 25)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + -1;\n', '        state_1 = -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = 1;\n', '        state_1 = state_1_1 + (pkt_1 - 8);\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '30'}]}
+Time taken: 1.2500123977661133 s
+preprocessor time:
+running mutation 6
+directory: /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter, program name: snap_heavy_hitter_equivalent_6_canonicalizer. Grammar: pair. Continue?
+------------------------------
+Preprocessing done. Continuing
+Using stateful ALU pair
+Using stateless ALU grammars/stateless_domino/stateless.sk
+p_state_000 = state_0;
+
+lhs p_state_000 rhs state_0
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_000 = state_0;
+
+ is_read_flank: processing rhs_vars =  ['state_0']
+read flank
+p_state_100 = state_1;
+
+lhs p_state_100 rhs state_1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_100 = state_1;
+
+ is_read_flank: processing rhs_vars =  ['state_1']
+read flank
+p_pkt_00 = p_pkt_0;
+
+lhs p_pkt_00 rhs p_pkt_0
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_pkt_00 = p_pkt_0;
+
+ is_read_flank: processing rhs_vars =  ['p_pkt_0']
+p__br_tmp00 = p_state_100==0&&1==1;
+
+lhs p__br_tmp00 rhs p_state_100==0&&1==1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p__br_tmp00 = p_state_100==0&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_100']
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+lhs p_state_001 rhs (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000)
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p_state_000', 'p_state_000']
+p__br_tmp10 = p_state_001==1000&&1==1;
+
+lhs p__br_tmp10 rhs p_state_001==1000&&1==1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p__br_tmp10 = p_state_001==1000&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+lhs p_state_101 rhs (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100)
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p__br_tmp10', 'p_state_100']
+state_0 = p_state_001;
+
+lhs state_0 rhs p_state_001
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  state_0 = p_state_001;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+write flank
+state_1 = p_state_101;
+
+lhs state_1 rhs p_state_101
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  state_1 = p_state_101;
+
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+write flank
+finding dependencies
+RAW p_state_000 = state_0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p_state_100 = state_1; p__br_tmp00 = p_state_100==0&&1==1;
+RAW p_state_100 = state_1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p__br_tmp00 = p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p__br_tmp00 = p_state_100==0&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = p_state_001==1000&&1==1;
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); state_0 = p_state_001;
+RAW p__br_tmp10 = p_state_001==1000&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+read_write_flanks {'state_0': {'read': <dependencyGraph.Statement object at 0x7f0d2cbc7bb0>, 'write': <dependencyGraph.Statement object at 0x7f0d2bba55b0>}, 'state_1': {'read': <dependencyGraph.Statement object at 0x7f0d2bba5700>, 'write': <dependencyGraph.Statement object at 0x7f0d2bba58e0>}}
+var:  state_0
+{'read': <dependencyGraph.Statement object at 0x7f0d2cbc7bb0>, 'write': <dependencyGraph.Statement object at 0x7f0d2bba55b0>}
+state_var  state_0
+read_flank p_state_000 = state_0
+write_flank state_0 = p_state_001
+var:  state_1
+{'read': <dependencyGraph.Statement object at 0x7f0d2bba5700>, 'write': <dependencyGraph.Statement object at 0x7f0d2bba58e0>}
+state_var  state_1
+read_flank p_state_100 = state_1
+write_flank state_1 = p_state_101
+total number of nodes created:  9
+SCC 0
+v p_state_000 = state_0 stmts len 1
+p_state_000 = state_0;
+v p_state_100 = state_1 stmts len 1
+p_state_100 = state_1;
+v p__br_tmp00 = p_state_100==0&&1==1 stmts len 1
+p__br_tmp00 = p_state_100==0&&1==1;
+v p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) stmts len 1
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+v p__br_tmp10 = p_state_001==1000&&1==1 stmts len 1
+p__br_tmp10 = p_state_001==1000&&1==1;
+v state_0 = p_state_001 stmts len 1
+state_0 = p_state_001;
+v p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) stmts len 1
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+v state_1 = p_state_101 stmts len 1
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+SCC 1
+v p_pkt_00 = p_pkt_0 stmts len 1
+p_pkt_00 = p_pkt_0;
+SCC graph nodes
+[<dependencyGraph.Codelet object at 0x7f0d2bba59a0>, <dependencyGraph.Codelet object at 0x7f0d2bba5910>]
+p_state_000 = state_0;
+p_state_100 = state_1;
+p__br_tmp00 = p_state_100==0&&1==1;
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+p__br_tmp10 = p_state_001==1000&&1==1;
+state_0 = p_state_001;
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+stateful
+p_pkt_00 = p_pkt_0;
+SCC graph stateful nodes {<dependencyGraph.Codelet object at 0x7f0d2bba59a0>}
+total number of nodes created:  2
+state vars {'state_0', 'state_1'}
+----calling split_SCC_graph---
+ ---- split_SCC_graph ----- 
+ -------------- v_outputs:  set()
+everything fits within a stateful ALU (no outputs). No need to do anything.
+number of SCC nodes post splitting:  2
+total number of nodes created:  2
+TODO: call synthesizer
+Output directory /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_6_canonicalizer_out could not be created
+Synthesizer
+output dir /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_6_canonicalizer_out
+Stored read, write flank variables
+{'p_state_100', 'p_state_001', 'p_state_101', 'p_state_000'}
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+-------------------------------------- stateful codelet vars :  ['state_0', 'state_1'] --------------***
+compute_scc_graph: StatefulComponent( comp_0 ): state vars:  ['state_0', 'state_1']
+codelet  p_state_000 = state_0 p_state_100 = state_1 p__br_tmp00 = p_state_100==0&&1==1 p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) p__br_tmp10 = p_state_001==1000&&1==1 state_0 = p_state_001 p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) state_1 = p_state_101  is stateful
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+number of nodes on SCC_GRAPH:  2
+number of nodes in comp_graph:  2
+ * recursive_merge strategy: nodes ordered  ['p_pkt_00 = p_pkt_0;', 'p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = p_state_001==1000&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;']
+ * recursive_merge: node ::  p_pkt_00 = p_pkt_0;
+ node outputs:  ['p_pkt_00']
+ node inputs:  ['p_pkt_0']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_pkt_00 = p_pkt_0;
+ * recursive_merge: node ::  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = p_state_001==1000&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ node outputs:  ['state_0', 'state_1', 'p_state_101', 'p_state_001', 'p_state_000', 'p_state_100', 'p__br_tmp00', 'p__br_tmp10']
+ node inputs:  ['state_0', 'state_1']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = p_state_001==1000&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ ----------------- iteratively folding node. folding_idx =  0
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+Principal Outputs:  {'p_pkt_00'}
+{'p_pkt_00'}
+~~~~~~~~~~set_alu_inputs:  ['state_0', 'state_1']
+ ~~~| state var:  ['state_0', 'state_1']
+salu_inputs {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 'state_0', 'register_hi': 'state_1'}
+number of outputs for  pair :  3
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_6_canonicalizer_out/comp_0_stateful.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_6_canonicalizer_out/comp_0_stateful.sk.out
+running sketch for stateful
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_6_canonicalizer_out/comp_0_stateful.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_6_canonicalizer_out/comp_0_stateful.sk.out
+ --------- processing stateful output ---------
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+>>>>>>>>>> add_new_alu: adding ALU with id  0  and component  comp_0 , type?  STATEFUL
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_6_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_6_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_6_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_6_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+processing: output is stateless.
+ --------- processing stateless output p_pkt_00 --------- 
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+>>>>>>>>>> add_new_alu: adding ALU with id  1  and component  comp_2 , type?  STATELESS
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+final_output:  _out_s12
+   alu output:  _out_s12
+postprocessing sketch output: finding stateful dependencies
+ *** find_stateful_dependencies ***
+ *** Done find_stateful_dependencies ***
+postprocessing sketch output: finding stateless dependencies in each component
+ *** finding dependencies between stateless ALUs ***
+ *** done finding dependencies between stateless ALUs ***
+postprocessing sketch output: finding stateless dependencies between components
+ *** find stateless dependencies between components *** 
+ *** Done finding stateless+stateful dependencies ***
+postprocessing done!
+----- starting ILP Gurobi -----
++---> dependencies of ALU  0 : 
+
++---> dependencies of ALU  1 : 
+
+# alus: =  2
+Set parameter Username
+Academic license - for non-commercial use only - expires 2022-10-14
+ILP_Gurobi: alu_dic =  {'T0': 2}
+ILP_Gurobi: Adding var  T0_A_0
+ILP_Gurobi: Adding var  T0_A_1
+ILP_Gurobi: alu_dep_dic:  {'T0': []}
+Come here------------------------
+Gurobi Optimizer version 9.5.0 build v9.5.0rc5 (linux64)
+Thread count: 28 physical cores, 56 logical processors, using up to 28 threads
+Optimize a model with 47 rows, 28 columns and 84 nonzeros
+Model fingerprint: 0xe2ade813
+Model has 24 general constraints
+Variable types: 0 continuous, 28 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+01]
+  GenCon rhs range [1e+00, 1e+01]
+  GenCon coe range [1e+00, 1e+00]
+Presolve added 1 rows and 0 columns
+Presolve removed 0 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 48 rows, 27 columns, 116 nonzeros
+Variable types: 0 continuous, 27 integer (24 binary)
+Found heuristic solution: objective 9.0000000
+Found heuristic solution: objective 0.0000000
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 28 (of 56 available processors)
+
+Solution count 2: 0 9 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 0.000000000000e+00, best bound 0.000000000000e+00, gap 0.0000%
+Optimal objective: 0
+Following is the result we want:*****************
+T0_A_0 -0
+T0_A_1 -0
+************************************************
+Obj: 0
+number of stages:  1
+stage:  -0.0
+action:  0
+num stages:  1
+stage:  -0.0
+action:  1
+num stages:  1
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+alu  0  is of type  STATEFUL ; scheduled to stage  0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+alu  1  is of type  STATELESS ; scheduled to stage  0
+Codegen processed ALUs:  1  ;  [(<alus.DominoALU object at 0x7f0d2bba57f0>, 0)]
+Codegen processed SALUs:  1  ;  [(<alus.DominoGenericSALU object at 0x7f0d2bba5e20>, 0)]
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['state_0', 'state_1', 'p_state_101', 'p_state_001', 'p_state_000', 'p_state_100', 'p__br_tmp00', 'p__br_tmp10'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) > 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (pkt_1 + 22);\n', '      state_1 = 0;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = state_1_1 + (pkt_1 + pkt_2);\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + -1;\n', '        state_1 = -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = 1;\n', '        state_1 = pkt_1 - 16;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+----------------------------------------------------
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['state_0', 'state_1', 'p_state_101', 'p_state_001', 'p_state_000', 'p_state_100', 'p__br_tmp00', 'p__br_tmp10'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) > 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (pkt_1 + 22);\n', '      state_1 = 0;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = state_1_1 + (pkt_1 + pkt_2);\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + -1;\n', '        state_1 = -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = 1;\n', '        state_1 = pkt_1 - 16;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+Time taken: 1.2257423400878906 s
+preprocessor time:
+running mutation 7
+directory: /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter, program name: snap_heavy_hitter_equivalent_7_canonicalizer. Grammar: pair. Continue?
+------------------------------
+Preprocessing done. Continuing
+Using stateful ALU pair
+Using stateless ALU grammars/stateless_domino/stateless.sk
+p_state_000 = state_0;
+
+lhs p_state_000 rhs state_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_000 = state_0;
+
+ is_read_flank: processing rhs_vars =  ['state_0']
+read flank
+p_state_100 = state_1;
+
+lhs p_state_100 rhs state_1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_100 = state_1;
+
+ is_read_flank: processing rhs_vars =  ['state_1']
+read flank
+p_pkt_00 = p_pkt_0;
+
+lhs p_pkt_00 rhs p_pkt_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_pkt_00 = p_pkt_0;
+
+ is_read_flank: processing rhs_vars =  ['p_pkt_0']
+p__br_tmp00 = 1==1&&1==1&&p_state_100==0;
+
+lhs p__br_tmp00 rhs 1==1&&1==1&&p_state_100==0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp00 = 1==1&&1==1&&p_state_100==0;
+
+ is_read_flank: processing rhs_vars =  ['p_state_100']
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+lhs p_state_001 rhs (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p_state_000', 'p_state_000']
+p__br_tmp10 = 1==1&&1==1&&p_state_001==1000;
+
+lhs p__br_tmp10 rhs 1==1&&1==1&&p_state_001==1000
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp10 = 1==1&&1==1&&p_state_001==1000;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+lhs p_state_101 rhs (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p__br_tmp10', 'p_state_100']
+state_0 = p_state_001;
+
+lhs state_0 rhs p_state_001
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_0 = p_state_001;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+write flank
+state_1 = p_state_101;
+
+lhs state_1 rhs p_state_101
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_1 = p_state_101;
+
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+write flank
+finding dependencies
+RAW p_state_000 = state_0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0;
+RAW p_state_100 = state_1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p__br_tmp00 = 1==1&&1==1&&p_state_100==0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p__br_tmp00 = 1==1&&1==1&&p_state_100==0; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000;
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); state_0 = p_state_001;
+RAW p__br_tmp10 = 1==1&&1==1&&p_state_001==1000; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+read_write_flanks {'state_1': {'read': <dependencyGraph.Statement object at 0x7f337ec97700>, 'write': <dependencyGraph.Statement object at 0x7f337ec978e0>}, 'state_0': {'read': <dependencyGraph.Statement object at 0x7f337fcbabb0>, 'write': <dependencyGraph.Statement object at 0x7f337ec975b0>}}
+var:  state_1
+{'read': <dependencyGraph.Statement object at 0x7f337ec97700>, 'write': <dependencyGraph.Statement object at 0x7f337ec978e0>}
+state_var  state_1
+read_flank p_state_100 = state_1
+write_flank state_1 = p_state_101
+var:  state_0
+{'read': <dependencyGraph.Statement object at 0x7f337fcbabb0>, 'write': <dependencyGraph.Statement object at 0x7f337ec975b0>}
+state_var  state_0
+read_flank p_state_000 = state_0
+write_flank state_0 = p_state_001
+total number of nodes created:  9
+SCC 0
+v p_state_000 = state_0 stmts len 1
+p_state_000 = state_0;
+v p_state_100 = state_1 stmts len 1
+p_state_100 = state_1;
+v p__br_tmp00 = 1==1&&1==1&&p_state_100==0 stmts len 1
+p__br_tmp00 = 1==1&&1==1&&p_state_100==0;
+v p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) stmts len 1
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+v p__br_tmp10 = 1==1&&1==1&&p_state_001==1000 stmts len 1
+p__br_tmp10 = 1==1&&1==1&&p_state_001==1000;
+v state_0 = p_state_001 stmts len 1
+state_0 = p_state_001;
+v p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) stmts len 1
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+v state_1 = p_state_101 stmts len 1
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+SCC 1
+v p_pkt_00 = p_pkt_0 stmts len 1
+p_pkt_00 = p_pkt_0;
+SCC graph nodes
+[<dependencyGraph.Codelet object at 0x7f337ec979a0>, <dependencyGraph.Codelet object at 0x7f337ec97910>]
+p_state_000 = state_0;
+p_state_100 = state_1;
+p__br_tmp00 = 1==1&&1==1&&p_state_100==0;
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+p__br_tmp10 = 1==1&&1==1&&p_state_001==1000;
+state_0 = p_state_001;
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+stateful
+p_pkt_00 = p_pkt_0;
+SCC graph stateful nodes {<dependencyGraph.Codelet object at 0x7f337ec979a0>}
+total number of nodes created:  2
+state vars {'state_1', 'state_0'}
+----calling split_SCC_graph---
+ ---- split_SCC_graph ----- 
+ -------------- v_outputs:  set()
+everything fits within a stateful ALU (no outputs). No need to do anything.
+number of SCC nodes post splitting:  2
+total number of nodes created:  2
+TODO: call synthesizer
+Output directory /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_7_canonicalizer_out could not be created
+Synthesizer
+output dir /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_7_canonicalizer_out
+Stored read, write flank variables
+{'p_state_101', 'p_state_001', 'p_state_100', 'p_state_000'}
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+-------------------------------------- stateful codelet vars :  ['state_1', 'state_0'] --------------***
+compute_scc_graph: StatefulComponent( comp_0 ): state vars:  ['state_1', 'state_0']
+codelet  p_state_000 = state_0 p_state_100 = state_1 p__br_tmp00 = 1==1&&1==1&&p_state_100==0 p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) p__br_tmp10 = 1==1&&1==1&&p_state_001==1000 state_0 = p_state_001 p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) state_1 = p_state_101  is stateful
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+number of nodes on SCC_GRAPH:  2
+number of nodes in comp_graph:  2
+ * recursive_merge strategy: nodes ordered  ['p_pkt_00 = p_pkt_0;', 'p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;']
+ * recursive_merge: node ::  p_pkt_00 = p_pkt_0;
+ node outputs:  ['p_pkt_00']
+ node inputs:  ['p_pkt_0']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_pkt_00 = p_pkt_0;
+ * recursive_merge: node ::  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ node outputs:  ['p__br_tmp10', 'state_0', 'state_1', 'p_state_001', 'p_state_100', 'p__br_tmp00', 'p_state_101', 'p_state_000']
+ node inputs:  ['state_0', 'state_1']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ ----------------- iteratively folding node. folding_idx =  0
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+Principal Outputs:  {'p_pkt_00'}
+{'p_pkt_00'}
+~~~~~~~~~~set_alu_inputs:  ['state_0', 'state_1']
+ ~~~| state var:  ['state_1', 'state_0']
+salu_inputs {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 'state_0', 'register_hi': 'state_1'}
+number of outputs for  pair :  3
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_7_canonicalizer_out/comp_0_stateful.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_7_canonicalizer_out/comp_0_stateful.sk.out
+running sketch for stateful
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_7_canonicalizer_out/comp_0_stateful.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_7_canonicalizer_out/comp_0_stateful.sk.out
+ --------- processing stateful output ---------
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+>>>>>>>>>> add_new_alu: adding ALU with id  0  and component  comp_0 , type?  STATEFUL
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_7_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_7_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_7_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_7_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+processing: output is stateless.
+ --------- processing stateless output p_pkt_00 --------- 
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+>>>>>>>>>> add_new_alu: adding ALU with id  1  and component  comp_2 , type?  STATELESS
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+final_output:  _out_s12
+   alu output:  _out_s12
+postprocessing sketch output: finding stateful dependencies
+ *** find_stateful_dependencies ***
+ *** Done find_stateful_dependencies ***
+postprocessing sketch output: finding stateless dependencies in each component
+ *** finding dependencies between stateless ALUs ***
+ *** done finding dependencies between stateless ALUs ***
+postprocessing sketch output: finding stateless dependencies between components
+ *** find stateless dependencies between components *** 
+ *** Done finding stateless+stateful dependencies ***
+postprocessing done!
+----- starting ILP Gurobi -----
++---> dependencies of ALU  0 : 
+
++---> dependencies of ALU  1 : 
+
+# alus: =  2
+Set parameter Username
+Academic license - for non-commercial use only - expires 2022-10-14
+ILP_Gurobi: alu_dic =  {'T0': 2}
+ILP_Gurobi: Adding var  T0_A_0
+ILP_Gurobi: Adding var  T0_A_1
+ILP_Gurobi: alu_dep_dic:  {'T0': []}
+Come here------------------------
+Gurobi Optimizer version 9.5.0 build v9.5.0rc5 (linux64)
+Thread count: 28 physical cores, 56 logical processors, using up to 28 threads
+Optimize a model with 47 rows, 28 columns and 84 nonzeros
+Model fingerprint: 0xe2ade813
+Model has 24 general constraints
+Variable types: 0 continuous, 28 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+01]
+  GenCon rhs range [1e+00, 1e+01]
+  GenCon coe range [1e+00, 1e+00]
+Presolve added 1 rows and 0 columns
+Presolve removed 0 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 48 rows, 27 columns, 116 nonzeros
+Variable types: 0 continuous, 27 integer (24 binary)
+Found heuristic solution: objective 9.0000000
+Found heuristic solution: objective 0.0000000
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 28 (of 56 available processors)
+
+Solution count 2: 0 9 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 0.000000000000e+00, best bound 0.000000000000e+00, gap 0.0000%
+Optimal objective: 0
+Following is the result we want:*****************
+T0_A_0 -0
+T0_A_1 -0
+************************************************
+Obj: 0
+number of stages:  1
+stage:  -0.0
+action:  0
+num stages:  1
+stage:  -0.0
+action:  1
+num stages:  1
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+alu  0  is of type  STATEFUL ; scheduled to stage  0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+alu  1  is of type  STATELESS ; scheduled to stage  0
+Codegen processed ALUs:  1  ;  [(<alus.DominoALU object at 0x7f337ec977f0>, 0)]
+Codegen processed SALUs:  1  ;  [(<alus.DominoGenericSALU object at 0x7f337ec97e20>, 0)]
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p__br_tmp10', 'state_0', 'state_1', 'p_state_001', 'p_state_100', 'p__br_tmp00', 'p_state_101', 'p_state_000'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_0_0 + pkt_1) - pkt_1) < 0)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) > 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = 2 + pkt_2;\n', '      state_1 = state_1_1;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + (pkt_1 + 1);\n', '      state_1 = 0;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) < 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + 1;\n', '        state_1 = state_1_1;\n', '      }\n', '      else\n', '      {\n', '        state_0 = state_0_0 + pkt_1;\n', '        state_1 = state_1_1 + 5;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+----------------------------------------------------
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p__br_tmp10', 'state_0', 'state_1', 'p_state_001', 'p_state_100', 'p__br_tmp00', 'p_state_101', 'p_state_000'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_0_0 + pkt_1) - pkt_1) < 0)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) > 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = 2 + pkt_2;\n', '      state_1 = state_1_1;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + (pkt_1 + 1);\n', '      state_1 = 0;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) < 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + 1;\n', '        state_1 = state_1_1;\n', '      }\n', '      else\n', '      {\n', '        state_0 = state_0_0 + pkt_1;\n', '        state_1 = state_1_1 + 5;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+Time taken: 1.2806198596954346 s
+preprocessor time:
+running mutation 8
+directory: /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter, program name: snap_heavy_hitter_equivalent_8_canonicalizer. Grammar: pair. Continue?
+------------------------------
+Preprocessing done. Continuing
+Using stateful ALU pair
+Using stateless ALU grammars/stateless_domino/stateless.sk
+p_state_000 = state_0;
+
+lhs p_state_000 rhs state_0
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_000 = state_0;
+
+ is_read_flank: processing rhs_vars =  ['state_0']
+read flank
+p_state_100 = state_1;
+
+lhs p_state_100 rhs state_1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_100 = state_1;
+
+ is_read_flank: processing rhs_vars =  ['state_1']
+read flank
+p_pkt_00 = p_pkt_0;
+
+lhs p_pkt_00 rhs p_pkt_0
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_pkt_00 = p_pkt_0;
+
+ is_read_flank: processing rhs_vars =  ['p_pkt_0']
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1;
+
+lhs p__br_tmp00 rhs 1==1&&p_state_100==0&&1==1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p__br_tmp00 = 1==1&&p_state_100==0&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_100']
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+lhs p_state_001 rhs (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000)
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p_state_000', 'p_state_000']
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1;
+
+lhs p__br_tmp10 rhs 1==1&&p_state_001==1000&&1==1
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p__br_tmp10 = 1==1&&p_state_001==1000&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+lhs p_state_101 rhs (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100)
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p__br_tmp10', 'p_state_100']
+state_0 = p_state_001;
+
+lhs state_0 rhs p_state_001
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  state_0 = p_state_001;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+write flank
+state_1 = p_state_101;
+
+lhs state_1 rhs p_state_101
+state_vars {'state_0', 'state_1'}
+read/write flanks: processing line  state_1 = p_state_101;
+
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+write flank
+finding dependencies
+RAW p_state_000 = state_0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1;
+RAW p_state_100 = state_1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p__br_tmp00 = 1==1&&p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p__br_tmp00 = 1==1&&p_state_100==0&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1;
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); state_0 = p_state_001;
+RAW p__br_tmp10 = 1==1&&p_state_001==1000&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+read_write_flanks {'state_0': {'read': <dependencyGraph.Statement object at 0x7f335ded7bb0>, 'write': <dependencyGraph.Statement object at 0x7f335ceb55b0>}, 'state_1': {'read': <dependencyGraph.Statement object at 0x7f335ceb5700>, 'write': <dependencyGraph.Statement object at 0x7f335ceb58e0>}}
+var:  state_0
+{'read': <dependencyGraph.Statement object at 0x7f335ded7bb0>, 'write': <dependencyGraph.Statement object at 0x7f335ceb55b0>}
+state_var  state_0
+read_flank p_state_000 = state_0
+write_flank state_0 = p_state_001
+var:  state_1
+{'read': <dependencyGraph.Statement object at 0x7f335ceb5700>, 'write': <dependencyGraph.Statement object at 0x7f335ceb58e0>}
+state_var  state_1
+read_flank p_state_100 = state_1
+write_flank state_1 = p_state_101
+total number of nodes created:  9
+SCC 0
+v p_state_000 = state_0 stmts len 1
+p_state_000 = state_0;
+v p_state_100 = state_1 stmts len 1
+p_state_100 = state_1;
+v p__br_tmp00 = 1==1&&p_state_100==0&&1==1 stmts len 1
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1;
+v p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) stmts len 1
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+v p__br_tmp10 = 1==1&&p_state_001==1000&&1==1 stmts len 1
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1;
+v state_0 = p_state_001 stmts len 1
+state_0 = p_state_001;
+v p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) stmts len 1
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+v state_1 = p_state_101 stmts len 1
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+SCC 1
+v p_pkt_00 = p_pkt_0 stmts len 1
+p_pkt_00 = p_pkt_0;
+SCC graph nodes
+[<dependencyGraph.Codelet object at 0x7f335ceb59a0>, <dependencyGraph.Codelet object at 0x7f335ceb5910>]
+p_state_000 = state_0;
+p_state_100 = state_1;
+p__br_tmp00 = 1==1&&p_state_100==0&&1==1;
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+p__br_tmp10 = 1==1&&p_state_001==1000&&1==1;
+state_0 = p_state_001;
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+stateful
+p_pkt_00 = p_pkt_0;
+SCC graph stateful nodes {<dependencyGraph.Codelet object at 0x7f335ceb59a0>}
+total number of nodes created:  2
+state vars {'state_0', 'state_1'}
+----calling split_SCC_graph---
+ ---- split_SCC_graph ----- 
+ -------------- v_outputs:  set()
+everything fits within a stateful ALU (no outputs). No need to do anything.
+number of SCC nodes post splitting:  2
+total number of nodes created:  2
+TODO: call synthesizer
+Output directory /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_8_canonicalizer_out could not be created
+Synthesizer
+output dir /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_8_canonicalizer_out
+Stored read, write flank variables
+{'p_state_100', 'p_state_101', 'p_state_001', 'p_state_000'}
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+-------------------------------------- stateful codelet vars :  ['state_0', 'state_1'] --------------***
+compute_scc_graph: StatefulComponent( comp_0 ): state vars:  ['state_0', 'state_1']
+codelet  p_state_000 = state_0 p_state_100 = state_1 p__br_tmp00 = 1==1&&p_state_100==0&&1==1 p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) p__br_tmp10 = 1==1&&p_state_001==1000&&1==1 state_0 = p_state_001 p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) state_1 = p_state_101  is stateful
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+number of nodes on SCC_GRAPH:  2
+number of nodes in comp_graph:  2
+ * recursive_merge strategy: nodes ordered  ['p_pkt_00 = p_pkt_0;', 'p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;']
+ * recursive_merge: node ::  p_pkt_00 = p_pkt_0;
+ node outputs:  ['p_pkt_00']
+ node inputs:  ['p_pkt_0']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_pkt_00 = p_pkt_0;
+ * recursive_merge: node ::  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ node outputs:  ['p_state_100', 'p_state_000', 'state_1', 'p__br_tmp10', 'p__br_tmp00', 'p_state_101', 'state_0', 'p_state_001']
+ node inputs:  ['state_0', 'state_1']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&p_state_100==0&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&p_state_001==1000&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ ----------------- iteratively folding node. folding_idx =  0
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+Principal Outputs:  {'p_pkt_00'}
+{'p_pkt_00'}
+~~~~~~~~~~set_alu_inputs:  ['state_0', 'state_1']
+ ~~~| state var:  ['state_0', 'state_1']
+salu_inputs {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 'state_0', 'register_hi': 'state_1'}
+number of outputs for  pair :  3
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_8_canonicalizer_out/comp_0_stateful.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_8_canonicalizer_out/comp_0_stateful.sk.out
+running sketch for stateful
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_8_canonicalizer_out/comp_0_stateful.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_8_canonicalizer_out/comp_0_stateful.sk.out
+ --------- processing stateful output ---------
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+>>>>>>>>>> add_new_alu: adding ALU with id  0  and component  comp_0 , type?  STATEFUL
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_8_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_8_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_8_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_8_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+processing: output is stateless.
+ --------- processing stateless output p_pkt_00 --------- 
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+>>>>>>>>>> add_new_alu: adding ALU with id  1  and component  comp_2 , type?  STATELESS
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+final_output:  _out_s12
+   alu output:  _out_s12
+postprocessing sketch output: finding stateful dependencies
+ *** find_stateful_dependencies ***
+ *** Done find_stateful_dependencies ***
+postprocessing sketch output: finding stateless dependencies in each component
+ *** finding dependencies between stateless ALUs ***
+ *** done finding dependencies between stateless ALUs ***
+postprocessing sketch output: finding stateless dependencies between components
+ *** find stateless dependencies between components *** 
+ *** Done finding stateless+stateful dependencies ***
+postprocessing done!
+----- starting ILP Gurobi -----
++---> dependencies of ALU  0 : 
+
++---> dependencies of ALU  1 : 
+
+# alus: =  2
+Set parameter Username
+Academic license - for non-commercial use only - expires 2022-10-14
+ILP_Gurobi: alu_dic =  {'T0': 2}
+ILP_Gurobi: Adding var  T0_A_0
+ILP_Gurobi: Adding var  T0_A_1
+ILP_Gurobi: alu_dep_dic:  {'T0': []}
+Come here------------------------
+Gurobi Optimizer version 9.5.0 build v9.5.0rc5 (linux64)
+Thread count: 28 physical cores, 56 logical processors, using up to 28 threads
+Optimize a model with 47 rows, 28 columns and 84 nonzeros
+Model fingerprint: 0xe2ade813
+Model has 24 general constraints
+Variable types: 0 continuous, 28 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+01]
+  GenCon rhs range [1e+00, 1e+01]
+  GenCon coe range [1e+00, 1e+00]
+Presolve added 1 rows and 0 columns
+Presolve removed 0 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 48 rows, 27 columns, 116 nonzeros
+Variable types: 0 continuous, 27 integer (24 binary)
+Found heuristic solution: objective 9.0000000
+Found heuristic solution: objective 0.0000000
+
+Explored 0 nodes (0 simplex iterations) in 0.01 seconds (0.00 work units)
+Thread count was 28 (of 56 available processors)
+
+Solution count 2: 0 9 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 0.000000000000e+00, best bound 0.000000000000e+00, gap 0.0000%
+Optimal objective: 0
+Following is the result we want:*****************
+T0_A_0 -0
+T0_A_1 -0
+************************************************
+Obj: 0
+number of stages:  1
+stage:  -0.0
+action:  0
+num stages:  1
+stage:  -0.0
+action:  1
+num stages:  1
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+alu  0  is of type  STATEFUL ; scheduled to stage  0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+alu  1  is of type  STATELESS ; scheduled to stage  0
+Codegen processed ALUs:  1  ;  [(<alus.DominoALU object at 0x7f335ceb57f0>, 0)]
+Codegen processed SALUs:  1  ;  [(<alus.DominoGenericSALU object at 0x7f335ceb5e20>, 0)]
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p_state_100', 'p_state_000', 'state_1', 'p__br_tmp10', 'p__br_tmp00', 'p_state_101', 'state_0', 'p_state_001'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_0_0 + pkt_1) - pkt_1) != 10)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (1 + pkt_2);\n', '      state_1 = pkt_2;\n', '    }\n', '    else\n', '    {\n', '      state_0 = 11 + pkt_1;\n', '      state_1 = pkt_1 + pkt_2;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if((pkt_1 - pkt_1) > 1)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if(((state_1_1 + pkt_1) - pkt_1) > 16)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = 9 + pkt_1;\n', '        state_1 = state_1_1 + 56;\n', '      }\n', '      else\n', '      {\n', '        state_0 = 25 + pkt_1;\n', '        state_1 = state_1_1 + 16;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+----------------------------------------------------
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p_state_100', 'p_state_000', 'state_1', 'p__br_tmp10', 'p__br_tmp00', 'p_state_101', 'state_0', 'p_state_001'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if(((state_0_0 + pkt_1) - pkt_1) != 10)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (1 + pkt_2);\n', '      state_1 = pkt_2;\n', '    }\n', '    else\n', '    {\n', '      state_0 = 11 + pkt_1;\n', '      state_1 = pkt_1 + pkt_2;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if((pkt_1 - pkt_1) > 1)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if(((state_1_1 + pkt_1) - pkt_1) > 16)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = 9 + pkt_1;\n', '        state_1 = state_1_1 + 56;\n', '      }\n', '      else\n', '      {\n', '        state_0 = 25 + pkt_1;\n', '        state_1 = state_1_1 + 16;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+Time taken: 1.4964776039123535 s
+preprocessor time:
+running mutation 9
+directory: /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter, program name: snap_heavy_hitter_equivalent_9_canonicalizer. Grammar: pair. Continue?
+------------------------------
+Preprocessing done. Continuing
+Using stateful ALU pair
+Using stateless ALU grammars/stateless_domino/stateless.sk
+p_state_000 = state_0;
+
+lhs p_state_000 rhs state_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_000 = state_0;
+
+ is_read_flank: processing rhs_vars =  ['state_0']
+read flank
+p_state_100 = state_1;
+
+lhs p_state_100 rhs state_1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_100 = state_1;
+
+ is_read_flank: processing rhs_vars =  ['state_1']
+read flank
+p_pkt_00 = p_pkt_0;
+
+lhs p_pkt_00 rhs p_pkt_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_pkt_00 = p_pkt_0;
+
+ is_read_flank: processing rhs_vars =  ['p_pkt_0']
+p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1;
+
+lhs p__br_tmp00 rhs 1==1&&1==1&&p_state_100==0&&1==1&&1==1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_100']
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+lhs p_state_001 rhs (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p_state_000', 'p_state_000']
+p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1&&1==1;
+
+lhs p__br_tmp10 rhs 1==1&&1==1&&p_state_001==1000&&1==1&&1==1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+lhs p_state_101 rhs (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p__br_tmp10', 'p_state_100']
+state_0 = p_state_001;
+
+lhs state_0 rhs p_state_001
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_0 = p_state_001;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+write flank
+state_1 = p_state_101;
+
+lhs state_1 rhs p_state_101
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_1 = p_state_101;
+
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+write flank
+finding dependencies
+RAW p_state_000 = state_0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1;
+RAW p_state_100 = state_1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1&&1==1;
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); state_0 = p_state_001;
+RAW p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+read_write_flanks {'state_1': {'read': <dependencyGraph.Statement object at 0x7fae29ce3700>, 'write': <dependencyGraph.Statement object at 0x7fae29ce38e0>}, 'state_0': {'read': <dependencyGraph.Statement object at 0x7fae2ad06bb0>, 'write': <dependencyGraph.Statement object at 0x7fae29ce35b0>}}
+var:  state_1
+{'read': <dependencyGraph.Statement object at 0x7fae29ce3700>, 'write': <dependencyGraph.Statement object at 0x7fae29ce38e0>}
+state_var  state_1
+read_flank p_state_100 = state_1
+write_flank state_1 = p_state_101
+var:  state_0
+{'read': <dependencyGraph.Statement object at 0x7fae2ad06bb0>, 'write': <dependencyGraph.Statement object at 0x7fae29ce35b0>}
+state_var  state_0
+read_flank p_state_000 = state_0
+write_flank state_0 = p_state_001
+total number of nodes created:  9
+SCC 0
+v p_state_000 = state_0 stmts len 1
+p_state_000 = state_0;
+v p_state_100 = state_1 stmts len 1
+p_state_100 = state_1;
+v p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1 stmts len 1
+p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1;
+v p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) stmts len 1
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+v p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1&&1==1 stmts len 1
+p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1&&1==1;
+v state_0 = p_state_001 stmts len 1
+state_0 = p_state_001;
+v p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) stmts len 1
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+v state_1 = p_state_101 stmts len 1
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+SCC 1
+v p_pkt_00 = p_pkt_0 stmts len 1
+p_pkt_00 = p_pkt_0;
+SCC graph nodes
+[<dependencyGraph.Codelet object at 0x7fae29ce39a0>, <dependencyGraph.Codelet object at 0x7fae29ce3910>]
+p_state_000 = state_0;
+p_state_100 = state_1;
+p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1;
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1&&1==1;
+state_0 = p_state_001;
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+stateful
+p_pkt_00 = p_pkt_0;
+SCC graph stateful nodes {<dependencyGraph.Codelet object at 0x7fae29ce39a0>}
+total number of nodes created:  2
+state vars {'state_1', 'state_0'}
+----calling split_SCC_graph---
+ ---- split_SCC_graph ----- 
+ -------------- v_outputs:  set()
+everything fits within a stateful ALU (no outputs). No need to do anything.
+number of SCC nodes post splitting:  2
+total number of nodes created:  2
+TODO: call synthesizer
+Output directory /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_9_canonicalizer_out could not be created
+Synthesizer
+output dir /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_9_canonicalizer_out
+Stored read, write flank variables
+{'p_state_001', 'p_state_000', 'p_state_100', 'p_state_101'}
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+-------------------------------------- stateful codelet vars :  ['state_1', 'state_0'] --------------***
+compute_scc_graph: StatefulComponent( comp_0 ): state vars:  ['state_1', 'state_0']
+codelet  p_state_000 = state_0 p_state_100 = state_1 p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1 p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1&&1==1 state_0 = p_state_001 p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) state_1 = p_state_101  is stateful
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+number of nodes on SCC_GRAPH:  2
+number of nodes in comp_graph:  2
+ * recursive_merge strategy: nodes ordered  ['p_pkt_00 = p_pkt_0;', 'p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;']
+ * recursive_merge: node ::  p_pkt_00 = p_pkt_0;
+ node outputs:  ['p_pkt_00']
+ node inputs:  ['p_pkt_0']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_pkt_00 = p_pkt_0;
+ * recursive_merge: node ::  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ node outputs:  ['p__br_tmp10', 'p_state_000', 'p__br_tmp00', 'p_state_100', 'state_1', 'state_0', 'p_state_101', 'p_state_001']
+ node inputs:  ['state_0', 'state_1']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = 1==1&&1==1&&p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = 1==1&&1==1&&p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ ----------------- iteratively folding node. folding_idx =  0
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+Principal Outputs:  {'p_pkt_00'}
+{'p_pkt_00'}
+~~~~~~~~~~set_alu_inputs:  ['state_0', 'state_1']
+ ~~~| state var:  ['state_1', 'state_0']
+salu_inputs {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 'state_0', 'register_hi': 'state_1'}
+number of outputs for  pair :  3
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_9_canonicalizer_out/comp_0_stateful.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_9_canonicalizer_out/comp_0_stateful.sk.out
+running sketch for stateful
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_9_canonicalizer_out/comp_0_stateful.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_9_canonicalizer_out/comp_0_stateful.sk.out
+ --------- processing stateful output ---------
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+>>>>>>>>>> add_new_alu: adding ALU with id  0  and component  comp_0 , type?  STATEFUL
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_9_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_9_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_9_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_9_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+processing: output is stateless.
+ --------- processing stateless output p_pkt_00 --------- 
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+>>>>>>>>>> add_new_alu: adding ALU with id  1  and component  comp_2 , type?  STATELESS
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+final_output:  _out_s12
+   alu output:  _out_s12
+postprocessing sketch output: finding stateful dependencies
+ *** find_stateful_dependencies ***
+ *** Done find_stateful_dependencies ***
+postprocessing sketch output: finding stateless dependencies in each component
+ *** finding dependencies between stateless ALUs ***
+ *** done finding dependencies between stateless ALUs ***
+postprocessing sketch output: finding stateless dependencies between components
+ *** find stateless dependencies between components *** 
+ *** Done finding stateless+stateful dependencies ***
+postprocessing done!
+----- starting ILP Gurobi -----
++---> dependencies of ALU  0 : 
+
++---> dependencies of ALU  1 : 
+
+# alus: =  2
+Set parameter Username
+Academic license - for non-commercial use only - expires 2022-10-14
+ILP_Gurobi: alu_dic =  {'T0': 2}
+ILP_Gurobi: Adding var  T0_A_0
+ILP_Gurobi: Adding var  T0_A_1
+ILP_Gurobi: alu_dep_dic:  {'T0': []}
+Come here------------------------
+Gurobi Optimizer version 9.5.0 build v9.5.0rc5 (linux64)
+Thread count: 28 physical cores, 56 logical processors, using up to 28 threads
+Optimize a model with 47 rows, 28 columns and 84 nonzeros
+Model fingerprint: 0xe2ade813
+Model has 24 general constraints
+Variable types: 0 continuous, 28 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+01]
+  GenCon rhs range [1e+00, 1e+01]
+  GenCon coe range [1e+00, 1e+00]
+Presolve added 1 rows and 0 columns
+Presolve removed 0 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 48 rows, 27 columns, 116 nonzeros
+Variable types: 0 continuous, 27 integer (24 binary)
+Found heuristic solution: objective 9.0000000
+Found heuristic solution: objective 0.0000000
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 28 (of 56 available processors)
+
+Solution count 2: 0 9 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 0.000000000000e+00, best bound 0.000000000000e+00, gap 0.0000%
+Optimal objective: 0
+Following is the result we want:*****************
+T0_A_0 -0
+T0_A_1 -0
+************************************************
+Obj: 0
+number of stages:  1
+stage:  -0.0
+action:  0
+num stages:  1
+stage:  -0.0
+action:  1
+num stages:  1
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+alu  0  is of type  STATEFUL ; scheduled to stage  0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+alu  1  is of type  STATELESS ; scheduled to stage  0
+Codegen processed ALUs:  1  ;  [(<alus.DominoALU object at 0x7fae29ce37f0>, 0)]
+Codegen processed SALUs:  1  ;  [(<alus.DominoGenericSALU object at 0x7fae29ce3e20>, 0)]
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p__br_tmp10', 'p_state_000', 'p__br_tmp00', 'p_state_100', 'state_1', 'state_0', 'p_state_101', 'p_state_001'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if((pkt_1 - pkt_1) > 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (pkt_1 + 22);\n', '      state_1 = 0;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = 0;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if(((state_0_0 + pkt_1) - pkt_1) == 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + -1;\n', '        state_1 = -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = state_0_0 + 1;\n', '        state_1 = pkt_1 - 16;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+----------------------------------------------------
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p__br_tmp10', 'p_state_000', 'p__br_tmp00', 'p_state_100', 'state_1', 'state_0', 'p_state_101', 'p_state_001'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if((pkt_1 - pkt_1) > 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (pkt_1 + 22);\n', '      state_1 = 0;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = 0;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if(((state_0_0 + pkt_1) - pkt_1) == 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + -1;\n', '        state_1 = -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = state_0_0 + 1;\n', '        state_1 = pkt_1 - 16;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+Time taken: 1.2002460956573486 s
+preprocessor time:
+running mutation 10
+directory: /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter, program name: snap_heavy_hitter_equivalent_10_canonicalizer. Grammar: pair. Continue?
+------------------------------
+Preprocessing done. Continuing
+Using stateful ALU pair
+Using stateless ALU grammars/stateless_domino/stateless.sk
+p_state_000 = state_0;
+
+lhs p_state_000 rhs state_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_000 = state_0;
+
+ is_read_flank: processing rhs_vars =  ['state_0']
+read flank
+p_state_100 = state_1;
+
+lhs p_state_100 rhs state_1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_100 = state_1;
+
+ is_read_flank: processing rhs_vars =  ['state_1']
+read flank
+p_pkt_00 = p_pkt_0;
+
+lhs p_pkt_00 rhs p_pkt_0
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_pkt_00 = p_pkt_0;
+
+ is_read_flank: processing rhs_vars =  ['p_pkt_0']
+p__br_tmp00 = p_state_100==0&&1==1&&1==1;
+
+lhs p__br_tmp00 rhs p_state_100==0&&1==1&&1==1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp00 = p_state_100==0&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_100']
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+lhs p_state_001 rhs (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p_state_000', 'p_state_000']
+p__br_tmp10 = p_state_001==1000&&1==1&&1==1;
+
+lhs p__br_tmp10 rhs p_state_001==1000&&1==1&&1==1
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p__br_tmp10 = p_state_001==1000&&1==1&&1==1;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+lhs p_state_101 rhs (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100)
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+
+ is_read_flank: processing rhs_vars =  ['p__br_tmp00', 'p__br_tmp10', 'p_state_100']
+state_0 = p_state_001;
+
+lhs state_0 rhs p_state_001
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_0 = p_state_001;
+
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+write flank
+state_1 = p_state_101;
+
+lhs state_1 rhs p_state_101
+state_vars {'state_1', 'state_0'}
+read/write flanks: processing line  state_1 = p_state_101;
+
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+write flank
+finding dependencies
+RAW p_state_000 = state_0; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p_state_100 = state_1; p__br_tmp00 = p_state_100==0&&1==1&&1==1;
+RAW p_state_100 = state_1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p__br_tmp00 = p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+RAW p__br_tmp00 = p_state_100==0&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = p_state_001==1000&&1==1&&1==1;
+RAW p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); state_0 = p_state_001;
+RAW p__br_tmp10 = p_state_001==1000&&1==1&&1==1; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+RAW p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+read_write_flanks {'state_1': {'read': <dependencyGraph.Statement object at 0x7fe5140b8700>, 'write': <dependencyGraph.Statement object at 0x7fe5140b88e0>}, 'state_0': {'read': <dependencyGraph.Statement object at 0x7fe5150dbbb0>, 'write': <dependencyGraph.Statement object at 0x7fe5140b85b0>}}
+var:  state_1
+{'read': <dependencyGraph.Statement object at 0x7fe5140b8700>, 'write': <dependencyGraph.Statement object at 0x7fe5140b88e0>}
+state_var  state_1
+read_flank p_state_100 = state_1
+write_flank state_1 = p_state_101
+var:  state_0
+{'read': <dependencyGraph.Statement object at 0x7fe5150dbbb0>, 'write': <dependencyGraph.Statement object at 0x7fe5140b85b0>}
+state_var  state_0
+read_flank p_state_000 = state_0
+write_flank state_0 = p_state_001
+total number of nodes created:  9
+SCC 0
+v p_state_000 = state_0 stmts len 1
+p_state_000 = state_0;
+v p_state_100 = state_1 stmts len 1
+p_state_100 = state_1;
+v p__br_tmp00 = p_state_100==0&&1==1&&1==1 stmts len 1
+p__br_tmp00 = p_state_100==0&&1==1&&1==1;
+v p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) stmts len 1
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+v p__br_tmp10 = p_state_001==1000&&1==1&&1==1 stmts len 1
+p__br_tmp10 = p_state_001==1000&&1==1&&1==1;
+v state_0 = p_state_001 stmts len 1
+state_0 = p_state_001;
+v p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) stmts len 1
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+v state_1 = p_state_101 stmts len 1
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+SCC 1
+v p_pkt_00 = p_pkt_0 stmts len 1
+p_pkt_00 = p_pkt_0;
+SCC graph nodes
+[<dependencyGraph.Codelet object at 0x7fe5140b89a0>, <dependencyGraph.Codelet object at 0x7fe5140b8910>]
+p_state_000 = state_0;
+p_state_100 = state_1;
+p__br_tmp00 = p_state_100==0&&1==1&&1==1;
+p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000);
+p__br_tmp10 = p_state_001==1000&&1==1&&1==1;
+state_0 = p_state_001;
+p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100);
+state_1 = p_state_101;
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+stateful
+p_pkt_00 = p_pkt_0;
+SCC graph stateful nodes {<dependencyGraph.Codelet object at 0x7fe5140b89a0>}
+total number of nodes created:  2
+state vars {'state_1', 'state_0'}
+----calling split_SCC_graph---
+ ---- split_SCC_graph ----- 
+ -------------- v_outputs:  set()
+everything fits within a stateful ALU (no outputs). No need to do anything.
+number of SCC nodes post splitting:  2
+total number of nodes created:  2
+TODO: call synthesizer
+Output directory /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_10_canonicalizer_out could not be created
+Synthesizer
+output dir /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_10_canonicalizer_out
+Stored read, write flank variables
+{'p_state_100', 'p_state_101', 'p_state_000', 'p_state_001'}
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+-------------------------------------- stateful codelet vars :  ['state_1', 'state_0'] --------------***
+compute_scc_graph: StatefulComponent( comp_0 ): state vars:  ['state_1', 'state_0']
+codelet  p_state_000 = state_0 p_state_100 = state_1 p__br_tmp00 = p_state_100==0&&1==1&&1==1 p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000) p__br_tmp10 = p_state_001==1000&&1==1&&1==1 state_0 = p_state_001 p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100) state_1 = p_state_101  is stateful
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+number of nodes on SCC_GRAPH:  2
+number of nodes in comp_graph:  2
+ * recursive_merge strategy: nodes ordered  ['p_pkt_00 = p_pkt_0;', 'p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;']
+ * recursive_merge: node ::  p_pkt_00 = p_pkt_0;
+ node outputs:  ['p_pkt_00']
+ node inputs:  ['p_pkt_0']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_pkt_00 = p_pkt_0;
+ * recursive_merge: node ::  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ node outputs:  ['p__br_tmp00', 'state_1', 'p_state_001', 'p_state_101', 'p_state_100', 'p_state_000', 'state_0', 'p__br_tmp10']
+ node inputs:  ['state_0', 'state_1']
+ exclude_read_write_flanks: successor inputs:  set()
+ exclude_read_write_flanks: filtered outputs (temp filtered):  []
+ * recursive_merge: finished processing  p_state_000 = state_0; p_state_100 = state_1; p__br_tmp00 = p_state_100==0&&1==1&&1==1; p_state_001 = (1&&(p__br_tmp00)) ? (p_state_000+1) : (p_state_000); p__br_tmp10 = p_state_001==1000&&1==1&&1==1; state_0 = p_state_001; p_state_101 = (1&&(p__br_tmp00)&&(p__br_tmp10)) ? (1) : (p_state_100); state_1 = p_state_101;
+ ----------------- iteratively folding node. folding_idx =  0
+ is_read_flank: processing rhs_vars =  ['state_0']
+ is_read_flank: processing rhs_vars =  ['state_1']
+ is_read_flank: processing rhs_vars =  ['p_state_001']
+ is_read_flank: processing rhs_vars =  ['p_state_101']
+Principal Outputs:  {'p_pkt_00'}
+{'p_pkt_00'}
+~~~~~~~~~~set_alu_inputs:  ['state_0', 'state_1']
+ ~~~| state var:  ['state_1', 'state_0']
+salu_inputs {'metadata_lo': 0, 'metadata_hi': 0, 'register_lo': 'state_0', 'register_hi': 'state_1'}
+number of outputs for  pair :  3
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_10_canonicalizer_out/comp_0_stateful.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_10_canonicalizer_out/comp_0_stateful.sk.out
+running sketch for stateful
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_10_canonicalizer_out/comp_0_stateful.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_10_canonicalizer_out/comp_0_stateful.sk.out
+ --------- processing stateful output ---------
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+>>>>>>>>>> add_new_alu: adding ALU with id  0  and component  comp_0 , type?  STATEFUL
+filename_to_compname: filename =  comp_0_stateful.sk.out
+['comp_0']
+sketch /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_10_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk > /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_10_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+running sketch, bnd = 1
+sketch_filename /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_10_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk
+return code 0
+solved
+output is in /home/xiangyug/ruijief/benchmarks/Domino_mutations/snap_heavy_hitter/snap_heavy_hitter_equivalent_10_canonicalizer_out/comp_2_stateless_p_pkt_00_bnd_1.sk.out
+processing: output is stateless.
+ --------- processing stateless output p_pkt_00 --------- 
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+>>>>>>>>>> add_new_alu: adding ALU with id  1  and component  comp_2 , type?  STATELESS
+filename_to_compname: filename =  comp_2_stateless_p_pkt_00_bnd_1.sk.out
+['comp_2']
+final_output:  _out_s12
+   alu output:  _out_s12
+postprocessing sketch output: finding stateful dependencies
+ *** find_stateful_dependencies ***
+ *** Done find_stateful_dependencies ***
+postprocessing sketch output: finding stateless dependencies in each component
+ *** finding dependencies between stateless ALUs ***
+ *** done finding dependencies between stateless ALUs ***
+postprocessing sketch output: finding stateless dependencies between components
+ *** find stateless dependencies between components *** 
+ *** Done finding stateless+stateful dependencies ***
+postprocessing done!
+----- starting ILP Gurobi -----
++---> dependencies of ALU  0 : 
+
++---> dependencies of ALU  1 : 
+
+# alus: =  2
+Set parameter Username
+Academic license - for non-commercial use only - expires 2022-10-14
+ILP_Gurobi: alu_dic =  {'T0': 2}
+ILP_Gurobi: Adding var  T0_A_0
+ILP_Gurobi: Adding var  T0_A_1
+ILP_Gurobi: alu_dep_dic:  {'T0': []}
+Come here------------------------
+Gurobi Optimizer version 9.5.0 build v9.5.0rc5 (linux64)
+Thread count: 28 physical cores, 56 logical processors, using up to 28 threads
+Optimize a model with 47 rows, 28 columns and 84 nonzeros
+Model fingerprint: 0xe2ade813
+Model has 24 general constraints
+Variable types: 0 continuous, 28 integer (0 binary)
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 2e+01]
+  GenCon rhs range [1e+00, 1e+01]
+  GenCon coe range [1e+00, 1e+00]
+Presolve added 1 rows and 0 columns
+Presolve removed 0 rows and 1 columns
+Presolve time: 0.00s
+Presolved: 48 rows, 27 columns, 116 nonzeros
+Variable types: 0 continuous, 27 integer (24 binary)
+Found heuristic solution: objective 9.0000000
+Found heuristic solution: objective 0.0000000
+
+Explored 0 nodes (0 simplex iterations) in 0.00 seconds (0.00 work units)
+Thread count was 28 (of 56 available processors)
+
+Solution count 2: 0 9 
+
+Optimal solution found (tolerance 1.00e-04)
+Best objective 0.000000000000e+00, best bound 0.000000000000e+00, gap 0.0000%
+Optimal objective: 0
+Following is the result we want:*****************
+T0_A_0 -0
+T0_A_1 -0
+************************************************
+Obj: 0
+number of stages:  1
+stage:  -0.0
+action:  0
+num stages:  1
+stage:  -0.0
+action:  1
+num stages:  1
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  0 :  -0.0
+alu  0  is of type  STATEFUL ; scheduled to stage  0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+ > get_alu_stage: table  0 , alu_id =  1 :  -0.0
+alu  1  is of type  STATELESS ; scheduled to stage  0
+Codegen processed ALUs:  1  ;  [(<alus.DominoALU object at 0x7fe5140b87f0>, 0)]
+Codegen processed SALUs:  1  ;  [(<alus.DominoGenericSALU object at 0x7fe5140b8e20>, 0)]
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p__br_tmp00', 'state_1', 'p_state_001', 'p_state_101', 'p_state_100', 'p_state_000', 'state_0', 'p__br_tmp10'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (pkt_1 + 22);\n', '      state_1 = state_1_1;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = pkt_1 + pkt_2;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + -1;\n', '        state_1 = -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = state_0_0 + 1;\n', '        state_1 = pkt_1 - 16;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+----------------------------------------------------
+{'num_pipeline_stages': 1, 'alu_dependencies': [], 'stateful_alus': [{'inputs': ['state_0', 'state_1'], 'outputs': ['p__br_tmp00', 'state_1', 'p_state_001', 'p_state_101', 'p_state_100', 'p_state_000', 'state_0', 'p__br_tmp10'], 'id': 0, 'body': ['void salu (int state_0_0, int state_1_1, int pkt_1, int pkt_2, ref int[3] _out0)/*comp_0_..ateful.sk:131*/\n', '{\n', '  _out0 = ((int[3])0);\n', '  int state_1 = state_1_1;\n', '  int state_0 = state_0_0;\n', '  if(((state_1_1 + pkt_1) - pkt_1) < 1)/*comp_0_..ateful.sk:134*/\n', '  {\n', '    if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:135*/\n', '    {\n', '      state_0 = state_0_0 + (pkt_1 + 22);\n', '      state_1 = state_1_1;\n', '    }\n', '    else\n', '    {\n', '      state_0 = state_0_0 + 1;\n', '      state_1 = pkt_1 + pkt_2;\n', '    }\n', '  }\n', '  else\n', '  {\n', '    if(((state_1_1 + pkt_1) - pkt_1) == 0)/*comp_0_..ateful.sk:142*/\n', '    {\n', '      if((pkt_1 - pkt_1) == 1)/*comp_0_..ateful.sk:143*/\n', '      {\n', '        state_0 = state_0_0 + -1;\n', '        state_1 = -30;\n', '      }\n', '      else\n', '      {\n', '        state_0 = state_0_0 + 1;\n', '        state_1 = pkt_1 - 16;\n', '      }\n', '    }\n', '  }\n', '  _out0[0] = state_0;\n', '  _out0[1] = state_1;\n', '  _out0[2] = 0;\n']}], 'stateless_alus': [{'id': 1, 'opcode': 15, 'operand0': '1', 'operand1': 'p_pkt_0', 'operand2': '1', 'result': 'p_pkt_00', 'immediate_operand': '2'}]}
+Time taken: 1.1819179058074951 s
+preprocessor time:
