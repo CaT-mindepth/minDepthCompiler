@@ -1358,7 +1358,7 @@ class Synthesizer:
         # logic dependant only on current node's other input that can be folded into current node
         self.comp_graph = self.scc_graph
 
-        def partition_stateful_predecessors(preds : list[StatefulComponent]):
+        def partition_stateful_predecessors(preds):
             node_to_flanks = {}
             for node in preds:
                 str_node = node.get_code_as_string()
