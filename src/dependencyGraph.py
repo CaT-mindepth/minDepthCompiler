@@ -110,6 +110,8 @@ class Statement:
         return state_var
 
     def __eq__(self, other):
+        if other == None:
+            return False 
         return self.lhs == other.lhs and self.rhs == other.rhs and self.line_no == other.line_no
 
     def __hash__(self):
@@ -126,6 +128,23 @@ class Codelet:
 
     def get_stmt_list(self):
         return self.stmt_list
+    
+
+    def get_write_flank_deps(self, write_flank):
+        deps = []
+        read_flank = None
+        for st in self.stmt_list:
+            if st.read_flank:
+                read_flank = st.lhs
+                continue
+            if st.write_flank:
+                if st.rhs_vars[0] != write_flank:
+                    return None, []
+                break 
+            if st.read_flank != None:
+                deps.append(st)
+
+        return read_flank, deps
 
     """
 		returns 3-tuple of <stmts in BCI (in reverse order)>, <list of read flanks>, <list of write flanks>
