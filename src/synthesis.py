@@ -433,6 +433,12 @@ class StatefulComponent(object):
         self.is_duplicated = False
         self.sort_inputs()
 
+    # returns stringified representation of stateful node
+    # note this is not unique as there can be parallel stateful nodes
+    # after split_SCC_graph in dependencyGraph.py.
+    def get_code_as_string(self):
+        return self.codelet.get_code_as_string()
+
     def get_stateful_output(self):
         return self.codelet.get_stateful_output()
 
@@ -956,12 +962,12 @@ class Synthesizer:
             new_comp = copy.deepcopy(b)
             new_comp.merge_component(a, True)
 
-        new_comp.update_outputs(self.comp_graph.neighbors(b))
+        #new_comp.update_outputs(self.comp_graph.neighbors(b))
         print('resultant component: ')
         print(new_comp)
-        print('new component inputs: ', new_comp.inputs)
-        print('new component outputs: ', new_comp.outputs)
-        print('new component state_pkt_fields: ', new_comp.state_pkt_fields)
+        #print('new component inputs: ', new_comp.inputs)
+        #print('new component outputs: ', new_comp.outputs)
+        #print('new component state_pkt_fields: ', new_comp.state_pkt_fields)
 
         # Case 1: a, b both stateful. Output is b.stateful_output
         # Case 2: a stateless, b stateful. Output is b.stateful_output
@@ -1347,6 +1353,116 @@ class Synthesizer:
         print('number of nodes on SCC_GRAPH: ', len(self.scc_graph.nodes))
 
         self.draw_graph(self.scc_graph, self.filename + "_scc_graph")
+
+        # After building graph, for each stateful node, check if there are predecessor nodes that contain
+        # logic dependant only on current node's other input that can be folded into current node
+        self.comp_graph = self.scc_graph
+
+        def partition_stateful_predecessors(preds : list[StatefulComponent]):
+            node_to_flanks = {}
+            for node in preds:
+                str_node = node.get_code_as_string()
+                if str_node in node_to_flanks:
+                    if node.codelet.stateful_output != None:
+                        stateful_output = node.codelet.stateful_output 
+                        node_to_flanks[str_node].add((node, stateful_output, (node.codelet.get_stmt_of(stateful_output))))
+                else:
+                    if node.codelet.stateful_output == None:
+                        node_to_flanks[str_node] = set(), node
+                    else:
+                        stateful_output = node.codelet.stateful_output
+                        node_to_flanks[str_node] = set([(node, stateful_output, (node.codelet.get_stmt_of(stateful_output)))])
+            return node_to_flanks
+
+        #for comp in self.components:
+        #    if comp.isStateful:
+        #        print('curr node: ', str(comp))
+        #        print('-------------------------')
+        #        print(partition_stateful_predecessors(list(filter(lambda x: x.isStateful, self.scc_graph.predecessors(comp)))))
+        #        print('-------------------------')
+
+        # we set merge_idx to a high number to help discern these queries are made by
+        # try_fold_pred when debugging.
+        self.merge_idx = 100
+        def try_fold_pred(comp, pred_stmt, pred):
+            try_merge_pred_out = Component([Codelet(stmts=[pred_stmt])],
+                id = self.merge_idx, grammar_name=self.stateful_path, is_tofino = self.is_tofino)
+            self.merge_idx += 1
+            self.scc_graph.add_node(try_merge_pred_out)
+            if self.try_merge(try_merge_pred_out, comp):
+                print('can merge ', pred_stmt.lhs, ' into node ', str(comp))
+                self.scc_graph.remove_node(try_merge_pred_out)
+                self.scc_graph.remove_edge(pred, comp)
+                comp.codelet.add_stmts_before([pred_stmt])
+                comp.comp_stmts = comp.codelet.get_stmt_list()
+                comp.get_inputs_outputs()
+                return True
+            else:
+                print('...merge failed. continue iteration')
+                self.scc_graph.remove_node(try_merge_pred_out)
+                return False
+
+
+        for comp in self.components:
+            if comp.isStateful:
+                comp.get_inputs_outputs()
+
+                # try folding stateless predecessor nodes into stateful node to 
+                # reduce number of inputs
+                stateless_predecessors = list(filter(lambda x: not x.isStateful, self.scc_graph.predecessors(comp)))
+                for pred in stateless_predecessors:
+                    pred_stmt = pred.codelets[0].stmt_list[0]
+                    other_inputs = set(comp.inputs)
+                    other_inputs.remove(pred_stmt.lhs)
+                    can_try_merge = True 
+                    for rhs in pred_stmt.rhs_vars:
+                        if rhs not in other_inputs:
+                            can_try_merge = False 
+                    if not can_try_merge:
+                        continue # skip the current predecessor
+                    print(' all rhs in other inputs, trying merge...')
+                    # now we have confirmed that the output of pred
+                    # is merely a dependency of some other input.
+                    # we can now try remove dependency on pred and try 
+                    # coalescing pred_output, pred_stmt into the current node.
+                    try_fold_pred(comp, pred_stmt, pred)
+
+                # try folding stateful predecessor nodes into stateful node to 
+                # reduce number of inputs. 
+                # first, we partition the stateful predecessors into 
+                # into sets of equivalent nodes with different output flanks
+                pred_to_flanks = partition_stateful_predecessors(list(filter(lambda x: x.isStateful, self.scc_graph.predecessors(comp))))
+                # iterate over each equivalence partition 
+                for str_pred in pred_to_flanks:
+                    # look at each (flank, pred) pair in the partition
+                    # if the flank only depends on other inputs into current component,
+                    # we can try safely remove the dependency on that flank as input and
+                    # instead include the flank's statement in our synthesis scope.
+                    for pred, pred_output, pred_stmt in pred_to_flanks[str_pred]:
+                        assert (pred, comp) in self.scc_graph.edges
+                        other_inputs = set(comp.inputs)
+                        other_inputs.remove(pred_output)
+                        pred_output_rhs_vars = set(pred_stmt.rhs_vars)
+                        print('pred_stmt: ', str(pred_stmt))
+                        print('pred rhs: ', pred_stmt.rhs_vars)
+                        print('comp inputs: ', comp.inputs)
+                        print('other inputs: ', other_inputs)
+                        can_try_merge = True
+                        for rhs in pred_output_rhs_vars:
+                            if rhs not in other_inputs:
+                                print(' rhs not in other inputs, continuing...')
+                                can_try_merge = False # skip
+                                break
+                        if not can_try_merge:
+                            continue
+                        print(' all rhs in other inputs, trying merge...')
+                        # now we have confirmed that the output of pred
+                        # is merely a dependency of some other input.
+                        # we can now try remove dependency on pred and try 
+                        # coalescing pred_output, pred_stmt into the current node.
+                        try_fold_pred(comp, pred_stmt, pred)
+                
+        self.draw_graph(self.scc_graph, self.filename + "_doctored_graph")
 
         # Step 4: call merging procedure (if we choose to enable it)
         self.comp_graph = self.scc_graph

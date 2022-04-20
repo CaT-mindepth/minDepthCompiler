@@ -213,6 +213,11 @@ class Codelet:
                 m[o] = self.get_stmt_deps(o_last_stmt)
         return m
 
+    def get_stmt_of(self, var):
+        for s in self.stmt_list:
+            if var == s.lhs:
+                return s 
+
     def add_stmts(self, stmts):
         self.stmt_list.extend(stmts)
 
@@ -290,6 +295,9 @@ class Codelet:
         for stmt in self.stmt_list:
             stmt.print()
     
+    def get_code_as_string(self):
+        return " ".join(list(map(str, self.stmt_list)))
+
     def __str__(self):
         if self.stateful:
             print('codelet ', " ".join(list(map(str, self.stmt_list))), ' is stateful')
