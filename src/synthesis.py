@@ -232,7 +232,12 @@ class Component:  # group of codelets
                 prev_expr_name = bnd_to_expr[b-1][0]
                 prev_params = ', '.join(bnd_to_expr[b-1][1])
                 prev_expr = '{}({})'.format(prev_expr_name, prev_params)
-                f.write('\t\treturn alu(??, {}, {}, {}, ??);\n'.format(prev_expr, prev_expr, prev_expr))
+                if not self.is_tofino:
+                    f.write('\t\treturn alu(??, {}, {}, {}, ??);\n'.format(prev_expr, prev_expr, prev_expr))
+                else:
+                    f.write('\t\treturn alu(??, {}, {}, ??);\n'.format(prev_expr, prev_expr))
+
+
                 f.write('\t}\n')
                 f.write('}\n\n')	
 
@@ -254,7 +259,11 @@ class Component:  # group of codelets
             f.write('\telse {\n')
             prev_args = ', '.join(['vars{}'.format(i) for i in bnds_list]) + ', vars'
             prev_expr = 'expr({}, bnd-1)'.format(prev_args)
-            f.write('\t\treturn alu(??, {}, {}, {}, ??);\n'.format(prev_expr, prev_expr, prev_expr))
+            if not self.is_tofino:
+                f.write('\t\treturn alu(??, {}, {}, {}, ??);\n'.format(prev_expr, prev_expr, prev_expr))
+            else:
+                f.write('\t\treturn alu(??, {}, {}, ??);\n'.format(prev_expr, prev_expr))
+
             f.write('\t}\n')
             f.write('}\n')
 
