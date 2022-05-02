@@ -214,7 +214,8 @@ class Component:  # group of codelets
         f.write(") {\n")
 
         f.write("\tgenerator int vars(){\n")
-        f.write("\t\treturn {| 1 |")
+        # f.write("\t\treturn {| 1 |")
+        f.write("\t\treturn {|")
         if "int" in [var_types[v] for v in self.inputs]:
             # f.write("|");
             for v in self.inputs:
