@@ -342,7 +342,7 @@ class Component:  # group of codelets
 
         f.write("\tgenerator int vars(){\n")
         # f.write("\t\treturn {| 1 |")
-        f.write("\t\treturn {|")
+        f.write("\t\treturn {| ")
         if "int" in [var_types[v] for v in self.inputs]:
             # f.write("|");
             for v in self.inputs:
@@ -385,13 +385,15 @@ class Component:  # group of codelets
         for b in bnds_list:
             f.write('\tgenerator int vars{}()'.format(b) + '{\n')
             if b == 0:
-                f.write('\t\treturn {| 1 | ' + ' | '.join(bnd_vars[b]) + ' |};\n')
+                # f.write('\t\treturn {| 1 | ' + ' | '.join(bnd_vars[b]) + ' |};\n')
+                f.write('\t\treturn {| ' + ' | '.join(bnd_vars[b]) + ' |};\n')
             else:
                 f.write('\t\treturn {|' + ' | '.join(bnd_vars[b]) + '|};\n')
             f.write("\t}\n")
         
         f.write('\tgenerator int vars(){\n')
-        f.write('\t\treturn {| 1 | ' + ' | '.join(self.inputs) + '|};\n')
+        # f.write('\t\treturn {| 1 | ' + ' | '.join(self.inputs) + '|};\n')
+        f.write('\t\treturn {| ' + ' | '.join(self.inputs) + '|};\n')
         f.write("\t}\n")
 
         # f.write("\tgenerator int vars(){\n")
