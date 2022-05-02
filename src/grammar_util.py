@@ -8,7 +8,8 @@ domino_stateful_grammars = {
   "sub" : "grammars/stateful_domino/sub.sk"
 }
 
-domino_stateless_grammar = "grammars/stateless_domino/stateless.sk"
+# domino_stateless_grammar = "grammars/stateless_domino/stateless.sk"
+domino_stateless_grammar = "grammars/stateless_domino/stateless_new.sk"
 
 num_statefuls_domino = {
     'raw': 1,
@@ -80,7 +81,8 @@ num_outputs = {
 }
 
 
-tofino_stateless_grammar = 'grammars/stateless_tofino.sk'
+# tofino_stateless_grammar = 'grammars/stateless_tofino.sk'
+tofino_stateless_grammar = 'grammars/stateless_tofino_new.sk'
 tofino_stateful_grammar = 'grammars/stateful_tofino.sk'
 
 def resolve_stateless(is_tofino):

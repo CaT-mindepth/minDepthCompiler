@@ -1,0 +1,58 @@
+int alu(int opcode, int pkt_0, int pkt_1, int pkt_2, int immediate_operand) {
+    if (opcode == 0) {
+        return immediate_operand;
+    } else if (opcode == 1) {
+        return pkt_0 + pkt_1;
+    } else if (opcode == 2) {
+        return pkt_0 + immediate_operand;
+    } else if (opcode == 3) {
+        return pkt_0 - pkt_1;
+    } else if (opcode == 4) {
+        return pkt_0 - immediate_operand;
+    } else if (opcode == 5) {
+        return immediate_operand - pkt_0;
+    } else if (opcode == 6) {
+        return pkt_0!=pkt_1;
+    } else if (opcode == 7) {
+        return (pkt_0 != immediate_operand);
+    } else if (opcode == 8) {
+        return (pkt_0 == pkt_1);
+    } else if (opcode == 9) {
+        return (pkt_0 == immediate_operand);
+    } else if (opcode == 10) {
+        return (pkt_0 >= pkt_1);
+    } else if (opcode == 11) {
+        return (pkt_0 >= immediate_operand);
+    } else if (opcode == 12) {
+        return (pkt_0 < pkt_1);
+    } else if (opcode == 13) {
+        return (pkt_0 < immediate_operand);
+    } else if (opcode == 14) {
+        return pkt_0 != 0 ? pkt_1 : pkt_2;
+    } else if (opcode == 15) {
+        return pkt_0 != 0 ? pkt_1 : immediate_operand;
+    } else if (opcode == 16) {
+        return ((pkt_0 != 0) || (pkt_1 != 0));
+    } else if (opcode == 17) {
+        return ((pkt_0 != 0) || (immediate_operand != 0));
+    } else if (opcode == 18) {
+        return ((pkt_0 != 0) && (pkt_1 != 0));
+    } else if (opcode == 19) {
+        return ((pkt_0 != 0) && (immediate_operand != 0));
+    } else {
+        return (pkt_0 == 0);
+    }
+}
+
+generator int expr(fun vars, int bnd) {
+  assert bnd >= 0;
+    int t = ??(1);
+
+    if (t == 0) {
+        return vars();
+    }
+    if (t == 1) {
+        return alu(??, expr(vars, bnd-1), expr(vars, bnd-1), expr(vars, bnd - 1),  ??);
+    }
+}
+

@@ -376,8 +376,8 @@ class Component:  # group of codelets
         filename = ""
         if stats != None:
             stats.start_synthesis_comp(f"stateless {comp_name} {o}")
-        # start with bound 1, since ALU cannot be a wire (which is bnd 0)
-        bnd = 1
+        # start with bound 0, which corresponds to a variable
+        bnd = 0
         while True:
             # run Sketch
             sketch_filename = os.path.join(
