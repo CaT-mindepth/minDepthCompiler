@@ -17,7 +17,8 @@ def tokenize_expr(expr):
   return (toks, variables)
 
 
-tofino_stateless_grammar = 'grammars/stateless_tofino.sk'
+# tofino_stateless_grammar = 'grammars/stateless_tofino.sk'
+tofino_stateless_grammar = 'grammars/stateless_tofino_new.sk'
 tofino_stateful_grammar = 'grammars/stateful_tofino.sk'
 
 
