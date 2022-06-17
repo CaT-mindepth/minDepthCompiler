@@ -37,7 +37,7 @@ class DominoOutputProcessor(GenericOutputProcessor):
                 if l.startswith('alu'):
                     alu = DominoALU(self.alu_id, l, lineno)
 
-                    self.add_new_alu(alu, input_file)
+                    self.add_new_alu(alu, input_file) # incremends self.alu_id
                     alus_created.append(alu)
                 elif l.startswith('comp'):
                     lexer.input(l)
@@ -66,7 +66,14 @@ class DominoOutputProcessor(GenericOutputProcessor):
                         if alu.output == final_output:
                             alu.set_output(output)
                             replaced = True
-                    assert(replaced)
+
+                    if not replaced:
+                        # no ALU ever outputs the true output.
+                        # in this case we create a wire ALU
+                        wire_alu = DominoALU(self.alu_id, None, None, final_output=(True, final_output))
+                        self.add_new_alu(wire_alu, input_file)
+                        
+                                               
                     return lineno
             return lineno
 
