@@ -517,7 +517,7 @@ class Component:  # group of codelets
             print("running sketch, bnd = {}".format(bnd))
             print("sketch_filename", sketch_filename)
             ret_code = subprocess.call(
-                ["sketch", sketch_filename], stdout=f_sk_out)
+                ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -631,7 +631,7 @@ class Component:  # group of codelets
             print("running sketch, bnd = {}".format(bnd))
             print("sketch_filename", sketch_filename)
             # ret_code = subprocess.call(["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
-            ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
+            ret_code = subprocess.call(["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -1279,7 +1279,7 @@ class StatefulComponent(object):
             print("running sketch for stateful")
             print("sketch_filename", sketch_filename)
             ret_code = subprocess.call(
-                ["sketch", sketch_filename], stdout=f_sk_out)
+                ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
