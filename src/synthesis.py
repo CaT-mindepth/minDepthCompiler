@@ -802,8 +802,8 @@ class StatefulComponent(object):
                 else:
                     bnd_inputs[bd].append(i)
             else:
-                print("{} not in synth_bounds!".format(i)) # This should only happen for state vars
-                assert(i in self.state_vars)
+                print("{} not in synth_bounds".format(i)) # This should only happen for state vars
+                # assert(i in self.state_vars)
                 
         return bnd_inputs
 
