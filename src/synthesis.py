@@ -12,10 +12,49 @@ from dependencyGraph import Statement
 import test_stats
 import grammar_util
 
+
+
+
+# helper variables for sketch_call_wrapper.
+# directory in which we record the long running sketch files
+SKETCH_FILE_DIR = "../sketch_files"
+# any sketch file whose running time > SKETCH_TIME_UB will be recorded
+SKETCH_TIME_UB = 5
+# record if it is the first time calling sketch_call_wrapper in program
+SKETCH_CALL_FIRST_TIME = True
+from time import time
+
+def sketch_call_wrapper(sketch_filename, stdout):
+    f_sk_out = stdout
+    import shutil
+    from datetime import datetime 
+    start_time = time() 
+
+    sketch_file = sketch_filename.split('/')[-1]
+    sketch_folder = sketch_filename.split('/')[-2]
+    print("sketch file: ", sketch_file)
+    print('sketch folder: ', sketch_folder)
+    ret_code = subprocess.call(
+                ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+    end_time = time()
+    if end_time - start_time >= SKETCH_TIME_UB:
+        print(' --------- bad sketch file found, recording it -------------------')
+        # sketch_filename will also contain a folder directory because it is the relative
+        # path to the temporary folder storing sketch files.
+        try: 
+            os.makedirs(SKETCH_FILE_DIR + "/" + sketch_folder)
+        except Exception:
+            pass
+        shutil.copyfile(sketch_filename, SKETCH_FILE_DIR + "/" + sketch_folder + "/" + sketch_file)
+        with open(SKETCH_FILE_DIR + "/log.txt", "a") as fd:
+            now = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+            fd.writelines([sketch_filename + ": {} s [@ {}];\n".format(end_time - start_time, now)])
+    return ret_code
+
+
 # Returns true if SSA variables v1 and v2 represent the same variable
 # TODO: update preprocessing code to store SSA info in a struct/class
 # instead of relying on string matching
-
 def is_same_var(v1, v2):
     if v1 == v2:
         return True
@@ -483,8 +522,7 @@ class Component:  # group of codelets
             f_sk_out = open(sketch_outfilename, "w+")
             print("running sketch, bnd = {}".format(bnd))
             print("sketch_filename", sketch_filename)
-            ret_code = subprocess.call(
-                ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+            ret_code = sketch_call_wrapper(sketch_filename, stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -598,7 +636,7 @@ class Component:  # group of codelets
             print("running sketch, bnd = {}".format(bnd))
             print("sketch_filename", sketch_filename)
             # ret_code = subprocess.call(["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
-            ret_code = subprocess.call(["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+            ret_code = sketch_call_wrapper(sketch_filename, stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -1053,8 +1091,7 @@ class StatefulComponent(object):
         with open(sketch_outfilename, "w+") as f_sk_out:
             print("running sketch for stateful")
             print("sketch_filename", sketch_filename)
-            ret_code = subprocess.call(
-                ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+            ret_code = sketch_call_wrapper(sketch_filename, stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
