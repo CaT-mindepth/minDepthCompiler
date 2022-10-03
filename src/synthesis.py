@@ -178,11 +178,16 @@ class Component:  # group of codelets
             exit(1)
 
     def write_sketch_spec(self, f, var_types, comp_name, o):
+        # exist_type store the variable's type
+        exist_type = ""
+        for k in var_types:
+            exist_type = var_types[k]
+            break
         input_types = ["{} {}".format(var_types[i], i) for i in self.inputs]
         spec_name = comp_name
 
         # write function signature
-        f.write("int {}({})".format(spec_name, ", ".join(input_types)) + "{\n")
+        f.write(exist_type + " {}({})".format(spec_name, ", ".join(input_types)) + "{\n")
         # declare defined variables
         defines_set = set()
         for codelet in self.codelets:
@@ -201,6 +206,11 @@ class Component:  # group of codelets
         f.write("}\n")
 
     def write_sketch_harness(self, f, var_types, comp_name, o, bnd):
+        # exist_type store the variable's type
+        exist_type = ""
+        for k in var_types:
+            exist_type = var_types[k]
+            break
         f.write("harness void sketch(")
         if len(self.inputs) >= 1:
             var_type = var_types[self.inputs[0]]
@@ -213,10 +223,14 @@ class Component:  # group of codelets
 
         f.write(") {\n")
 
-        f.write("\tgenerator int vars(){\n")
+        f.write("\tgenerator " + exist_type + " vars(){\n")
         # f.write("\t\treturn {| 1 |")
         f.write("\t\treturn {|")
         if "int" in [var_types[v] for v in self.inputs]:
+            # f.write("|");
+            for v in self.inputs:
+                f.write(" {} |".format(v))
+        elif "bit[32]" in [var_types[v] for v in self.inputs]:
             # f.write("|");
             for v in self.inputs:
                 f.write(" {} |".format(v))
@@ -231,9 +245,10 @@ class Component:  # group of codelets
         comp_fxn = comp_name + "(" + ", ".join(self.inputs) + ")"
 
         output_type = var_types[o]
-        if self.is_tofino and (not (output_type == "int")):
-            raise Exception('Error: Output ' + o +
-                            ' is a bit type, not an int')
+        # Comment it for now because we should support bit array for tofino
+        # if self.is_tofino and (not (output_type == "int")):
+        #     raise Exception('Error: Output ' + o +
+        #                     ' is a bit type, not an int')
 
         f.write("\tassert expr(vars, {}) == {};\n".format(bnd, comp_fxn))
 
@@ -380,6 +395,10 @@ class Component:  # group of codelets
         # start with bound 0, which corresponds to a variable
         bnd = 0
         while True:
+            '''
+            Test passes
+            print("var_types =", var_types)
+            '''
             # run Sketch
             sketch_filename = os.path.join(
                 output_path, f"{comp_name}_stateless_{o}_bnd_{bnd}.sk")
@@ -390,6 +409,8 @@ class Component:  # group of codelets
             self.write_sketch_spec(f, var_types, comp_name, o)
             f.write("\n")
             self.write_sketch_harness(f, var_types, comp_name, o, bnd)
+            # print("f =", f)
+            # exit(0)
             f.close()
             print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
             f_sk_out = open(sketch_outfilename, "w+")
@@ -1754,6 +1775,11 @@ class Synthesizer:
         for po in self.principal_outputs:
             bci_comp = bci_rooted_at[po]
             comp_name = bci_comp.name
+            print("---------------------Testing------------------------")
+            print("self.output_dir =", self.output_dir)
+            print("comp_name =", comp_name)
+            print("self.var_types =", self.var_types)
+            print("po =", po)
             result_file = bci_comp.write_sketch_file(
                 self.output_dir, comp_name, self.var_types, po, stats=self.stats)
             (bci_comp, comp_name)

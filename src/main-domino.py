@@ -76,7 +76,10 @@ domino_stateful_grammars = {
 domino_stateless_grammar = "grammars/stateless_domino/stateless_new.sk"
 
 # tofino_stateless_grammar = 'grammars/stateless_tofino.sk'
-tofino_stateless_grammar = 'grammars/stateless_tofino_new.sk'
+# tofino_stateless_grammar = 'grammars/stateless_tofino_new.sk'
+
+# one stateless ALU specifically for siphash
+tofino_stateless_grammar = 'grammars/stateless_siphash.sk'
 tofino_stateful_grammar = 'grammars/stateful_tofino.sk'
 
 if __name__ == "__main__":
