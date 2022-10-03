@@ -1,0 +1,26 @@
+bit[32] alu(int opcode, bit[32] pkt_0, bit[32] pkt_1, int immediate_operand) {
+    if (opcode == 0) {
+        return pkt_0 + pkt_1;
+    } else if (opcode == 1) {
+        return pkt_0 | pkt_1;
+    } else if (opcode == 2) {
+        return pkt_0 << immediate_operand;
+    } else if (opcode == 3) {
+        return pkt_0 >> immediate_operand;
+    } else if (opcode == 4) {
+        return pkt_0 ^ pkt_1;
+    }
+}
+
+generator bit[32] expr(fun vars, int bnd) {
+	assert bnd >= 1;
+    int t = ??(1);
+
+    if (t == 0) {
+        return alu(??, vars(), vars(), ??);
+    }
+    if (t == 1) {
+        return alu(??, expr(vars, bnd-1), expr(vars, bnd-1), ??);
+    }
+}
+
