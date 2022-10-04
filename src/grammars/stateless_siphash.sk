@@ -1,4 +1,4 @@
-int[4] int_arr = {5,7,8,13,16};
+int[5] int_arr = {5,7,8,13,16};
 
 bit[32] alu(int opcode, bit[32] pkt_0, bit[32] pkt_1, int immediate_operand) {
     int move_v;
