@@ -1,13 +1,21 @@
+int[4] int_arr = {5,7,8,13,16};
+
 bit[32] alu(int opcode, bit[32] pkt_0, bit[32] pkt_1, int immediate_operand) {
+    int move_v;
+    if (immediate_operand >= 4) {
+        move_v = int_arr[4];
+    } else {
+        move_v = int_arr[immediate_operand];
+    }
     if (opcode == 0) {
         return pkt_0 + pkt_1;
     } else if (opcode == 1) {
         return pkt_0 | pkt_1;
     } else if (opcode == 2) {
-        return pkt_0 << immediate_operand;
+        return (pkt_0 << move_v) | (pkt_0 >> (32 - move_v));
     } else if (opcode == 3) {
-        return pkt_0 >> immediate_operand;
-    } else if (opcode == 4) {
+        return pkt_0 & pkt_1;
+    } else {
         return pkt_0 ^ pkt_1;
     }
 }
@@ -17,10 +25,10 @@ generator bit[32] expr(fun vars, int bnd) {
     int t = ??(1);
 
     if (t == 0) {
-        return alu(??, vars(), vars(), ??);
+        return alu(??(3), vars(), vars(), ??(3));
     }
     if (t == 1) {
-        return alu(??, expr(vars, bnd-1), expr(vars, bnd-1), ??);
+        return alu(??(3), expr(vars, bnd-1), expr(vars, bnd-1), ??(3));
     }
 }
 
