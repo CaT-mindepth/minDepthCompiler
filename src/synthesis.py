@@ -1414,6 +1414,8 @@ class Synthesizer:
         self.comp_graph.add_node(new_comp)
         self.comp_graph.add_edges_from([(x, new_comp)
                                        for x in self.comp_graph.predecessors(a)])
+        self.comp_graph.add_edges_from([(x, new_comp)
+                                        for x in self.comp_graph.predecessors(b)]) # bugfix 1/26/23
         self.comp_graph.add_edges_from([(new_comp, y)
                                        for y in self.comp_graph.successors(b)])
 
