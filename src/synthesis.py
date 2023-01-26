@@ -1140,8 +1140,11 @@ class Synthesizer:
         self.comp_graph.add_node(new_comp)
         self.comp_graph.add_edges_from([(x, new_comp)
                                        for x in self.comp_graph.predecessors(a)])
+        self.comp_graph.add_edges_from([(x, new_comp)
+                                        for x in self.comp_graph.predecessors(b)]) # fix bug 1/26/2023
         self.comp_graph.add_edges_from([(new_comp, y)
                                        for y in self.comp_graph.successors(b)])
+        # because of predecessor packing condition, we need not add successors of a (a has only b as a fan-out).
 
         # remove two old components
         print("removing two old components")
@@ -1564,6 +1567,9 @@ class Synthesizer:
         # Step 4: call merging procedure (if we choose to enable it)
         self.comp_graph = self.scc_graph
 
+        #exit(1)
+
+
         print('number of nodes in comp_graph: ', len(self.comp_graph.nodes))
 
         self.merge_idx = 0
@@ -1571,6 +1577,9 @@ class Synthesizer:
                 self.merge_components()
 
         self.draw_graph(self.comp_graph, self.filename + "_merged_graph")
+        print('number of nodes in comp_graph ', len(self.comp_graph.nodes))
+        
+        #exit(1)
 
         # fold branch temporaries
         # if merging is disabled, we don't run folding.
