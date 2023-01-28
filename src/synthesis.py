@@ -493,8 +493,9 @@ class Component:  # group of codelets
         f.write("\tassert(impl[2] == spec[2]);\n")
         f.write("}\n")
 
-    def write_ternary_sketch_file(self, output_path, comp_name, var_types, stats: test_stats.Statistics = None):
+    def write_ternary_sketch_file(self, output_path, comp_name, var_types, min_bnd, stats: test_stats.Statistics = None):
         filenames = []
+        #assert self.outputs == 1
         for o in self.outputs:
             if stats != None:
                 stats.start_synthesis_comp(f"stateless {comp_name} {o}")
@@ -531,7 +532,7 @@ class Component:  # group of codelets
                 print("failed")
                 assert(False)
             f_sk_out.close()
-        return filenames
+        return filenames[0], min_bnd + 1
 
     def contains_ternary(self):
         for output in self.outputs:
@@ -597,9 +598,6 @@ class Component:  # group of codelets
 
 
     def write_sketch_file(self, output_path, comp_name, var_types, o, synth_bounds, stats: test_stats.Statistics = None): # o is the output
-        if self.contains_ternary() and self.is_tofino:
-            print('----------- writing ternary sketch file')
-            return self.write_ternary_sketch_file(output_path, comp_name, var_types, stats)
         filename = ""
         if stats != None:
             stats.start_synthesis_comp(f"stateless {comp_name} {o}")
@@ -608,6 +606,10 @@ class Component:  # group of codelets
         bnds_list = sorted(list(bnd_vars.keys()))
         min_bnd = min(bnds_list)
         succ_bnd = None # bound at which synthesis was successful
+
+        if self.contains_ternary() and self.is_tofino:
+            print('----------- writing ternary sketch file')
+            return self.write_ternary_sketch_file(output_path, comp_name, var_types, min_bnd, stats)
 
         bnd = min_bnd  # start with min bnd of inputs
         while True:
