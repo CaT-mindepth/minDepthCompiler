@@ -1,5 +1,6 @@
 from re import A
 import os
+from collections import defaultdict
 import ply.lex as lex
 import networkx as nx
 import copy
@@ -571,6 +572,63 @@ class StatefulComponent(object):
         for s_var in self.state_vars:
             if s_var not in self.inputs:
                 self.inputs.append(s_var)
+    
+    def merge_component_special(self, comp, reversed=False):
+        print("merge component special: component is ---- ", self)
+        print(' ********************** adding statements from component ',
+              comp, ' with *************************')
+        print(comp.comp_stmts)
+
+        if comp.isStateful:
+            if len(self.state_vars) > 1:
+                print(
+                    "Cannot merge stateful component (current component already has 2 state variables)")
+                assert(False)
+            print(' --my stateful vars: ', self.state_vars)
+            print(' --their stateful vars: ', comp.state_vars)
+            assert(len(comp.state_vars) == 1)
+            self.state_vars.append(comp.state_vars[0])
+            # get_state_pkt_field() returns a list
+            self.state_pkt_fields += (comp.codelet.get_state_pkt_field())
+
+        comp_outputs = comp.outputs
+        comp_output_stmt = {} # output -> comp_stmt
+        comp_stmt_idx = {} # comp stmt -> index of insertion
+        idx_comp_stmt = defaultdict(list) # index of insertion -> list of comp stmts
+        for comp_stmt in comp.comp_stmts:
+            o = comp_stmt.lhs
+            comp_output_stmt[o] = comp_stmt
+            assert(o in comp_outputs)
+
+        stmt_list = self.codelet.get_stmt_list()
+        for i in range(len(stmt_list)):
+            stmt = stmt_list[i]
+            for o in comp_outputs:
+                if o in stmt.rhs_vars:
+                    comp_stmt_used = comp_output_stmt[o]
+                    if comp_stmt_used not in comp_stmt_idx: # don't overwrite if already present as we need the first use of o
+                        comp_stmt_idx[comp_stmt_used] = i
+                        idx_comp_stmt[i].append(comp_stmt_used)
+
+        # insert statements into codelet
+        insertion_idx_list = sorted(list(idx_comp_stmt.keys()))
+        new_stmts = []
+        i = 0 # index in current component's stmt list
+        for idx in insertion_idx_list:
+            new_stmts += stmt_list[i:idx] + idx_comp_stmt[idx]
+            i = idx
+        new_stmts += stmt_list[idx:]
+        self.codelet.stmt_list = new_stmts
+
+        # update comp_stmts
+        self.comp_stmts = self.codelet.get_stmt_list()
+
+        self.get_inputs_outputs()  # update inputs, outputs
+        # state vars are always inputs
+        # NOTE: There would be no need to add state vars as inputs explicitly if a codelet could have 2 state vars
+        for s_var in self.state_vars:
+            if s_var not in self.inputs:
+                self.inputs.append(s_var)
 
     def set_alu_inputs(self):
         if len(self.inputs) > 4:
@@ -952,6 +1010,7 @@ class Synthesizer:
         print('try_merge: trying to merge components: ')
         print(' | a: ', a)
         print(' | b: ', b)
+        special_merge = False
         if a.isStateful:
             print(' | state_pkt_fields of component a: ', a.state_pkt_fields)
         if b.isStateful:
@@ -959,9 +1018,19 @@ class Synthesizer:
         if a.isStateful:
             new_comp = copy.deepcopy(a)
             new_comp.merge_component(b)
-        else:
+        else: # b is stateful
+            # check if a's predecessor has same state as b
+            for p in self.comp_graph.predecessors(a):
+                if p.isStateful and set(p.state_vars) == set(b.state_vars):
+                    special_merge = True
+                    print('try_merge: special merge')
+                    break
+            
             new_comp = copy.deepcopy(b)
-            new_comp.merge_component(a, True)
+            if special_merge:
+                new_comp.merge_component_special(a)
+            else:
+                new_comp.merge_component(a, True)
 
         #new_comp.update_outputs(self.comp_graph.neighbors(b))
         print('resultant component: ')
@@ -1105,6 +1174,8 @@ class Synthesizer:
         print('perform_merge: merging components :')
         print(' | component a: ', a)
         print(' | component b: ', b)
+        special_merge = False
+        pred_to_remove = None
         if a.isStateful:
             print(' | state_pkt_fields of component a: ', a.state_pkt_fields)
         if b.isStateful:
@@ -1114,8 +1185,19 @@ class Synthesizer:
             new_comp = copy.deepcopy(a)
             new_comp.merge_component(b)
         else:  # b must be a stateful comp
+            # check if a's predecessor has same state update as b
+            for p in self.comp_graph.predecessors(a):
+                if p.isStateful and set(p.state_vars) == set(b.state_vars):
+                    special_merge = True
+                    pred_to_remove = p
+                    print('perform_merge: special merge')
+                    break
+    
             new_comp = copy.deepcopy(b)
-            new_comp.merge_component(a, True)
+            if special_merge:
+                new_comp.merge_component_special(a)
+            else:
+                new_comp.merge_component(a, True)
 
         # Case 1: a, b both stateful. Output is b.stateful_output
         # Case 2: a stateless, b stateful. Output is b.stateful_output
@@ -1138,8 +1220,9 @@ class Synthesizer:
 
         # create new merged component, add edges
         self.comp_graph.add_node(new_comp)
+        
         self.comp_graph.add_edges_from([(x, new_comp)
-                                       for x in self.comp_graph.predecessors(a)])
+                                       for x in self.comp_graph.predecessors(a) if x != pred_to_remove])
         self.comp_graph.add_edges_from([(x, new_comp)
                                         for x in self.comp_graph.predecessors(b)]) # fix bug 1/26/2023
         self.comp_graph.add_edges_from([(new_comp, y)
@@ -1150,6 +1233,10 @@ class Synthesizer:
         print("removing two old components")
         self.comp_graph.remove_node(a)
         self.comp_graph.remove_node(b)
+        # if special merge, can remove pred_to_remove because its output is no longer used, and b has the same state update
+        if special_merge:
+            self.comp_graph.remove_node(pred_to_remove)
+            print("perform_merge: special merge, removed pred node")
 
         new_comp.update_outputs(self.comp_graph.neighbors(new_comp))
         print('		* new component : ', new_comp)
@@ -1856,3 +1943,4 @@ class Synthesizer:
         for u, v in self.comp_graph.edges:
             f_deps.write("{} {}\n".format(
                 self.comp_index[u], self.comp_index[v]))
+
