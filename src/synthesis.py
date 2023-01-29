@@ -1,6 +1,7 @@
 import re
 import os
 from collections import defaultdict
+from collections import defaultdict
 import ply.lex as lex
 import lexerRules
 import networkx as nx
@@ -519,6 +520,7 @@ class Component:  # group of codelets
             print("sketch_filename", sketch_filename)
             ret_code = subprocess.call(
                 ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+                # ["sketch", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -632,8 +634,8 @@ class Component:  # group of codelets
             f_sk_out = open(sketch_outfilename, "w+")
             print("running sketch, bnd = {}".format(bnd))
             print("sketch_filename", sketch_filename)
-            # ret_code = subprocess.call(["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
             ret_code = subprocess.call(["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+            # ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -939,7 +941,7 @@ class StatefulComponent(object):
         for s_var in self.state_vars:
             if s_var not in self.inputs:
                 self.inputs.append(s_var)
-    
+
     def merge_component_special(self, comp, reversed=False):
         print("merge component special: component is ---- ", self)
         print(' ********************** adding statements from component ',
@@ -1282,6 +1284,7 @@ class StatefulComponent(object):
             print("sketch_filename", sketch_filename)
             ret_code = subprocess.call(
                 ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+                # ["sketch", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -1414,8 +1417,12 @@ class Synthesizer:
                     special_merge = True
                     print('try_merge: special merge')
                     break
-            
+
             new_comp = copy.deepcopy(b)
+            if special_merge:
+                new_comp.merge_component_special(a)
+            else:
+                new_comp.merge_component(a, True)
             if special_merge:
                 new_comp.merge_component_special(a)
             else:
@@ -1638,8 +1645,12 @@ class Synthesizer:
                     pred_to_remove = p
                     print('perform_merge: special merge')
                     break
-    
+
             new_comp = copy.deepcopy(b)
+            if special_merge:
+                new_comp.merge_component_special(a)
+            else:
+                new_comp.merge_component(a, True)
             if special_merge:
                 new_comp.merge_component_special(a)
             else:
