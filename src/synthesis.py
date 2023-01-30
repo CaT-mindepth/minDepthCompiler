@@ -723,7 +723,7 @@ class StatefulComponent(object):
         f.write("\treturn {};\n".format(output_array))
         f.write("}\n")
 
-    def write_tofino_sketch_harness(self, f, var_types, comp_name):
+    def write_tofino_sketch_harness(self, f, var_types, comp_name, mask = None):
         f.write("harness void sketch(")
         if len(self.inputs) >= 1:
             var_type = var_types[self.inputs[0]]
@@ -736,8 +736,13 @@ class StatefulComponent(object):
 
         f.write(") {\n")
 
+        mask_enabled = (mask != None)
+
         f.write("\tint[3] impl = salu({}, {}, {}, {});\n".format(
-                self.salu_inputs['metadata_lo'], self.salu_inputs['metadata_hi'], self.salu_inputs['register_lo'], self.salu_inputs['register_hi']
+                self.salu_inputs['metadata_lo'] if mask_enabled and self.salu_inputs['metadata_lo'] != mask else '0', 
+                self.salu_inputs['metadata_hi'] if mask_enabled and self.salu_inputs['metadata_hi'] != mask else '0', 
+                self.salu_inputs['register_lo'] if mask_enabled and self.salu_inputs['register_lo'] != mask else '0', 
+                self.salu_inputs['register_hi'] if mask_enabled and self.salu_inputs['register_hi'] != mask else '0'
                 ))
         f.write("\tint [3] spec = {}({});\n".format(
             comp_name, ', '.join(self.inputs)))
@@ -747,7 +752,7 @@ class StatefulComponent(object):
         f.write("\tassert(impl[2] == spec[2]);\n")
         f.write("}\n")
 
-    def write_domino_sketch_harness(self, f, var_types, comp_name):
+    def write_domino_sketch_harness(self, f, var_types, comp_name, mask = None):
         self.sort_inputs()
         self.state_vars.sort()
         f.write("harness void sketch(")
@@ -777,7 +782,10 @@ class StatefulComponent(object):
             if input in self.state_vars:
                 stateful_inputs.append(input)
             else:
-                stateless_inputs.append(input)
+                if mask != None and input == mask:
+                    stateless_inputs.append('0')
+                else:
+                    stateless_inputs.append(input)
         
         if len(stateful_inputs) < num_statefuls:
             for _ in range(num_statefuls - len(stateful_inputs)):
@@ -797,7 +805,7 @@ class StatefulComponent(object):
         f.write("}\n")
 
     def write_sketch_file(self,
-                          output_path, comp_name, var_types, prefix="", stats: test_stats.Statistics = None):
+                          output_path, comp_name, var_types, prefix="", mask = None, stats: test_stats.Statistics = None):
         #make sure stateful inputs appear before stateless ones.
         self.sort_inputs()
         if stats != None:
@@ -812,11 +820,11 @@ class StatefulComponent(object):
         if self.is_tofino:
             self.write_tofino_sketch_spec(f, var_types, comp_name)
             f.write("\n")
-            self.write_tofino_sketch_harness(f, var_types, comp_name)
+            self.write_tofino_sketch_harness(f, var_types, comp_name, mask = mask)
         else:
             self.write_domino_sketch_spec(f, var_types, comp_name)
             f.write('\n')
-            self.write_domino_sketch_harness(f, var_types, comp_name)
+            self.write_domino_sketch_harness(f, var_types, comp_name, mask = mask)
 
         f.close()
         print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
@@ -1636,6 +1644,27 @@ class Synthesizer:
 
         self.draw_graph(self.comp_graph, self.filename + "_folded_graph")
 
+
+        """print(' ----------- fixup folding of stateful inputs ----------------- ')
+        # 1/29/23 fixup: folding of stateful inputs
+        shorten_iters = 0
+        for node in self.comp_graph.nodes:
+            if node.isStateful:
+                preds = list(self.comp_graph.predecessors(node))
+                if len(preds) == 1 and preds[0].isStateful:
+                    masked_input = preds[0].codelet.stateful_output 
+                    print('node: ', str(node))
+                    print('masked input: ', masked_input)
+                    res = node.write_sketch_file(self.output_dir, node.name + '_try_shorten_' + shorten_iters, self.var_types, mask = masked_input)
+                    shorten_iters += 1
+                    if res != None:
+                        # masked input can be eliminated
+
+                    else:
+                        continue
+        
+        exit(0)"""
+
         # all synthesized stateful outputs
         stateful_nodes = filter(lambda x: x.isStateful, self.comp_graph.nodes)
         stateful_outputs = list(
@@ -1753,10 +1782,26 @@ class Synthesizer:
             if node.isStateful:
                 node_name = node.name
                 node.set_name(node_name)
-                result_file = node.write_sketch_file(
-                    self.output_dir, node_name, self.var_types,  stats=self.stats)
-                self.synth_output_processor.process_single_stateful_output(
-                    result_file, node)
+                preds = list(self.comp_graph.predecessors(node))
+                # additionally, try further reducing number of inputs if has only one predecessor
+                # and that predecessor is stateful
+                if len(preds) == 1 and preds[0].isStateful:
+                    masked_input = preds[0].codelet.stateful_output 
+                    print('node: ', str(node))
+                    print('masked input: ', masked_input)
+                    res = node.write_sketch_file(self.output_dir, node_name, self.var_types, mask = masked_input)
+                    if res != None:
+                        print('----------- !!! input masking succeeded [node = ', node_name, ', input = ', masked_input, ']')
+                        self.synth_output_processor.process_single_stateful_output(res, node, masked_input = masked_input)
+                    else:
+                        result_file = node.write_sketch_file(self.output_dir, node_name, self.var_types,  stats=self.stats)
+                        self.synth_output_processor.process_single_stateful_output(
+                            result_file, node)
+                else:
+                    result_file = node.write_sketch_file(
+                        self.output_dir, node_name, self.var_types,  stats=self.stats)
+                    self.synth_output_processor.process_single_stateful_output(
+                        result_file, node)
 
         # Step 7: Synthesize stateless POs (every output we need to synthesize that is stateless)
         # including a) POs, b) inputs to stateful, c) pkt vars (TODO: need to add c)
