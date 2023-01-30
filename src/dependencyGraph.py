@@ -11,7 +11,7 @@ def is_array_var(v):
 
 
 class Statement:
-    def __init__(self, lhs, rhs, line_no):
+    def __init__(self, lhs, rhs, line_no=-1):
         self.lhs = lhs
         self.rhs = rhs
         self.line_no = line_no

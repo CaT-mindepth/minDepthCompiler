@@ -1,9 +1,11 @@
-from re import A
+import re
 import os
 from collections import defaultdict
 import ply.lex as lex
+import lexerRules
 import networkx as nx
 import copy
+from collections import defaultdict
 from graphviz import Digraph
 import subprocess
 from sketch_output_processor import SketchOutputProcessor
@@ -15,7 +17,6 @@ import grammar_util
 # Returns true if SSA variables v1 and v2 represent the same variable
 # TODO: update preprocessing code to store SSA info in a struct/class
 # instead of relying on string matching
-
 
 def is_same_var(v1, v2):
     if v1 == v2:
@@ -66,6 +67,21 @@ def is_branch_var(var):
 def is_tmp_var(var):
     return "tmp" in var
 
+def get_tokens(expr):
+    return [x for x in re.split('', expr) if x not in ['', '(', ')']]
+
+def equal_or_negation(toks1, toks2):
+    return toks1 == toks2 or (toks1 == ['!'] + toks2) or (toks2 == ['!'] + toks1)
+
+def atomic_expr(expr):
+    lexer = lex.lex(module=lexerRules)
+    lexer.input(expr)
+    ops_list = ['PLUS', 'MINUS', 'MULT', 'EQ', 'NEQ', 'LT', 'GT', 'LEQ', 'GEQ']
+    num_ops = 0
+    for tok in lexer:
+        if tok.type in ops_list:
+            num_ops += 1
+    return num_ops <= 1
 
 class Component:  # group of codelets
     def __init__(self, codelet_list, id, grammar_name=None, is_tofino=True):
@@ -157,6 +173,22 @@ class Component:  # group of codelets
         else:
             self.set_component_stmts()
             self.get_inputs_outputs()
+
+    def has_two_atomic_operands(self):
+        if len(self.comp_stmts) > 1:
+            return False
+        else:
+            # print("One statement")
+            expr = self.comp_stmts[0].rhs
+            self.operands = re.split('&&|\|\|', expr)
+            # print("operands", operands)
+            if len(self.operands) == 2 and atomic_expr(self.operands[0]) and atomic_expr(self.operands[1]):
+                print("two_atomic_operands")
+                print("operand 0", self.operands[0])
+                print("operand 1", self.operands[1])
+                return True
+            else:
+                return False
 
     def print(self):
         for s in self.comp_stmts:
@@ -540,6 +572,101 @@ class StatefulComponent(object):
                 outputs.add(i)
 
         self.actual_outputs = outputs
+
+    def insert_in_order(self, stmts_to_insert):
+        outputs = [stmt.lhs for stmt in stmts_to_insert]
+        output_stmt = {} # output -> stmt
+        stmt_idx = {} # stmt -> index of insertion
+        idx_stmt = defaultdict(list) # index of insertion -> list of comp stmts
+        for stmt in stmts_to_insert:
+            o = stmt.lhs
+            output_stmt[o] = stmt
+
+        stmt_list = self.codelet.get_stmt_list()
+        for i in range(len(stmt_list)):
+            stmt = stmt_list[i]
+            for o in outputs:
+                if o in stmt.rhs_vars:
+                    stmt_used = output_stmt[o]
+                    if stmt_used not in stmt_idx: # don't overwrite if already present as we need the first use of o
+                        stmt_idx[stmt_used] = i
+                        stmts_i = idx_stmt[i]
+                        index_to_insert = None
+                        for j in range(len(stmts_i)):
+                            stmti = stmts_i[j]
+                            if o in stmti.rhs_vars:
+                                if index_to_insert is None:
+                                    index_to_insert = j
+                                    break
+                        
+                        if index_to_insert:
+                            idx_stmt[i].insert(index_to_insert, stmt_used)
+                        else:
+                            idx_stmt[i].append(stmt_used)
+
+        # account for inter-statement dependencies in stmts_to_insert
+        for o in outputs:
+            stmt_used = output_stmt[o]
+            if stmt_used not in stmt_idx:
+                # check if stmt_used is used by one of the stmts to insert
+                index_to_insert = len(stmt_list)
+                for stmt in stmts_to_insert:
+                    if o in stmt.rhs_vars:
+                        index_to_insert = min(index_to_insert, stmt_idx[stmt])
+                stmt_idx[stmt_used] = index_to_insert
+                idx_stmt[index_to_insert].insert(0, stmt_used)
+                        
+                    
+        # insert statements into codelet
+        insertion_idx_list = sorted(list(idx_stmt.keys()))
+        new_stmts = []
+        i = 0 # index in current component's stmt list
+        for idx in insertion_idx_list:
+            new_stmts += stmt_list[i:idx] + idx_stmt[idx]
+            i = idx
+        new_stmts += stmt_list[idx:]
+
+        self.codelet.stmt_list = new_stmts
+        
+
+        # update comp_stmts
+        self.comp_stmts = self.codelet.get_stmt_list()
+
+        self.get_inputs_outputs()  # update inputs, outputs
+        # state vars are always inputs
+        # NOTE: There would be no need to add state vars as inputs explicitly if a codelet could have 2 state vars
+        for s_var in self.state_vars:
+            if s_var not in self.inputs:
+                self.inputs.append(s_var)
+        print("Inserted statements, resultant component:")
+        self.print()
+
+
+    def can_fold(self, comp):
+        operand0 = comp.operands[0]
+        operand1 = comp.operands[1]
+        op0_tokens = get_tokens(operand0)
+        op1_tokens = get_tokens(operand1)
+        
+        can_fold = False
+        for stmt in self.comp_stmts:
+            stmt_tokens = get_tokens(stmt.rhs)
+            if equal_or_negation(op0_tokens, stmt_tokens):
+                # fold
+                can_fold = True
+                self.to_fold = operand0
+                break
+            elif equal_or_negation(op1_tokens, stmt_tokens):
+                can_fold = True
+                self.to_fold = operand1
+                break
+        
+        if can_fold:
+            print("can_fold?: will fold: ", self.to_fold)
+        else:
+            print("can_fold?: cannot fold")
+
+        return can_fold
 
     def merge_component(self, comp, reversed=False):
         print("merge component: component is ---- ", self)
@@ -927,6 +1054,8 @@ class Synthesizer:
 
         self.enableMerging = enableMerging
 
+        self.tmp_index = 0
+
         try:
             os.mkdir(self.output_dir)
         except OSError:
@@ -938,6 +1067,8 @@ class Synthesizer:
         self.read_write_flanks = read_write_flanks
         self.stateful_nodes = stateful_nodes
         self.components = []
+
+        self.tmp_index = 0
 
         print("Synthesizer")
         print("output dir", self.output_dir)
@@ -995,6 +1126,12 @@ class Synthesizer:
             assert(array_name in self.var_types)
             return self.var_types[array_name]
 
+    def get_new_tmp_var(self):
+        var = '__tmp_{}'.format(self.tmp_index)
+        self.tmp_index += 1
+        self.var_types[var] = 'bit'
+        return var
+    
     # returns True iff merging a, b increases depth of DAG by 1.
     # this is a symmetric condition.
     def merging_increases_depth(self, a, b):
@@ -1073,6 +1210,73 @@ class Synthesizer:
         #	print('AssertionError? failed ')
         #	print('---------- Merge failure. ---------')
         #	return False
+
+    def try_partial_fold(self, comp1, comp2):
+        operand0 = comp1.operands[0]
+        operand1 = comp1.operands[1]
+        fold_lhs = self.get_new_tmp_var()
+        fold_stmt = Statement(fold_lhs, comp2.to_fold)
+        other_operand = operand0
+        if other_operand == comp2.to_fold:
+            other_operand = operand1
+        other_lhs = self.get_new_tmp_var()
+        other_stmt = Statement(other_lhs, other_operand)
+
+        comp_stmt_lhs = comp1.comp_stmts[0].lhs
+        comp_stmt_rhs = comp1.comp_stmts[0].rhs
+        combine_rhs = comp_stmt_rhs.replace(comp2.to_fold, fold_lhs)
+        combine_rhs = combine_rhs.replace(other_operand, other_lhs)
+        combine_stmt = Statement(comp_stmt_lhs, combine_rhs)
+
+        print("fold stmt", fold_stmt)
+        print("other stmt", other_stmt)
+        print("combined stmt", combine_stmt)
+
+        new_comp2 = copy.deepcopy(comp2)
+        stmts_to_insert = [fold_stmt, combine_stmt]
+        new_comp2.insert_in_order(stmts_to_insert)
+
+        print('-------------- Attempting to fold... -------------')
+        # try:
+        result = new_comp2.write_sketch_file(self.output_dir, 'query_' + str(self.merge_idx), self.var_types,
+                                            prefix='try_partial_fold_')
+        self.merge_idx += 1
+        if result == None:
+            print('---------- Fold failure. ---------')
+            return False
+        else:
+            print('---------- Fold success. ---------')
+            # create new folded component, add edges
+            self.comp_graph.add_node(new_comp2)
+            self.comp_graph.add_edges_from([(x, new_comp2)
+                                        for x in self.comp_graph.predecessors(comp2)])
+            self.comp_graph.add_edges_from([(new_comp2, y)
+                                        for y in self.comp_graph.successors(comp2)])
+            
+            id = len(self.comp_graph.nodes())
+            new_comp1 = Component([Codelet([other_stmt])], id)
+            self.comp_graph.add_node(new_comp1)
+            for pred in self.comp_graph.predecessors(comp1):
+                for o in pred.outputs:
+                    if o in new_comp1.inputs:
+                        self.comp_graph.add_edge(pred, new_comp1)
+
+            self.comp_graph.add_edges_from([(new_comp1, y)
+                                        for y in self.comp_graph.successors(comp1)])
+
+            # remove old components
+            self.comp_graph.remove_node(comp1)
+            self.comp_graph.remove_node(comp2)
+       
+            # new_comp.update_outputs(self.comp_graph.neighbors(new_comp))
+            print('		* new component 2: ', new_comp2)
+            print('		* new component inputs : ', new_comp2.inputs)
+            print('		* new component outputs : ', new_comp2.outputs)
+            print('		* state_pkt_fields of new component: ', new_comp2.state_pkt_fields)
+            print('		* new component 1: ', new_comp1)
+            print('		* new component inputs : ', new_comp1.inputs)
+            print('		* new component outputs : ', new_comp1.outputs)
+            
 
     def non_temporary_outputs(self, comp):
         x = list(
@@ -1722,6 +1926,22 @@ class Synthesizer:
                                 print(' --- cannot fold.')
 
         self.draw_graph(self.comp_graph, self.filename + "_folded_graph")
+
+        # partial folding
+        nodes_to_fold = []
+        for node in self.comp_graph.nodes:
+            if (not node.isStateful) and node.has_two_atomic_operands():
+                print("Two atomic operands")
+                for nbr in self.comp_graph.successors(node):
+                    if nbr.isStateful and nbr.can_fold(node):
+                        nodes_to_fold.append((node, nbr))
+        
+        for node, nbr in nodes_to_fold:   
+            self.try_partial_fold(node, nbr)
+
+        if len(nodes_to_fold) > 0:
+            print("Partially folded some nodes")
+            self.draw_graph(self.comp_graph, self.filename + "_partial_folded_graph")
 
         # all synthesized stateful outputs
         stateful_nodes = filter(lambda x: x.isStateful, self.comp_graph.nodes)
