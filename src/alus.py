@@ -60,9 +60,16 @@ class GenericALU(object):
 
 
 class DominoGenericSALU(GenericALU):
-    def __init__(self, id, alu_filename, comp):
+    def __init__(self, id, alu_filename, comp, masked_input = None):
         self.attributes = {}
-        self.inputs = comp.inputs
+        if masked_input != None:
+            self.inputs = []
+            for input in comp.inputs:
+                if masked_input != input:
+                    self.inputs.append(input)
+                # else, ignore it and do not add as input.
+        else:
+            self.inputs = comp.inputs
         self.state_vars = comp.state_vars
         self.outputs = comp.outputs
         self.id = id

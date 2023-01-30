@@ -88,7 +88,7 @@ class DominoOutputProcessor(GenericOutputProcessor):
 
     # process a stateful ALU from a single stateful sketch file.
     @overrides
-    def process_single_stateful_output(self, input_file, comp: synthesis.StatefulComponent):
+    def process_single_stateful_output(self, input_file, comp: synthesis.StatefulComponent, masked_input = None):
         print(' --------- processing stateful output ---------')
-        domino_alu = DominoGenericSALU(self.alu_id, input_file, comp)
+        domino_alu = DominoGenericSALU(self.alu_id, input_file, comp, masked_input = masked_input)
         self.add_new_alu(domino_alu, input_file)
