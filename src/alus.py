@@ -60,18 +60,25 @@ class GenericALU(object):
 
 
 class DominoGenericSALU(GenericALU):
-    def __init__(self, id, alu_filename, comp, masked_input = None):
+    def __init__(self, id, alu_filename, comp, kind, masked_input = None):
+        self.alu_kind = kind 
         self.attributes = {}
+        self.synthesized_template = comp.synthesized_template
         if masked_input != None:
             self.inputs = []
             for input in comp.inputs:
                 if masked_input != input:
-                    self.inputs.append(input)
+                    if not (input in comp.state_vars):
+                        self.inputs.append(input)
                 # else, ignore it and do not add as input.
         else:
-            self.inputs = comp.inputs
+            self.inputs = []
+            for input in comp.inputs:
+                if not (input in comp.state_vars):
+                    self.inputs.append(input)
         self.state_vars = comp.state_vars
-        self.outputs = comp.outputs
+        self.output = comp.codelet.stateful_output
+        self.outputs = [self.output] # parser needs it later
         self.id = id
         self.alu_filename = alu_filename
         lexer = lex.lex(module=lexerRules)
@@ -90,13 +97,126 @@ class DominoGenericSALU(GenericALU):
                     going = False
         self.set_type('STATEFUL')
 
-    def make_dict(self):
+    def is_fpga_grammar(self):
+        return self.alu_kind == "if_else_raw" or self.alu_kind == "pred_raw" or self.alu_kind == "raw"
+
+    def if_else_raw_output_parsing(self):
+        print(' >>>>> if_else_raw output parsing start...')
+        with open(self.alu_filename) as fd:
+            l = ""
+            while not l.lstrip().rstrip().startswith('void salu'):
+                l = fd.readline()
+            
+            while not l.lstrip().rstrip().startswith('if'):
+                l = fd.readline()
+            
+            # l = if ...
+            print('encountered if stmt... ', l.split('/')[0]) # split at comment '/*' as lexer cannot process it.
+            lexer = lex.lex(module=lexerRules)
+            lexer.input(l)
+            toks = [t for t in lexer]
+            # print(toks)
+            
+            assert toks[0].type == 'IF'
+            assert toks[1].type == 'LPAREN'
+
+            self.rel_op['lhs'] = toks[2].value if not (toks[2].value.startswith('state_0')) else 'state_0'
+            self.rel_op['opcode'] = toks[3].value
+            self.rel_op['rhs'] = toks[4].value
+
+            print(self.rel_op)
+
+            l = fd.readline() # { ... 
+            l = fd.readline()
+            lexer.input(l.split('/')[0])
+            toks = [t for t in lexer]
+            if not ('+' in l):
+                # l is of form "state_0 = state_0 + <val>"
+                assert toks[0].value == 'state_0'
+                assert toks[1].value == '='
+                self.true_asgn['opcode'] = "eq"
+                self.true_asgn['lhs'] = 'state_0'
+                self.true_asgn['rhs'] = toks[2].value
+            else:
+                # l is of form "state_0 = <val>"
+                assert toks[0].value == 'state_0'
+                assert toks[1].value == '='
+                self.true_asgn['opcode'] = 'inc' # increment
+                self.true_asgn['lhs'] = toks[2].value
+                assert toks[3].value == '+'
+                self.true_asgn['rhs'] = toks[4].value
+            print(self.true_asgn)
+
+            l = fd.readline() # }
+            l = fd.readline() # else 
+            l = fd.readline() # { ... 
+            
+            l = fd.readline()
+            lexer.input(l.split('/')[0])
+            toks = [t for t in lexer]
+            if not ('+' in l):
+                # l is of form "state_0 = state_0 + <val>"
+                assert toks[0].value == 'state_0'
+                assert toks[1].value == '='
+                self.false_asgn['opcode'] = "eq"
+                self.false_asgn['lhs'] = 'state_0'
+                self.false_asgn['rhs'] = toks[2].value
+            else:
+                # l is of form "state_0 = <val>"
+                assert toks[0].value == 'state_0'
+                assert toks[1].value == '='
+                self.false_asgn['opcode'] = 'inc' # increment
+                self.false_asgn['lhs'] = toks[2].value
+                assert toks[3].value == '+'
+                self.false_asgn['rhs'] = toks[4].value
+            print(self.false_asgn)
+            # we're done!
+
+    def pred_raw_output_parsing(self):
+        pass
+
+    def pred_output_parsing(self):
+        pass
+
+    def fpga_output_parsing(self):
+        self.rel_op = {"opcode": None, "lhs": None, "rhs": None}
+        self.true_asgn = {"opcode": None, "lhs": None, "rhs": None}
+        self.false_asgn = {"opcode": None, "lhs": None, "rhs": None}
+        if self.alu_kind == "if_else_raw":
+            self.if_else_raw_output_parsing()
+        elif self.alu_kind == "pred_raw":
+            self.pred_raw_output_parsing()
+        else: # == pred
+            self.pred_output_parsing()                
+        
+        
+    def make_parsed_dict(self):
+        self.fpga_output_parsing()
         return {
-            "inputs": self.inputs,
-            "outputs": self.outputs,
-            "id": self.id,
-            "body": self.synth_body
+            "kind": self.alu_kind, # if_else_raw, or pred_raw, or raw
+            "id": self.id, # ID of the current ALU
+            "input_state_0" : self.synthesized_template['ordered_inputs'][0], # name of the stateful variable
+            "input_pkt_1" : self.synthesized_template['ordered_inputs'][1], # phv/metadata name of pkt_1 argument
+            "input_pkt_2" : self.synthesized_template['ordered_inputs'][2], # phv/metadata name of pkt_2 argument
+            "output_state" : "read" if self.synthesized_template['output'] in self.synthesized_template['read_flanks'] else 'write',
+            "rel_op" : self.rel_op,
+            "state_0_truth_asgn" : self.true_asgn,
+            "state_0_false_asgn" : self.false_asgn
         }
+
+    def make_dict(self):
+        if self.is_fpga_grammar():
+            return self.make_parsed_dict()
+        else:
+            return {
+                "inputs": self.synthesized_template['ordered_inputs'], # ordered input pkt name
+                "output": self.output, # output pkt name
+                "state_vars": self.state_vars, # stateful variables
+                "id": self.id,
+                "body": self.synth_body, # body of stateful ALU
+                "kind": self.alu_kind, # which kind of ALU (nested_ifs/if_else_raw/etc...)
+                "template": self.synthesized_template
+            }
 
     def print(self):
         print(str(self.make_dict()))
@@ -304,8 +424,7 @@ class DominoALU(GenericALU):
 
 
 class SALU(GenericALU):
-    # ruijief:
-    # this represents a Stateful ALU object.
+    # this represents a Stateful ALU object for Tofino.
     """ Payloads:
               'condition_hi',
               'condition_lo',
