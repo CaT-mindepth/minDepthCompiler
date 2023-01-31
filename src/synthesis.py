@@ -1,5 +1,6 @@
 import re
 import os
+from collections import defaultdict
 import ply.lex as lex
 import lexerRules
 import networkx as nx
@@ -494,6 +495,8 @@ class StatefulComponent(object):
         self.bci_outputs = []
         self.is_duplicated = False
         self.sort_inputs()
+        # result will be available after synthesis query
+        self.synthesized_template = { 'state_vars' : [], 'ordered_inputs' : [], 'read_flanks' : [], 'write_flanks' : [], 'output' : None}
 
     # returns stringified representation of stateful node
     # note this is not unique as there can be parallel stateful nodes
@@ -693,8 +696,13 @@ class StatefulComponent(object):
             print("can_fold?: will fold: ", self.to_fold)
         else:
             print("can_fold?: cannot fold")
+            self.to_fold = operand1
+            
 
-        return can_fold
+        # change
+
+
+        return True#can_fold
 
     def merge_component(self, comp, reversed=False):
         print("merge component: component is ---- ", self)
@@ -720,6 +728,63 @@ class StatefulComponent(object):
             self.state_vars.append(comp.state_vars[0])
             # get_state_pkt_field() returns a list
             self.state_pkt_fields += (comp.codelet.get_state_pkt_field())
+
+        self.get_inputs_outputs()  # update inputs, outputs
+        # state vars are always inputs
+        # NOTE: There would be no need to add state vars as inputs explicitly if a codelet could have 2 state vars
+        for s_var in self.state_vars:
+            if s_var not in self.inputs:
+                self.inputs.append(s_var)
+    
+    def merge_component_special(self, comp, reversed=False):
+        print("merge component special: component is ---- ", self)
+        print(' ********************** adding statements from component ',
+              comp, ' with *************************')
+        print(comp.comp_stmts)
+
+        if comp.isStateful:
+            if len(self.state_vars) > 1:
+                print(
+                    "Cannot merge stateful component (current component already has 2 state variables)")
+                assert(False)
+            print(' --my stateful vars: ', self.state_vars)
+            print(' --their stateful vars: ', comp.state_vars)
+            assert(len(comp.state_vars) == 1)
+            self.state_vars.append(comp.state_vars[0])
+            # get_state_pkt_field() returns a list
+            self.state_pkt_fields += (comp.codelet.get_state_pkt_field())
+
+        comp_outputs = comp.outputs
+        comp_output_stmt = {} # output -> comp_stmt
+        comp_stmt_idx = {} # comp stmt -> index of insertion
+        idx_comp_stmt = defaultdict(list) # index of insertion -> list of comp stmts
+        for comp_stmt in comp.comp_stmts:
+            o = comp_stmt.lhs
+            comp_output_stmt[o] = comp_stmt
+            assert(o in comp_outputs)
+
+        stmt_list = self.codelet.get_stmt_list()
+        for i in range(len(stmt_list)):
+            stmt = stmt_list[i]
+            for o in comp_outputs:
+                if o in stmt.rhs_vars:
+                    comp_stmt_used = comp_output_stmt[o]
+                    if comp_stmt_used not in comp_stmt_idx: # don't overwrite if already present as we need the first use of o
+                        comp_stmt_idx[comp_stmt_used] = i
+                        idx_comp_stmt[i].append(comp_stmt_used)
+
+        # insert statements into codelet
+        insertion_idx_list = sorted(list(idx_comp_stmt.keys()))
+        new_stmts = []
+        i = 0 # index in current component's stmt list
+        for idx in insertion_idx_list:
+            new_stmts += stmt_list[i:idx] + idx_comp_stmt[idx]
+            i = idx
+        new_stmts += stmt_list[idx:]
+        self.codelet.stmt_list = new_stmts
+
+        # update comp_stmts
+        self.comp_stmts = self.codelet.get_stmt_list()
 
         self.get_inputs_outputs()  # update inputs, outputs
         # state vars are always inputs
@@ -879,7 +944,7 @@ class StatefulComponent(object):
         f.write("\treturn {};\n".format(output_array))
         f.write("}\n")
 
-    def write_tofino_sketch_harness(self, f, var_types, comp_name):
+    def write_tofino_sketch_harness(self, f, var_types, comp_name, mask = None):
         f.write("harness void sketch(")
         if len(self.inputs) >= 1:
             var_type = var_types[self.inputs[0]]
@@ -892,8 +957,18 @@ class StatefulComponent(object):
 
         f.write(") {\n")
 
+        mask_disabled = (mask == None)
+        print('write_tofino_sketch_harness: masking enabled? ', not mask_disabled)
+        print('write_tofino_sketch_harness: metadata_lo field = ', self.salu_inputs['metadata_lo'])
+        print('write_tofino_sketch_harness: metadata_hi field = ', self.salu_inputs['metadata_hi'])
+        print('write_tofino_sketch_harness: register_lo field = ', self.salu_inputs['register_lo'])
+        print('write_tofino_sketch_harness: register_hi field = ', self.salu_inputs['register_hi'])
+
         f.write("\tint[3] impl = salu({}, {}, {}, {});\n".format(
-                self.salu_inputs['metadata_lo'], self.salu_inputs['metadata_hi'], self.salu_inputs['register_lo'], self.salu_inputs['register_hi']
+                self.salu_inputs['metadata_lo'] if mask_disabled or self.salu_inputs['metadata_lo'] != mask else '0', 
+                self.salu_inputs['metadata_hi'] if mask_disabled or self.salu_inputs['metadata_hi'] != mask else '0', 
+                self.salu_inputs['register_lo'] if mask_disabled or self.salu_inputs['register_lo'] != mask else '0', 
+                self.salu_inputs['register_hi'] if mask_disabled or self.salu_inputs['register_hi'] != mask else '0'
                 ))
         f.write("\tint [3] spec = {}({});\n".format(
             comp_name, ', '.join(self.inputs)))
@@ -903,7 +978,7 @@ class StatefulComponent(object):
         f.write("\tassert(impl[2] == spec[2]);\n")
         f.write("}\n")
 
-    def write_domino_sketch_harness(self, f, var_types, comp_name):
+    def write_domino_sketch_harness(self, f, var_types, comp_name, mask = None):
         self.sort_inputs()
         self.state_vars.sort()
         f.write("harness void sketch(")
@@ -933,7 +1008,10 @@ class StatefulComponent(object):
             if input in self.state_vars:
                 stateful_inputs.append(input)
             else:
-                stateless_inputs.append(input)
+                if mask != None and input == mask:
+                    stateless_inputs.append('0')
+                else:
+                    stateless_inputs.append(input)
         
         if len(stateful_inputs) < num_statefuls:
             for _ in range(num_statefuls - len(stateful_inputs)):
@@ -943,6 +1021,9 @@ class StatefulComponent(object):
             for _ in range(num_stateless - len(stateless_inputs)):
                 stateless_inputs.append('0')
         
+        # push ordered inputs into synthesis results for later postprocessing
+        self.synthesized_template['ordered_inputs'] = stateful_inputs + stateless_inputs
+
         f.write(','.join(stateful_inputs) + ',')
         f.write(','.join(stateless_inputs) + ');\n')
 
@@ -952,8 +1033,23 @@ class StatefulComponent(object):
             f.write("\tassert(impl[{}] == spec[{}]);\n".format(str(i), str(i)))
         f.write("}\n")
 
+    def post_synthesis(self, read_write_flanks):
+        self.synthesized_template['state_vars'] = self.state_vars
+        self.synthesized_template['flank_to'] = {}
+
+        for state_var in self.state_vars:
+            read_flank = read_write_flanks[state_var]['read'].lhs
+            self.synthesized_template['read_flanks'].append(read_flank)
+            write_flank = read_write_flanks[state_var]['write'].rhs
+            self.synthesized_template['write_flanks'].append(write_flank)
+            self.synthesized_template['flank_to'][read_flank] = state_var
+            self.synthesized_template['flank_to'][write_flank] = state_var
+
+        self.synthesized_template['output'] = self.codelet.stateful_output
+            
+
     def write_sketch_file(self,
-                          output_path, comp_name, var_types, prefix="", stats: test_stats.Statistics = None):
+                          output_path, comp_name, var_types, prefix="", mask = None, stats: test_stats.Statistics = None):
         #make sure stateful inputs appear before stateless ones.
         self.sort_inputs()
         if stats != None:
@@ -965,14 +1061,15 @@ class StatefulComponent(object):
         f = open(sketch_filename, 'w+')
         self.set_alu_inputs()
         self.write_grammar(f)
+
         if self.is_tofino:
             self.write_tofino_sketch_spec(f, var_types, comp_name)
             f.write("\n")
-            self.write_tofino_sketch_harness(f, var_types, comp_name)
+            self.write_tofino_sketch_harness(f, var_types, comp_name, mask = mask)
         else:
             self.write_domino_sketch_spec(f, var_types, comp_name)
             f.write('\n')
-            self.write_domino_sketch_harness(f, var_types, comp_name)
+            self.write_domino_sketch_harness(f, var_types, comp_name, mask = mask)
 
         f.close()
         print("sketch {} > {}".format(sketch_filename, sketch_outfilename))
@@ -1047,34 +1144,7 @@ class Synthesizer:
         self.get_rw_flanks()
 
         self.process_graph()
-        return
-        """
-		if self.stats != None:
-			self.stats.start_synthesis()
 
-		self.do_synthesis()
-		if is_tofino:
-			self.synth_output_processor.postprocessing()
-			if self.stats != None:
-				self.stats.end_synthesis()
-			print(self.synth_output_processor.to_ILP_str(table_name="NewTable"))
-		else:
-			self.synth_output_processor.postprocessing()
-			if self.stats != None:
-				self.stats.end_synthesis()
-				print("Domino synthesis: ended successfully.")
-
-			for alu in self.synth_output_processor.dependencies:
-				print("ALU: ")
-				alu.print()
-				print("----------------")
-				alus = self.synth_output_processor.dependencies[alu]
-				for adj_alu in alus:
-					print(" --> adjacent alu: ")
-					adj_alu.print()
-				print("----------------")
-			exit(1)
-		"""
 
     def get_rw_flanks(self):
         rw_flanks = self.read_write_flanks  # dictionary
@@ -1118,6 +1188,7 @@ class Synthesizer:
         print('try_merge: trying to merge components: ')
         print(' | a: ', a)
         print(' | b: ', b)
+        special_merge = False
         if a.isStateful:
             print(' | state_pkt_fields of component a: ', a.state_pkt_fields)
         if b.isStateful:
@@ -1125,9 +1196,19 @@ class Synthesizer:
         if a.isStateful:
             new_comp = copy.deepcopy(a)
             new_comp.merge_component(b)
-        else:
+        else: # b is stateful
+            # check if a's predecessor has same state as b
+            for p in self.comp_graph.predecessors(a):
+                if p.isStateful and set(p.state_vars) == set(b.state_vars):
+                    special_merge = True
+                    print('try_merge: special merge')
+                    break
+            
             new_comp = copy.deepcopy(b)
-            new_comp.merge_component(a, True)
+            if special_merge:
+                new_comp.merge_component_special(a)
+            else:
+                new_comp.merge_component(a, True)
 
         #new_comp.update_outputs(self.comp_graph.neighbors(b))
         print('resultant component: ')
@@ -1141,16 +1222,6 @@ class Synthesizer:
         if b.isStateful:
             # handles both case 1, 2
             new_comp.codelet.stateful_output = b.codelet.stateful_output
-            """ TODO: we can potentially not duplicate a node if b is sink and a writes out to a packet field.
-			if b.codelet.stateful_output != None:
-				new_comp.codelet.stateful_output = b.codelet.stateful_output
-			else: 
-				# b is sink. So use output of a.
-				if a.isStateful and a.stateful_output != None and a.stateful_output not in self.rw_flank_vars and not is_tmp_var(a.stateful_output):
-					new_comp.codelet.stateful_output = a.codelet.stateful_output
-				elif not is_tmp_var(a.codelets[0].stmt_list[0].lhs): # TODO: get more granular than this --- intermediate packet fields are also temp.
-					new_comp.codelet.stateful_output = a.codelets[0].stmt_list[0].lhs
-			"""
         else:
             # Case 3: b stateless. Output is b.codelets[0].stmt_list[0].lhs
             new_comp.codelet.stateful_output = b.codelets[0].stmt_list[0].lhs
@@ -1442,6 +1513,8 @@ class Synthesizer:
         print('perform_merge: merging components :')
         print(' | component a: ', a)
         print(' | component b: ', b)
+        special_merge = False
+        pred_to_remove = None
         if a.isStateful:
             print(' | state_pkt_fields of component a: ', a.state_pkt_fields)
         if b.isStateful:
@@ -1451,32 +1524,34 @@ class Synthesizer:
             new_comp = copy.deepcopy(a)
             new_comp.merge_component(b)
         else:  # b must be a stateful comp
+            # check if a's predecessor has same state update as b
+            for p in self.comp_graph.predecessors(a):
+                if p.isStateful and set(p.state_vars) == set(b.state_vars):
+                    special_merge = True
+                    pred_to_remove = p
+                    print('perform_merge: special merge')
+                    break
+    
             new_comp = copy.deepcopy(b)
-            new_comp.merge_component(a, True)
+            if special_merge:
+                new_comp.merge_component_special(a)
+            else:
+                new_comp.merge_component(a, True)
 
         # Case 1: a, b both stateful. Output is b.stateful_output
         # Case 2: a stateless, b stateful. Output is b.stateful_output
         if b.isStateful:
             # handles both case 1, 2
             new_comp.codelet.stateful_output = b.codelet.stateful_output
-            """ TODO: we can potentially not duplicate a node if b is sink and a writes out to a packet field.
-			if b.codelet.stateful_output != None:
-				new_comp.codelet.stateful_output = b.codelet.stateful_output
-			else: 
-				# b is sink. So use output of a.
-				if a.isStateful and a.stateful_output != None and a.stateful_output not in self.rw_flank_vars and not is_tmp_var(a.stateful_output):
-					new_comp.codelet.stateful_output = a.codelet.stateful_output
-				elif not is_tmp_var(a.codelets[0].stmt_list[0].lhs): # TODO: get more granular than this --- intermediate packet fields are also temp.
-					new_comp.codelet.stateful_output = a.codelets[0].stmt_list[0].lhs
-			"""
         else:
             # Case 3: b stateless. Output is b.codelets[0].stmt_list[0].lhs
             new_comp.codelet.stateful_output = b.codelets[0].stmt_list[0].lhs
 
         # create new merged component, add edges
         self.comp_graph.add_node(new_comp)
+        
         self.comp_graph.add_edges_from([(x, new_comp)
-                                       for x in self.comp_graph.predecessors(a)])
+                                       for x in self.comp_graph.predecessors(a) if x != pred_to_remove])
         self.comp_graph.add_edges_from([(x, new_comp)
                                         for x in self.comp_graph.predecessors(b)]) # fix bug 1/26/2023
         self.comp_graph.add_edges_from([(new_comp, y)
@@ -1487,6 +1562,10 @@ class Synthesizer:
         print("removing two old components")
         self.comp_graph.remove_node(a)
         self.comp_graph.remove_node(b)
+        # if special merge, can remove pred_to_remove because its output is no longer used, and b has the same state update
+        if special_merge:
+            self.comp_graph.remove_node(pred_to_remove)
+            print("perform_merge: special merge, removed pred node")
 
         new_comp.update_outputs(self.comp_graph.neighbors(new_comp))
         print('		* new component : ', new_comp)
@@ -1512,7 +1591,7 @@ class Synthesizer:
     # precondition: synthesis query succeeds.
     def pred_needs_duplicate(self, a, b):
 
-        # TODO: This requires more careful handling. (See above about when b is sink). For now we omit it.
+        # XXX: This requires more careful handling. (See above about when b is sink). For now we omit it.
         # # Initially: if b is sink, then no need to duplicate a.
         # if b.isStateful and b.codelet.stateful_output == None:
         #	return False
@@ -1535,6 +1614,16 @@ class Synthesizer:
             else:
                 return False
 
+    def node_depth(self, node):
+        preds = list(self.comp_graph.predecessors(node))
+        if len(preds) == 0:
+            return 0 # node at PI has depth 0
+        else:
+            curr_depth = 0
+            for pred in preds:
+                curr_depth = max(curr_depth, self.node_depth(pred) + 1)
+            return curr_depth
+
     def recursive_merge(self):
         nodes = self.reverse_top_order()
         print(' * recursive_merge strategy: nodes ordered ',
@@ -1547,7 +1636,10 @@ class Synthesizer:
                 print(' node outputs: ', node.outputs)
                 print(' node inputs: ', node.inputs)
                 self.exclude_read_write_flanks(node)
-                for pred in self.comp_graph.predecessors(node):
+                # merge in order of greatest depth first
+                pred_depths = list(map(lambda n: (n, self.node_depth(n)), self.comp_graph.predecessors(node)))
+                preds = list(map(lambda x: x[0], sorted(pred_depths, key=lambda x: x[1], reverse=True)))
+                for pred in preds:
                     print('  - recursive_merge: looking at preds of ', node)
                     print('     | ', pred)
                     if self.merge_candidate(pred, node) and not(pred.is_duplicated) and not(node.is_duplicated):
@@ -1598,7 +1690,7 @@ class Synthesizer:
         self.merge_processed = set()
         self.recursive_merge()
 
-    # TODO: this is a kludge for now: we need to properly
+    # XXX: this is a kludge for now: we need to properly
     # do BFS in order to deduplicate the nodes we return.
     # for now we use the list(set(...)) trick in code that
     # calls this method to dedup.
@@ -1645,7 +1737,7 @@ class Synthesizer:
                 dot.edge(node_stmts[u], node_stmts[v])
             dot.render(graphfile, view=True)
 
-    def compute_scc_graph(self):
+    def do_everything(self):
         # Step 1: Process stateful components. By processing we mean
         # forming a graph of stateful singleton components.
         i = 0
@@ -1721,14 +1813,7 @@ class Synthesizer:
                         node_to_flanks[str_node] = set([(node, stateful_output, (node.codelet.get_stmt_of(stateful_output)))])
             return node_to_flanks
 
-        #for comp in self.components:
-        #    if comp.isStateful:
-        #        print('curr node: ', str(comp))
-        #        print('-------------------------')
-        #        print(partition_stateful_predecessors(list(filter(lambda x: x.isStateful, self.scc_graph.predecessors(comp)))))
-        #        print('-------------------------')
-
-        # we set merge_idx to a high number to help discern these queries are made by
+        # XXX: we set merge_idx to a high number to help discern these queries are made by
         # try_fold_pred when debugging.
         self.merge_idx = 100
         def try_fold_pred(comp, pred_stmts, pred):
@@ -1749,7 +1834,8 @@ class Synthesizer:
                 self.scc_graph.remove_node(try_merge_pred_out)
                 return False
 
-        # try_fold_preds try to coalesce together many different predecessors 
+        # try_fold_preds:
+        # try to coalesce together many different predecessors 
         # that share the same primary input 
         def try_fold_preds(comp, pred_stmts, preds):
             try_merge_pred_out = Component([Codelet(stmts=pred_stmts)],
@@ -1860,7 +1946,7 @@ class Synthesizer:
                     # coalescing pred_output, pred_stmt into the current node.
                     try:
                         try_fold_pred(comp, [pred_stmt], pred)
-                    except: continue # TODO
+                    except: continue # XXX: there's an exception being thrown: maybe handle this exception more elegantly.
 
                 # try folding stateful predecessor nodes into stateful node to 
                 # reduce number of inputs. 
@@ -1906,12 +1992,12 @@ class Synthesizer:
 
         self.draw_graph(self.scc_graph, self.filename + "_doctored_graph")
 
-
         # Step 4: call merging procedure (if we choose to enable it)
         self.comp_graph = self.scc_graph
 
         print('number of nodes in comp_graph: ', len(self.comp_graph.nodes))
 
+        # Merging (predecessor packing) optimization
         self.merge_idx = 0
         if self.enableMerging:
                 self.merge_components()
@@ -1919,6 +2005,7 @@ class Synthesizer:
         self.draw_graph(self.comp_graph, self.filename + "_merged_graph")
         print('number of nodes in comp_graph ', len(self.comp_graph.nodes))
 
+        
         # fold branch temporaries
         # if merging is disabled, we don't run folding.
         folded_node = self.enableMerging
@@ -1996,10 +2083,13 @@ class Synthesizer:
                         nodes_to_fold.append((node, nbr))
 
         for node, nbr in nodes_to_fold:   
+            print('trying to fold...')
             self.try_partial_fold(node, nbr)
 
         if len(nodes_to_fold) > 0:
             self.draw_graph(self.comp_graph, self.filename + "_partial_folded_graph")
+
+        #################### end of all optimizations ########################
 
         # all synthesized stateful outputs
         stateful_nodes = filter(lambda x: x.isStateful, self.comp_graph.nodes)
@@ -2020,13 +2110,6 @@ class Synthesizer:
                 and var not in self.rw_flank_vars:
                     self.principal_outputs.add(codelet.stmt_list[0].lhs)
 
-        """
-		# adding everything that isn't a flank var
-		for var in self.pkt_vars:
-			if var not in self.rw_flank_vars and var in self.var_types:
-				self.principal_outputs.add(var)
-		"""
-
         # In addition to POs, we also need to synthethize inputs to stateful nodes.
         # add those as well.
         for node in self.comp_graph.nodes:
@@ -2044,8 +2127,9 @@ class Synthesizer:
         print('Principal Outputs: ', self.principal_outputs)
 
 
-        # TODO: (preprocessor input) in addition to those above we also need to synthesize
-        # last SSA'd packet fields. But can't do so without preprocessor input yet.
+        # XXX: ruijie: there's a legacy comment shown below. But I don't think it is true anymore? 
+        # # (preprocessor input) in addition to those above we also need to synthesize
+        # # last SSA'd packet fields. But can't do so without preprocessor input yet.
 
         print(self.principal_outputs)
 
@@ -2111,17 +2195,36 @@ class Synthesizer:
         else:
             from domino_postprocessor import DominoOutputProcessor
             self.synth_output_processor = DominoOutputProcessor(
-                self.synth_graph)
+                self.synth_graph, self.stateful_path)
 
         # Step 6: Synthesize stateful nodes
         for node in self.synth_graph.nodes:
             if node.isStateful:
                 node_name = node.name
                 node.set_name(node_name)
-                result_file = node.write_sketch_file(
-                    self.output_dir, node_name, self.var_types,  stats=self.stats)
-                self.synth_output_processor.process_single_stateful_output(
-                    result_file, node)
+                preds = list(self.comp_graph.predecessors(node))
+                # additionally, try further reducing number of inputs if has only one predecessor
+                # and that predecessor is stateful
+                if len(preds) == 1 and preds[0].isStateful:
+                    print(' ------------ trying input masking for stateful input reduction...')
+                    masked_input = preds[0].codelet.stateful_output 
+                    print('node: ', str(node))
+                    print('masked input: ', masked_input)
+                    res = node.write_sketch_file(self.output_dir, node_name, self.var_types, mask = masked_input)
+                    node.post_synthesis(self.read_write_flanks) # fill in some post-synth information for postprocessing
+                    if res != None:
+                        print('----------- !!! input masking succeeded [node = ', node_name, ', input = ', masked_input, ']')
+                        self.synth_output_processor.process_single_stateful_output(res, node, masked_input = masked_input)
+                    else:
+                        result_file = node.write_sketch_file(self.output_dir, node_name, self.var_types,  stats=self.stats)
+                        self.synth_output_processor.process_single_stateful_output(
+                            result_file, node)
+                else:
+                    result_file = node.write_sketch_file(
+                        self.output_dir, node_name, self.var_types,  stats=self.stats)
+                    node.post_synthesis(self.read_write_flanks) # fill in some post-synth information for postprocessing
+                    self.synth_output_processor.process_single_stateful_output(
+                        result_file, node)
 
         # Step 7: Synthesize stateless POs (every output we need to synthesize that is stateless)
         # including a) POs, b) inputs to stateful, c) pkt vars (TODO: need to add c)
@@ -2149,70 +2252,8 @@ class Synthesizer:
     def process_graph(self):
         self.state_vars = list(set(self.state_vars))
         self.comp_graph = nx.DiGraph()
-        self.compute_scc_graph()
+        self.do_everything()
         return
-
-    def synthesize_single_comp(self, comp, comp_name):
-        if comp.isStateful:
-            return comp.write_sketch_file(self.output_dir, comp_name, self.var_types, stats=self.stats)
-        else:
-            return comp.write_sketch_file(self.output_dir, comp_name, self.var_types, self.principal_outputs, stats=self.stats)
-
-    def do_synthesis(self):
-        # Synthesize each codelet
-        print("Synthesize each codelet")
-
-        """		for comp in nx.topological_sort(self.comp_graph):
-			if comp.isStateful:
-				comp.create_used_state_vars(self.comp_graph.successors(comp))
-
-		for comp in nx.topological_sort(self.comp_graph):
-			print("-----------------")
-			print(" file name: ", self.comp_index[comp],
-			      " is_stateful: ", comp.isStateful)
-			print(" content: ", str(comp))
-			print(" outputs: ", str(comp.outputs))
-			print(" state vars (if any):", str(
-			    comp.state_vars) if comp.isStateful else [])
-			print(" used state vars (if any):", str(
-			    comp.state_vars) if comp.isStateful else [])
-
-		"""
-        for comp in nx.topological_sort(self.comp_graph):
-            print(self.comp_index[comp])
-            comp.print()
-            print("inputs", comp.inputs)
-            print("outputs", comp.outputs)
-            comp_name = "comp_{}".format(self.comp_index[comp])
-            comp.set_name(comp_name)
-            print(" > codelet output directory: " + self.output_dir)
-            result_file = self.synthesize_single_comp(comp, comp_name)
-            print('result file: ', result_file)
-            print("processing sketch output...")
-            # TODO: resume processing of outputs. Right now we're just verifying whether
-            # the sketch file generated is intact.
-            print(" file name: ", result_file,
-                  " is_stateful: ", comp.isStateful)
-            if comp.isStateful:
-                print("processing: output is stateful.")
-                self.synth_output_processor.process_single_stateful_output(
-                    result_file, comp)
-
-            else:
-                if self.is_tofino and comp.contains_ternary():
-                    print('processing: output is ternary stateful.')
-                    for file in result_file:
-                        self.synth_output_processor.process_single_stateful_output(
-                            file, comp.outputs[0], comp)
-                else:
-                    print("processing: output is stateless.")
-                    output_idx = 0
-                    for file in result_file:
-                        self.synth_output_processor.process_stateless_output(
-                            file, comp.outputs[output_idx])
-                        output_idx += 1
-        self.write_comp_graph()
-        # nx.draw(self.comp_graph)
 
     def write_comp_graph(self):
         f_deps = open(os.path.join(self.output_dir, "deps.txt"), 'w+')
@@ -2221,3 +2262,4 @@ class Synthesizer:
         for u, v in self.comp_graph.edges:
             f_deps.write("{} {}\n".format(
                 self.comp_index[u], self.comp_index[v]))
+
