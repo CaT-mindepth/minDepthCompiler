@@ -1482,6 +1482,16 @@ class Synthesizer:
             else:
                 return False
 
+    def node_depth(self, node):
+        preds = list(self.comp_graph.predecessors(node))
+        if len(preds) == 0:
+            return 0 # node at PI has depth 0
+        else:
+            curr_depth = 0
+            for pred in preds:
+                curr_depth = max(curr_depth, self.node_depth(pred) + 1)
+            return curr_depth
+
     def recursive_merge(self):
         nodes = self.reverse_top_order()
         print(' * recursive_merge strategy: nodes ordered ',
@@ -1494,7 +1504,10 @@ class Synthesizer:
                 print(' node outputs: ', node.outputs)
                 print(' node inputs: ', node.inputs)
                 self.exclude_read_write_flanks(node)
-                for pred in self.comp_graph.predecessors(node):
+                # merge in order of greatest depth first
+                pred_depths = list(map(lambda n: (n, self.node_depth(n)), self.comp_graph.predecessors(node)))
+                preds = list(map(lambda x: x[0], sorted(pred_depths, key=lambda x: x[1], reverse=True)))
+                for pred in preds:
                     print('  - recursive_merge: looking at preds of ', node)
                     print('     | ', pred)
                     if self.merge_candidate(pred, node) and not(pred.is_duplicated) and not(node.is_duplicated):
