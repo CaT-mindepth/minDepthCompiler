@@ -1103,13 +1103,14 @@ class Synthesizer:
     def __init__(self, state_vars,
                  var_types, pkt_vars, dep_graph, read_write_flanks, stateful_nodes,
                  filename, p4_output_name, enableMerging, stats: test_stats.Statistics = None,
-                 is_tofino=True, stateless_path=None, stateful_path=None, eval = False):
+                 is_tofino=True, stateless_path=None, stateful_path=None, eval = False, fpgaVerify = False):
         # handle domino grammar generation.
         self.is_tofino = is_tofino
         self.stateless_path = stateless_path
         self.stateful_path = stateful_path
 
         self.eval = eval
+        self.fpgaVerify = fpgaVerify
 
         self.state_vars = state_vars
         self.var_types = var_types
@@ -2195,7 +2196,7 @@ class Synthesizer:
         else:
             from domino_postprocessor import DominoOutputProcessor
             self.synth_output_processor = DominoOutputProcessor(
-                self.synth_graph, self.stateful_path)
+                self.synth_graph, self.stateful_path, fpgaVerify = self.fpgaVerify)
 
         # Step 6: Synthesize stateful nodes
         for node in self.synth_graph.nodes:

@@ -83,12 +83,13 @@ if __name__ == "__main__":
   arg_parser = argparse.ArgumentParser()
   arg_parser.add_argument("input", help="input file (preprocessed Domino program)")
   arg_parser.add_argument("sketch", help="Sketch files folder")
-  arg_parser.add_argument('output', help='Output location')
+  arg_parser.add_argument('output', help='Output location for generated files')
   arg_parser.add_argument("statefulALU", help="Stateful ALU")
   arg_parser.add_argument("--predPack", help="enable_predecessor_packing", action="store_true")
   arg_parser.add_argument("--eval", help="enable eval mode", action="store_true")
-  arg_parser.add_argument("--stages", help="number of pipeline stages", type=int)
-  arg_parser.add_argument("--ALUs", help="number of ALUs per stage", type=int)
+  arg_parser.add_argument("--fpgaVerify", help="generate parsable output for FPGA backend verification", action="store_true")
+  # arg_parser.add_argument("--stages", help="number of pipeline stages", type=int)
+  # arg_parser.add_argument("--ALUs", help="number of ALUs per stage", type=int)
 
   args = arg_parser.parse_args()
 
@@ -99,6 +100,7 @@ if __name__ == "__main__":
   max_stages = args.stages
   max_alus = args.ALUs
   enableMerging = args.predPack
+  fpgaVerify = args.fpgaVerify
 
 
   start = time.time()
@@ -145,7 +147,7 @@ if __name__ == "__main__":
                                     dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
                                      outputfilename, p4outputname, enableMerging, \
                                      is_tofino = is_tofino, stateless_path = stateless_alu, 
-                                     stateful_path=stateful_alu, eval = args.eval)
+                                     stateful_path=stateful_alu, eval = args.eval, fpgaVerify = fpgaVerify)
   
 
   # ILP

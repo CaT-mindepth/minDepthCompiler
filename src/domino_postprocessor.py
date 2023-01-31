@@ -9,7 +9,7 @@ from alus import *
 
 
 class DominoOutputProcessor(GenericOutputProcessor):
-    def __init__(self, comp_graph, grammar_name):
+    def __init__(self, comp_graph, grammar_name, fpgaVerify = False):
         self.grammar_name = grammar_name
         self.dependencies = {}  # key: alu, value: list of alus depending on key
         self.rev_dependencies = {}  # key: alu, value: list of alus that key depends on
@@ -18,6 +18,7 @@ class DominoOutputProcessor(GenericOutputProcessor):
         self.comp_graph = comp_graph
         self.salus = []
         self.alu_compnames = {}
+        self.fpgaVerify = fpgaVerify
 
     @overrides
     def process_stateless_output(self, input_file, output):
@@ -91,5 +92,5 @@ class DominoOutputProcessor(GenericOutputProcessor):
     @overrides
     def process_single_stateful_output(self, input_file, comp: synthesis.StatefulComponent, masked_input = None):
         print(' --------- processing stateful output ---------')
-        domino_alu = DominoGenericSALU(self.alu_id, input_file, comp, self.grammar_name, masked_input = masked_input)
+        domino_alu = DominoGenericSALU(self.alu_id, input_file, comp, self.grammar_name, masked_input = masked_input, fpga_mode = self.fpgaVerify)
         self.add_new_alu(domino_alu, input_file)

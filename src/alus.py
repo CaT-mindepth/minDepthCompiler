@@ -60,7 +60,8 @@ class GenericALU(object):
 
 
 class DominoGenericSALU(GenericALU):
-    def __init__(self, id, alu_filename, comp, kind, masked_input = None):
+    def __init__(self, id, alu_filename, comp, kind, masked_input = None, fpga_mode = False):
+        self.fpga_mode = fpga_mode
         self.alu_kind = kind 
         self.attributes = {}
         self.synthesized_template = comp.synthesized_template
@@ -106,9 +107,11 @@ class DominoGenericSALU(GenericALU):
             l = ""
             while not l.lstrip().rstrip().startswith('void salu'):
                 l = fd.readline()
-            
+            l = fd.readline() # { ...
+            l = fd.readline()
+
             # only try if-parsing when grammar is pred_raw or if_else_raw, but not do this when it's simply raw
-            if self.alu_kind == 'if_else_raw' or self.alu_kind == 'pred_raw':
+            if not (l.lstrip().rstrip().startswith('_out')) and self.alu_kind == 'if_else_raw' or self.alu_kind == 'pred_raw':
                 while not l.lstrip().rstrip().startswith('if'):
                     l = fd.readline()
                 
@@ -225,7 +228,7 @@ class DominoGenericSALU(GenericALU):
         }
 
     def make_dict(self):
-        if self.is_fpga_grammar():
+        if self.is_fpga_grammar() and self.fpga_mode:
             return self.make_parsed_dict()
         else:
             return {
