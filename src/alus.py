@@ -100,94 +100,114 @@ class DominoGenericSALU(GenericALU):
     def is_fpga_grammar(self):
         return self.alu_kind == "if_else_raw" or self.alu_kind == "pred_raw" or self.alu_kind == "raw"
 
-    def if_else_raw_output_parsing(self):
+    def fpga_salu_parser_start(self):
         print(' >>>>> if_else_raw output parsing start...')
         with open(self.alu_filename) as fd:
             l = ""
             while not l.lstrip().rstrip().startswith('void salu'):
                 l = fd.readline()
             
-            while not l.lstrip().rstrip().startswith('if'):
+            # only try if-parsing when grammar is pred_raw or if_else_raw, but not do this when it's simply raw
+            if self.alu_kind == 'if_else_raw' or self.alu_kind == 'pred_raw':
+                while not l.lstrip().rstrip().startswith('if'):
+                    l = fd.readline()
+                
+                # l = if ...
+                print('encountered if stmt... ', l.split('/')[0]) # split at comment '/*' as lexer cannot process it.
+                lexer = lex.lex(module=lexerRules)
+                lexer.input(l)
+                toks = [t for t in lexer]
+                # print(toks)
+                
+                assert toks[0].type == 'IF'
+                assert toks[1].type == 'LPAREN'
+
+                self.rel_op['lhs'] = toks[2].value if not (toks[2].value.startswith('state_0')) else 'state_0'
+                self.rel_op['opcode'] = toks[3].value
+                self.rel_op['rhs'] = toks[4].value
+
+                print(self.rel_op)
+
+                l = fd.readline() # { ... 
                 l = fd.readline()
-            
-            # l = if ...
-            print('encountered if stmt... ', l.split('/')[0]) # split at comment '/*' as lexer cannot process it.
-            lexer = lex.lex(module=lexerRules)
-            lexer.input(l)
-            toks = [t for t in lexer]
-            # print(toks)
-            
-            assert toks[0].type == 'IF'
-            assert toks[1].type == 'LPAREN'
+                lexer.input(l.split('/')[0])
+                toks = [t for t in lexer]
+                if not ('+' in l):
+                    # l is of form "state_0 = state_0 + <val>"
+                    assert toks[0].value == 'state_0'
+                    assert toks[1].value == '='
+                    self.true_asgn['opcode'] = "eq"
+                    self.true_asgn['operand'] = toks[2].value
+                else:
+                    # l is of form "state_0 = <val>"
+                    assert toks[0].value == 'state_0'
+                    assert toks[1].value == '='
+                    self.true_asgn['opcode'] = 'inc' # increment
+                    assert toks[3].value == '+'
+                    self.true_asgn['operand'] = toks[4].value
+                print(self.true_asgn)
+                # if we're pred_raw, then nothing else needs parsing, quit here
+                if (self.alu_kind == 'pred_raw'):
+                    return
+                l = fd.readline() # }
+                l = fd.readline() # else 
+                l = fd.readline() # { ... 
+                
+                l = fd.readline()
+                lexer.input(l.split('/')[0])
+                toks = [t for t in lexer]
+                if not ('+' in l):
+                    # l is of form "state_0 = state_0 + <val>"
+                    assert toks[0].value == 'state_0'
+                    assert toks[1].value == '='
+                    self.false_asgn['opcode'] = "eq"
+                    self.false_asgn['operand'] = toks[2].value
+                else:
+                    # l is of form "state_0 = <val>"
+                    assert toks[0].value == 'state_0'
+                    assert toks[1].value == '='
+                    self.false_asgn['opcode'] = 'inc' # increment
+                    assert toks[3].value == '+'
+                    self.false_asgn['operand'] = toks[4].value
+                print(self.false_asgn)
+                # we're done!
+            else: # raw grammar parsing
+                # void salu(...)
+                l = fd.readline() # {
+                l = fd.readline()
+                if l.lstrip().rstrip().startswith('_out0'):
+                    # special case: constant assignment to stateful ALU
+                    self.true_asgn['opcode'] = "eq"
+                    l = fd.readline()
+                    self.true_asgn['operand'] = l.split('=')[1].split(';')[0]
+                else:
+                    while not l.lstrip().rstrip().startswith('state_0 ='):
+                        l = fd.readlines()
+                    lexer = lex.lex(module=lexerRules)
+                    lexer.input(l.split('/')[0])
+                    toks = [t for t in lexer]
+                    if not ('+' in l):
+                        # l is of form "state_0 = state_0 + <val>"
+                        assert toks[0].value == 'state_0'
+                        assert toks[1].value == '='
+                        self.true_asgn['opcode'] = "eq"
+                        self.true_asgn['operand'] = toks[2].value
+                    else:
+                        # l is of form "state_0 = <val>"
+                        assert toks[0].value == 'state_0'
+                        assert toks[1].value == '='
+                        self.true_asgn['opcode'] = 'inc' # increment
+                        assert toks[3].value == '+'
+                        self.true_asgn['operand'] = toks[4].value
+                # we're done as well for raw-type ALU.
+                    
 
-            self.rel_op['lhs'] = toks[2].value if not (toks[2].value.startswith('state_0')) else 'state_0'
-            self.rel_op['opcode'] = toks[3].value
-            self.rel_op['rhs'] = toks[4].value
-
-            print(self.rel_op)
-
-            l = fd.readline() # { ... 
-            l = fd.readline()
-            lexer.input(l.split('/')[0])
-            toks = [t for t in lexer]
-            if not ('+' in l):
-                # l is of form "state_0 = state_0 + <val>"
-                assert toks[0].value == 'state_0'
-                assert toks[1].value == '='
-                self.true_asgn['opcode'] = "eq"
-                self.true_asgn['lhs'] = 'state_0'
-                self.true_asgn['rhs'] = toks[2].value
-            else:
-                # l is of form "state_0 = <val>"
-                assert toks[0].value == 'state_0'
-                assert toks[1].value == '='
-                self.true_asgn['opcode'] = 'inc' # increment
-                self.true_asgn['lhs'] = toks[2].value
-                assert toks[3].value == '+'
-                self.true_asgn['rhs'] = toks[4].value
-            print(self.true_asgn)
-
-            l = fd.readline() # }
-            l = fd.readline() # else 
-            l = fd.readline() # { ... 
-            
-            l = fd.readline()
-            lexer.input(l.split('/')[0])
-            toks = [t for t in lexer]
-            if not ('+' in l):
-                # l is of form "state_0 = state_0 + <val>"
-                assert toks[0].value == 'state_0'
-                assert toks[1].value == '='
-                self.false_asgn['opcode'] = "eq"
-                self.false_asgn['lhs'] = 'state_0'
-                self.false_asgn['rhs'] = toks[2].value
-            else:
-                # l is of form "state_0 = <val>"
-                assert toks[0].value == 'state_0'
-                assert toks[1].value == '='
-                self.false_asgn['opcode'] = 'inc' # increment
-                self.false_asgn['lhs'] = toks[2].value
-                assert toks[3].value == '+'
-                self.false_asgn['rhs'] = toks[4].value
-            print(self.false_asgn)
-            # we're done!
-
-    def pred_raw_output_parsing(self):
-        pass
-
-    def pred_output_parsing(self):
-        pass
 
     def fpga_output_parsing(self):
         self.rel_op = {"opcode": None, "lhs": None, "rhs": None}
-        self.true_asgn = {"opcode": None, "lhs": None, "rhs": None}
-        self.false_asgn = {"opcode": None, "lhs": None, "rhs": None}
-        if self.alu_kind == "if_else_raw":
-            self.if_else_raw_output_parsing()
-        elif self.alu_kind == "pred_raw":
-            self.pred_raw_output_parsing()
-        else: # == pred
-            self.pred_output_parsing()                
+        self.true_asgn = {"opcode": None, "operand": None}
+        self.false_asgn = {"opcode": None, "operand": None, }
+        self.fpga_salu_parser_start()               
         
         
     def make_parsed_dict(self):
@@ -196,8 +216,8 @@ class DominoGenericSALU(GenericALU):
             "kind": self.alu_kind, # if_else_raw, or pred_raw, or raw
             "id": self.id, # ID of the current ALU
             "input_state_0" : self.synthesized_template['ordered_inputs'][0], # name of the stateful variable
-            "input_pkt_1" : self.synthesized_template['ordered_inputs'][1], # phv/metadata name of pkt_1 argument
-            "input_pkt_2" : self.synthesized_template['ordered_inputs'][2], # phv/metadata name of pkt_2 argument
+            "input_pkt_1" : self.synthesized_template['ordered_inputs'][1] if len(self.synthesized_template['ordered_inputs']) > 1 else '0', # phv/metadata name of pkt_1 argument
+            "input_pkt_2" : self.synthesized_template['ordered_inputs'][2] if len(self.synthesized_template['ordered_inputs']) > 2 else '0', # phv/metadata name of pkt_2 argument
             "output_state" : "read" if self.synthesized_template['output'] in self.synthesized_template['read_flanks'] else 'write',
             "rel_op" : self.rel_op,
             "state_0_truth_asgn" : self.true_asgn,
