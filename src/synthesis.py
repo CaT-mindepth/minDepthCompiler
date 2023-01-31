@@ -41,7 +41,6 @@ def is_same_var(v1, v2):
     # v1 and v2 represent the same variable if the suffixes are numbers
     return v1_suffix.isnumeric() and v2_suffix.isnumeric()
 
-
 def get_variable_name(v1, v2):  # longest common prefix
     assert(v1 != v2)
     assert(is_same_var(v1, v2))
@@ -56,12 +55,22 @@ def get_variable_name(v1, v2):  # longest common prefix
             break
     return prefix
 
+def remove_surrounding_parentheses(expr):
+    expr = expr.strip()
+    while expr[0] == '(' or expr[-1] == ')':
+        if expr[0] == '(':
+            expr = expr[1:]
+            expr = expr.strip()
+        elif expr[-1] == ')':
+            expr = expr[:-1]
+            expr = expr.strip()
+
+    return expr
 
 def is_branch_var(var):
     # ruijief: updated this to make domino preprocessing input work.
     # var.startswith("p_br_tmp") or var.startswith("pkt_br_tmp")
     return "br" in var
-
 
 def is_tmp_var(var):
     return "tmp" in var
@@ -72,6 +81,22 @@ def get_tokens(expr):
 def equal_or_negation(toks1, toks2):
     return toks1 == toks2 or (toks1 == ['!'] + toks2) or (toks2 == ['!'] + toks1)
 
+def equal_expressions(expr1, expr2):
+    toks1 = get_tokens(expr1)
+    toks2 = get_tokens(expr2)
+    return toks1 == toks2
+
+def get_vars_of_atomic_expr(expr):
+    lexer = lex.lex(module=lexerRules)
+    lexer.input(expr)
+    vars = []
+    for tok in lexer:
+        if tok.type == 'ID':
+            vars.append(tok.value)
+
+    assert(len(vars) <= 2)
+    return vars
+        
 def atomic_expr(expr):
     lexer = lex.lex(module=lexerRules)
     lexer.input(expr)
@@ -162,6 +187,12 @@ class Component:  # group of codelets
         for codelet in self.codelets:
             self.comp_stmts.extend(codelet.get_stmt_list())
 
+    def find_stmt_defining(self, var):
+        for stmt in self.comp_stmts:
+            if stmt.lhs == var:
+                return stmt
+        return None
+
     # This merge_component should be removed since two stateless components cannot be merged
     def merge_component(self, comp):
         print("merge component")
@@ -173,18 +204,16 @@ class Component:  # group of codelets
             self.set_component_stmts()
             self.get_inputs_outputs()
 
-    def has_two_atomic_operands(self):
+    def is_conditional_expr(self):
         if len(self.comp_stmts) > 1:
             return False
+        elif self.comp_stmts[0].is_phi_node():
+            return False
         else:
-            # print("One statement")
             expr = self.comp_stmts[0].rhs
             self.operands = re.split('&&|\|\|', expr)
-            # print("operands", operands)
-            if len(self.operands) == 2 and atomic_expr(self.operands[0]) and atomic_expr(self.operands[1]):
-                print("two_atomic_operands")
-                print("operand 0", self.operands[0])
-                print("operand 1", self.operands[1])
+            if set([atomic_expr(operand) for operand in self.operands]) == {True}: # all operands are atomic expressions
+                print("atomic operands:", self.operands)
                 return True
             else:
                 return False
@@ -512,6 +541,12 @@ class StatefulComponent(object):
             return True
         else:
             return False
+        
+    def find_stmt_defining(self, var):
+        for stmt in self.comp_stmts:
+            if stmt.lhs == var:
+                return stmt
+        return None
 
     def last_ssa_var(self, var):
         ssa_vars = [o for o in self.outputs if o !=
@@ -642,24 +677,18 @@ class StatefulComponent(object):
 
 
     def can_fold(self, comp):
-        operand0 = comp.operands[0]
-        operand1 = comp.operands[1]
-        op0_tokens = get_tokens(operand0)
-        op1_tokens = get_tokens(operand1)
-        
         can_fold = False
+        self.to_fold = []
         for stmt in self.comp_stmts:
             stmt_tokens = get_tokens(stmt.rhs)
-            if equal_or_negation(op0_tokens, stmt_tokens):
-                # fold
-                can_fold = True
-                self.to_fold = operand0
-                break
-            elif equal_or_negation(op1_tokens, stmt_tokens):
-                can_fold = True
-                self.to_fold = operand1
-                break
-        
+            for operand in comp.operands:
+                op_tokens = get_tokens(operand)
+                if equal_or_negation(op_tokens, stmt_tokens):
+                    # fold
+                    can_fold = True
+                    self.to_fold.append(operand)
+                    break
+
         if can_fold:
             print("can_fold?: will fold: ", self.to_fold)
         else:
@@ -1142,29 +1171,133 @@ class Synthesizer:
         #	print('---------- Merge failure. ---------')
         #	return False
 
-    def try_partial_fold(self, comp1, comp2):
-        operand0 = comp1.operands[0]
-        operand1 = comp1.operands[1]
-        fold_lhs = self.get_new_tmp_var()
-        fold_stmt = Statement(fold_lhs, comp2.to_fold)
-        other_operand = operand0
-        if other_operand == comp2.to_fold:
-            other_operand = operand1
+    def can_fold_ites(self, node):
+        if len(node.codelets) > 1:
+            return False # too many codelets
+        else:
+            codelet = node.codelets[0]
+            if len(codelet.stmt_list) > 1:
+                return False # too many statements
+            
+        # node has a single statement
+        stmt = codelet.stmt_list[0]
+
+        br_variable = None
+        br_variable_assgn = None
+        br_operand = None
+        for operand in node.operands:
+            operand_tokens = get_tokens(operand)
+            for br_var, br_node in self.br_var_node.items():
+                if br_node in self.comp_graph.nodes and br_node != node:
+                    br_rhs = br_node.comp_stmts[0].rhs
+                    br_rhs_tokens = get_tokens(br_rhs)
+                    if equal_or_negation(br_rhs_tokens, operand_tokens):
+                        br_variable = br_var
+                        br_operand = operand
+
+                        if br_rhs_tokens == operand_tokens:
+                            br_variable_assgn = True
+                        else:
+                            br_variable_assgn = False
+                        break
+    
+        if br_variable is None:
+            return False
+       
+        # check if other operands are ites with br_var as condition
+        subst = {} # var -> new value
+        for operand in node.operands:
+            if operand != br_operand:
+                vars = get_vars_of_atomic_expr(operand)
+                for var in vars:
+                    for pred in self.comp_graph.predecessors(node):
+                        if var in pred.outputs:
+                            var_defn = pred.find_stmt_defining(var)
+                            if var_defn.is_phi_node() and var_defn.tokenize_phi_node()[0] == br_variable:
+                                _, case1, case2 = var_defn.tokenize_phi_node()
+                                if br_variable_assgn:
+                                    subst[var] = remove_surrounding_parentheses(case1)
+                                else:
+                                    subst[var] = remove_surrounding_parentheses(case2)
+
+                                print("can_fold_ites: can fold stmt:", var_defn)
+                                print("can_fold_ites: substituting", var, "->", subst[var])
+                                break
+        
+        # substitute
+        lhs = stmt.lhs
+        rhs = stmt.rhs
+        for var in subst.keys():
+            rhs = rhs.replace(var, subst[var])
+                
+        new_stmt = Statement(lhs, rhs)
+        node.codelets = [Codelet([new_stmt])]
+        node.set_component_stmts()
+        node.get_inputs_outputs()
+        print('can_fold_ites: Resultant node')
+        print(node)
+        print('inputs:', node.inputs)
+        print('outputs:', node.outputs)
+        return True
+    
+    def perform_fold_ites(self, node):
+        # remove old in-edges
+        self.comp_graph.remove_edges_from([(x, node) for x in self.comp_graph.predecessors(node)])
+        # add new in-edges
+        for input in node.inputs:
+            # find predecessor
+            for pred in self.comp_graph.nodes:
+                if (not pred.isStateful and input in pred.outputs) \
+                    or (pred.isStateful and input == pred.codelet.stateful_output):
+                    self.comp_graph.add_edge(pred, node)
+                    break
+
+        # leave successors unchanged
+
+
+    def try_partial_fold(self, comp1, comp2): # comp1: stateless predecessor, comp2: stateful node
+        fold_rhs_to_lhs = {}
+        fold_stmts = []
+        # create new tmp vars for fold_rhs expressions
+        for fold_rhs in comp2.to_fold:
+            fold_lhs = self.get_new_tmp_var()
+            fold_rhs = fold_rhs.strip()
+            fold_rhs_to_lhs[fold_rhs] = fold_lhs
+            fold_stmts.append(Statement(fold_lhs, fold_rhs))
+
+        comp1_lhs = comp1.comp_stmts[0].lhs
+        comp1_rhs = comp1.comp_stmts[0].rhs
+        other_rhs = comp1_rhs
+        # get rhs after removing all fold_rhs exprs
+        for fold_rhs in fold_rhs_to_lhs.keys():
+            while fold_rhs in other_rhs:
+                print('fold_rhs', fold_rhs)
+                other_rhs = other_rhs.replace(fold_rhs, '')
+                other_rhs = other_rhs.strip()
+        # remove extra operators in front
+        bin_ops = ['&&', '||']
+        for bin_op in bin_ops:
+            while other_rhs.find(bin_op) == 0:
+                other_rhs = other_rhs[2:]
+                other_rhs = other_rhs.strip()
+                
         other_lhs = self.get_new_tmp_var()
-        other_stmt = Statement(other_lhs, other_operand)
+        other_stmt = Statement(other_lhs, other_rhs)
 
-        comp_stmt_lhs = comp1.comp_stmts[0].lhs
-        comp_stmt_rhs = comp1.comp_stmts[0].rhs
-        combine_rhs = comp_stmt_rhs.replace(comp2.to_fold, fold_lhs)
-        combine_rhs = combine_rhs.replace(other_operand, other_lhs)
-        combine_stmt = Statement(comp_stmt_lhs, combine_rhs)
+        # replace fold_rhs with fold_lhs
+        combine_rhs = comp1_rhs
+        for fold_rhs, fold_lhs in fold_rhs_to_lhs.items():
+            combine_rhs = combine_rhs.replace(fold_rhs, fold_lhs)
 
-        print("fold stmt", fold_stmt)
-        print("other stmt", other_stmt)
-        print("combined stmt", combine_stmt)
+        combine_rhs = combine_rhs.replace(other_rhs, other_lhs)
+        combine_stmt = Statement(comp1_lhs, combine_rhs)
+
+        print("try_partial_fold: fold stmts:", fold_stmts)
+        print("try_partial_fold: other stmt:", other_stmt)
+        print("try_partial_fold: combined stmt:", combine_stmt)
 
         new_comp2 = copy.deepcopy(comp2)
-        stmts_to_insert = [fold_stmt, combine_stmt]
+        stmts_to_insert = fold_stmts + [combine_stmt]
         new_comp2.insert_in_order(stmts_to_insert)
 
         print('-------------- Attempting to fold... -------------')
@@ -1207,7 +1340,7 @@ class Synthesizer:
             print('		* new component 1: ', new_comp1)
             print('		* new component inputs : ', new_comp1.inputs)
             print('		* new component outputs : ', new_comp1.outputs)
-            
+
 
     def non_temporary_outputs(self, comp):
         x = list(
@@ -1547,6 +1680,7 @@ class Synthesizer:
 
         # Step 3: build graph
         self.scc_graph = nx.DiGraph()
+        self.br_var_node = {}
         for comp in self.components:
             self.scc_graph.add_node(comp)
             if comp.isStateful:
@@ -1554,9 +1688,14 @@ class Synthesizer:
                     u_comp = codelet_component[str(u)]
                     self.scc_graph.add_edge(u_comp, comp)
             else:  # comp is stateless
+                for output in comp.outputs:
+                    if self.var_types[output] == 'bit' and is_branch_var(output):
+                        self.br_var_node[output] = comp
                 for u in self.dep_graph.predecessors(comp.codelets[0]):
                     u_comp = codelet_component[str(u)]
                     self.scc_graph.add_edge(u_comp, comp)
+        
+        print('br_vars_nodes', self.br_var_node)
 
         print('number of nodes on SCC_GRAPH: ', len(self.scc_graph.nodes))
 
@@ -1771,9 +1910,6 @@ class Synthesizer:
         # Step 4: call merging procedure (if we choose to enable it)
         self.comp_graph = self.scc_graph
 
-        #exit(1)
-
-
         print('number of nodes in comp_graph: ', len(self.comp_graph.nodes))
 
         self.merge_idx = 0
@@ -1782,8 +1918,6 @@ class Synthesizer:
 
         self.draw_graph(self.comp_graph, self.filename + "_merged_graph")
         print('number of nodes in comp_graph ', len(self.comp_graph.nodes))
-        
-        #exit(1)
 
         # fold branch temporaries
         # if merging is disabled, we don't run folding.
@@ -1838,22 +1972,33 @@ class Synthesizer:
                             else:
                                 print(' --- cannot fold.')
 
+
         self.draw_graph(self.comp_graph, self.filename + "_folded_graph")
+        
+        # fold ites
+        nodes_to_fold_ites = []
+        for node in self.comp_graph.nodes:
+            if (not node.isStateful) and node.is_conditional_expr():
+                if self.can_fold_ites(node):
+                    nodes_to_fold_ites.append(node)
+
+        for node in nodes_to_fold_ites:
+            self.perform_fold_ites(node)
+
+        self.draw_graph(self.comp_graph, self.filename + "_folded_ites_graph")
 
         # partial folding
         nodes_to_fold = []
         for node in self.comp_graph.nodes:
-            if (not node.isStateful) and node.has_two_atomic_operands():
-                print("Two atomic operands")
+            if (not node.isStateful) and node.is_conditional_expr():
                 for nbr in self.comp_graph.successors(node):
                     if nbr.isStateful and nbr.can_fold(node):
                         nodes_to_fold.append((node, nbr))
-        
+
         for node, nbr in nodes_to_fold:   
             self.try_partial_fold(node, nbr)
 
         if len(nodes_to_fold) > 0:
-            print("Partially folded some nodes")
             self.draw_graph(self.comp_graph, self.filename + "_partial_folded_graph")
 
         # all synthesized stateful outputs
