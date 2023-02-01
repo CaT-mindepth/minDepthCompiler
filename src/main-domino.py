@@ -97,8 +97,8 @@ if __name__ == "__main__":
   outputfilename = args.sketch
   p4outputname = args.output
   stateful_alu = args.statefulALU
-  max_stages = args.stages
-  max_alus = args.ALUs
+  # max_stages = 0 # args.stages
+  # max_alus = 0 # args.ALUs
   enableMerging = args.predPack
   fpgaVerify = args.fpgaVerify
 
