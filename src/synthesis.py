@@ -682,7 +682,7 @@ class Component:  # group of codelets
         succ_bnd = bnd # record synthesis bound
         return (filename, succ_bnd)
 
-    def get_input_bounds(self, synth_bounds):
+    def get_input_bounds(self, synth_bounds, inputs_masked = None):
         bnd_inputs = {} # bound -> inputs
         for i in self.inputs:
             assert(i in synth_bounds)
@@ -828,13 +828,17 @@ class StatefulComponent(object):
 
         self.actual_outputs = outputs
 
-    def get_input_bounds(self, synth_bounds):
+    def get_input_bounds(self, synth_bounds, inputs_masked = set()):
         bnd_inputs = {} # bound -> inputs
         print("synth_bounds", synth_bounds)
         for i in self.inputs:
             print(i)
+                 
             if i in synth_bounds:
-                bd = synth_bounds[i]
+                if (self, i) in inputs_masked:
+                    bd = 0
+                else:
+                    bd = synth_bounds[i]
                 if bd not in bnd_inputs:
                     bnd_inputs[bd] = [i]
                 else:
@@ -2443,6 +2447,9 @@ class Synthesizer:
             self.synth_output_processor = DominoOutputProcessor(
                 self.synth_graph, self.stateful_path, fpgaVerify = self.fpgaVerify)
 
+
+        inputs_masked = set()
+
         # Step 6: Synthesize stateful nodes
         for node in self.synth_graph.nodes:
             if node.isStateful:
@@ -2456,6 +2463,7 @@ class Synthesizer:
                     masked_input = preds[0].codelet.stateful_output 
                     print('node: ', str(node))
                     print('masked input: ', masked_input)
+                    inputs_masked.add((node, masked_input))
                     res = node.write_sketch_file(self.output_dir, node_name, self.var_types, mask = masked_input)
                     node.post_synthesis(self.read_write_flanks) # fill in some post-synth information for postprocessing
                     if res != None:
@@ -2516,7 +2524,7 @@ class Synthesizer:
                         self.synth_output_processor.process_stateless_output(result_file, o)
             else: # stateful -- update synth_bounds
                 assert(comp.isStateful)
-                bnd_vars = comp.get_input_bounds(self.synth_bounds)
+                bnd_vars = comp.get_input_bounds(self.synth_bounds, inputs_masked = inputs_masked)
                 input_bnds = list(bnd_vars.keys())
                 output = comp.codelet.stateful_output
                 if output != None:
