@@ -930,13 +930,8 @@ class StatefulComponent(object):
             print("can_fold?: will fold: ", self.to_fold)
         else:
             print("can_fold?: cannot fold")
-            self.to_fold = operand1
-            
 
-        # change
-
-
-        return True#can_fold
+        return can_fold
 
     def merge_component(self, comp, reversed=False):
         print("merge component: component is ---- ", self)
