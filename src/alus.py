@@ -176,12 +176,11 @@ class DominoGenericSALU(GenericALU):
                 # we're done!
             else: # raw grammar parsing
                 # void salu(...)
-                l = fd.readline() # {
-                l = fd.readline()
+                l = fd.readline() # out0[0]
+                l = fd.readline() # out0[1]
                 if l.lstrip().rstrip().startswith('_out0'):
                     # special case: constant assignment to stateful ALU
                     self.true_asgn['opcode'] = "eq"
-                    l = fd.readline()
                     self.true_asgn['operand'] = l.split('=')[1].split(';')[0]
                 else:
                     while not l.lstrip().rstrip().startswith('state_0 ='):
