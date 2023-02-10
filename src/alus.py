@@ -107,7 +107,7 @@ class DominoGenericSALU(GenericALU):
             while not l.lstrip().rstrip().startswith('void salu'):
                 l = fd.readline()
             l = fd.readline() # { ...
-            while not l.lstrip().rstrip() == 'return':
+            while not ('return' in l.lstrip().rstrip()):
                 if l.lstrip().rstrip().startswith('if'):
                     return True
                 l = fd.readline()
