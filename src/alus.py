@@ -101,9 +101,23 @@ class DominoGenericSALU(GenericALU):
     def is_fpga_grammar(self):
         return self.alu_kind == "if_else_raw" or self.alu_kind == "pred_raw" or self.alu_kind == "raw"
 
+    def contains_if(self):
+        with open(self.alu_filename) as fd:
+            l = ""
+            while not l.lstrip().rstrip().startswith('void salu'):
+                l = fd.readline()
+            l = fd.readline() # { ...
+            while not l.lstrip().rstrip() == 'return':
+                if l.lstrip().rstrip().startswith('if'):
+                    return True
+                l = fd.readline()
+        return False
+
     def fpga_salu_parser_start(self):
         print(' >>>>> if_else_raw output parsing start...')
-        print('opening file ', self.alu_filename)
+        print('opening file, checking if contains_if ', self.alu_filename)
+        contains_if = self.contains_if()
+        print('contains_if check done. contains if? ', contains_if)
         with open(self.alu_filename) as fd:
             l = ""
             while not l.lstrip().rstrip().startswith('void salu'):
@@ -112,7 +126,7 @@ class DominoGenericSALU(GenericALU):
             l = fd.readline()
 
             # only try if-parsing when grammar is pred_raw or if_else_raw, but not do this when it's simply raw
-            if (not (l.lstrip().rstrip().startswith('_out'))) and (self.alu_kind == 'if_else_raw' or self.alu_kind == 'pred_raw'):
+            if (not (contains_if)) and (self.alu_kind == 'if_else_raw' or self.alu_kind == 'pred_raw'):
                 print('parsing if_else ALU. searching for if...')
                 while not l.lstrip().rstrip().startswith('if'):
                     l = fd.readline()
@@ -186,7 +200,7 @@ class DominoGenericSALU(GenericALU):
                     self.true_asgn['operand'] = l.split('=')[1].split(';')[0]
                 else:
                     while not l.lstrip().rstrip().startswith('state_0 ='):
-                        l = fd.readlines()
+                        l = fd.readline()
                     lexer = lex.lex(module=lexerRules)
                     lexer.input(l.split('/')[0])
                     toks = [t for t in lexer]
