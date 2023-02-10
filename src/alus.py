@@ -103,6 +103,7 @@ class DominoGenericSALU(GenericALU):
 
     def fpga_salu_parser_start(self):
         print(' >>>>> if_else_raw output parsing start...')
+        print('opening file ', self.alu_filename)
         with open(self.alu_filename) as fd:
             l = ""
             while not l.lstrip().rstrip().startswith('void salu'):
@@ -112,6 +113,7 @@ class DominoGenericSALU(GenericALU):
 
             # only try if-parsing when grammar is pred_raw or if_else_raw, but not do this when it's simply raw
             if not (l.lstrip().rstrip().startswith('_out')) and self.alu_kind == 'if_else_raw' or self.alu_kind == 'pred_raw':
+                print('parsing if_else ALU. searching for if...')
                 while not l.lstrip().rstrip().startswith('if'):
                     l = fd.readline()
                 
