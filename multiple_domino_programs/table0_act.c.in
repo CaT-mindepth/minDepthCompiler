@@ -1,6 +1,0 @@
-int pkt_pkt_00;
-int pkt_pkt_01;
-# state variables start
-# state variables end
-# declarations end
-pkt_pkt_01 = pkt_pkt_00 + 1;
