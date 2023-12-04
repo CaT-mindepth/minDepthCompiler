@@ -21,7 +21,6 @@ def tokenize_expr(expr):
 tofino_stateless_grammar = 'grammars/stateless_tofino_new.sk'
 tofino_stateful_grammar = 'grammars/stateful_tofino.sk'
 
-
 class codeGen:
   var_types = {}  # key: variable, value: type
   stmt_map = {}  # key: lhs var, value: list of assignment statements
@@ -77,6 +76,7 @@ if __name__ == "__main__":
   arg_parser.add_argument("--ALUs", help="number of ALUs per stage", type=int)
   arg_parser.add_argument("--predPack", help="enable_predecessor_packing", action="store_true")
   arg_parser.add_argument('--eval', help="evaluation mode", action="store_true")
+  arg_parser.add_argument('--parallel',help="run SKETCH using parallel mode, only works on linux machines", action="store_true")
   args = arg_parser.parse_args()
 
   filename = args.input
@@ -98,7 +98,7 @@ if __name__ == "__main__":
                                     dep_graph_obj.scc_graph, dep_graph_obj.read_write_flanks, dep_graph_obj.stateful_nodes,
                                      outputfilename, p4outputname, enableMerging = args.predPack, \
                                      is_tofino = True, stateless_path = 'tofino', 
-                                     stateful_path='tofino', eval = args.eval)
+                                     stateful_path='tofino', eval = args.eval, enable_parallel=arg_parser.parallel)
 
 
   

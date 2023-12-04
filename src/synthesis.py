@@ -15,6 +15,7 @@ from dependencyGraph import Statement
 import test_stats
 import grammar_util
 
+
 # Returns true if SSA variables v1 and v2 represent the same variable
 # TODO: update preprocessing code to store SSA info in a struct/class
 # instead of relying on string matching
@@ -547,9 +548,11 @@ class Component:  # group of codelets
             f_sk_out = open(sketch_outfilename, "w+")
             print("running sketch, bnd = {}".format(bnd))
             print("sketch_filename", sketch_filename)
-            ret_code = subprocess.call(
-                ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
-                # ["sketch", sketch_filename], stdout=f_sk_out)
+            ret_code = None 
+            if self.enable_parallel:
+                ret_code = subprocess.call(["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+            else:
+                ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -663,8 +666,10 @@ class Component:  # group of codelets
             f_sk_out = open(sketch_outfilename, "w+")
             print("running sketch, bnd = {}".format(bnd))
             print("sketch_filename", sketch_filename)
-            ret_code = subprocess.call(["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
-            # ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
+            if self.enable_parallel:
+                ret_code = subprocess.call(["sketch", "-slv-parallel", sketch_filename], stdout=f_sk_out)
+            else:
+                ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -1309,9 +1314,11 @@ class StatefulComponent(object):
         with open(sketch_outfilename, "w+") as f_sk_out:
             print("running sketch for stateful")
             print("sketch_filename", sketch_filename)
-            ret_code = subprocess.call(
-                ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
-                # ["sketch", sketch_filename], stdout=f_sk_out)
+            if self.enable_parallel:
+                ret_code = subprocess.call(
+                    ["sketch", "--slv-parallel", sketch_filename], stdout=f_sk_out)
+            else:
+                ret_code = subprocess.call(["sketch", sketch_filename], stdout=f_sk_out)
             print("return code", ret_code)
             if ret_code == 0:  # successful
                 if stats != None:
@@ -1337,7 +1344,7 @@ class Synthesizer:
     def __init__(self, state_vars,
                  var_types, pkt_vars, PIs, dep_graph, read_write_flanks, stateful_nodes,
                  filename, p4_output_name, enableMerging, stats: test_stats.Statistics = None,
-                 is_tofino=True, stateless_path=None, stateful_path=None, eval = False, fpgaVerify = False):
+                 is_tofino=True, stateless_path=None, stateful_path=None, eval = False, fpgaVerify = False, enable_parallel = False):
         # handle domino grammar generation.
         self.is_tofino = is_tofino
         self.stateless_path = stateless_path
@@ -1345,6 +1352,7 @@ class Synthesizer:
 
         self.eval = eval
         self.fpgaVerify = fpgaVerify
+        self.enable_parallel = enable_parallel
 
         self.state_vars = state_vars
         self.var_types = var_types
